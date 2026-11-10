@@ -527,6 +527,7 @@
     renderRoomMap(mapEl, list);
     listEl.innerHTML = list.length ? list.map((r) => roomCard(r, true)).join('')
       : `<div class="empty">${icon('search', 40)}<b>조건에 맞는 방이 없어요</b>필터를 조금 넓혀 보세요.<div style="margin-top:12px"><button class="btn btn-outline" data-act="rf-reset">필터 초기화</button></div></div>`;
+    listEl.insertAdjacentHTML('beforeend', extCard('blooming'));
     $$('.room-card', listEl).forEach((el) => el.classList.toggle('active', el.dataset.room === activeRoom));
   }
   function readFilters() {
@@ -1367,6 +1368,33 @@
     mmap.fitBounds([ll, [GEO.lat, GEO.lng]], { padding: [44, 44], maxZoom: 16 });
   }
 
+  /* ── 외부 앱 연결 (데이터는 가져오지 않고, 해당 앱·스토어로 보내기만 해요) ── */
+  const platform = () => { const ua = navigator.userAgent || ''; if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'ios'; if (/Android/.test(ua)) return 'android'; return 'web'; };
+  const findExt = (id) => D.externalApps.find((x) => x.id === id);
+  function extCard(id) {
+    const x = findExt(id);
+    if (!x) return '';
+    return `<section class="ext-card" aria-label="외부 앱 연결: ${esc(x.name)}">
+      <span class="ext-ic" aria-hidden="true">${icon('building', 22)}</span>
+      <div class="ext-body"><span class="ext-tag">외부 앱 연결</span><b>${esc(x.headline)}</b><p>${esc(x.desc)}</p></div>
+      <button class="btn btn-outline btn-sm" data-act="ext-app" data-id="${x.id}">${esc(x.name)} 열기${icon('right', 15)}</button>
+    </section>`;
+  }
+  function openExt(id) {
+    const x = findExt(id), p = platform();
+    const url = p === 'android' ? x.android : x.ios;
+    const label = p === 'ios' ? 'App Store에서 열기' : p === 'android' ? 'Play 스토어에서 찾기' : 'App Store 페이지 보기';
+    openModal(modalBox(`${esc(x.name)}(으)로 이동할게요`, `
+      <p style="font-size:14.5px">${esc(x.name)}은(는) CampusMate와 <b>별개의 외부 서비스</b>예요. 매물·계약·결제는 ${esc(x.name)}과 집주인의 정책을 따라요.</p>
+      <ul class="rules" style="margin-top:10px">
+        <li>${icon('check')}앱이 설치돼 있으면 스토어에서 ‘열기’를 누르면 돼요</li>
+        <li>${icon('check')}서비스 학교: ${esc(x.schools)}</li>
+        <li>${icon('alert')}계약 전에 방을 직접 보고, 등기부등본을 확인하세요</li>
+      </ul>
+      <div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener noreferrer" data-act="close-go">${label}</a></div>
+      <p class="small muted" style="margin-top:12px;text-align:center">CampusMate는 ${esc(x.name)}과 제휴 관계가 아니며, 링크만 연결해요.</p>`));
+  }
+
   function notFound() {
     return `<div class="card empty" style="margin-top:20px">${icon('search', 40)}<b>페이지를 찾을 수 없어요</b>삭제되었거나 차단한 사용자의 글일 수 있어요.<div style="margin-top:12px"><a class="btn btn-primary" href="#home">홈으로</a></div></div>`;
   }
@@ -1535,6 +1563,7 @@
       case 'close': closeModal(); break;
       case 'close-go': slot.innerHTML = ''; document.body.style.overflow = ''; chat = null; break;
       case 'notif': openNotif(); break;
+      case 'ext-app': openExt(id); break;
       case 'menu': openMenu(); break;
       case 'fav-contest': { const on = toggleIn(S.scrapContests, id); save(); route(); toast(on ? '스크랩했어요. 마감 3일 전에 알려드릴게요' : '스크랩을 해제했어요', 'heart'); break; }
       case 'k-cat': KF.cat = el.dataset.v; route(); break;

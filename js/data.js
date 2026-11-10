@@ -375,5 +375,13 @@ window.CM_DATA = (() => {
     { id: 'u6', nick: '데이터보는심리학도', dept: '심리학과 3학년', roles: ['리서치', '기획'], tools: ['SPSS', 'Notion'], want: ['디자인', '학술·논문'], time: '주 6시간', done: 2, rate: 100, intro: '사용자 인터뷰·설문 설계 잘해요. UX 리서치 하고 싶어요.' },
   ];
 
-  return { contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  /* ── 외부 앱 연결 (데이터 연동 없음, 스토어 링크만) ── */
+  const externalApps = [
+    { id: 'blooming', name: '블루밍', headline: '집주인이 올린 원룸은 블루밍에서', desc: '학교 주변 원룸 비교 · 직접 찍은 사진과 VR 사진 · 집주인과 채팅',
+      schools: '한국교통대(충주·증평), 건국대(글로컬), 세명대·대원대, 한서대 등',
+      ios: 'https://apps.apple.com/kr/app/id895407776',
+      android: 'https://play.google.com/store/search?q=%EB%B8%94%EB%A3%A8%EB%B0%8D%20%EC%9E%90%EC%B7%A8%EB%B0%A9&c=apps' },
+  ];
+
+  return { externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();

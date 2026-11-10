@@ -33,6 +33,7 @@ struct CampusWebView: UIViewRepresentable {
         web.scrollView.contentInsetAdjustmentBehavior = .never
         web.allowsBackForwardNavigationGestures = true
         web.navigationDelegate = context.coordinator
+        web.uiDelegate = context.coordinator
         #if DEBUG
         if #available(iOS 16.4, *) { web.isInspectable = true }  // Safari 웹 속성으로 디버깅
         #endif
@@ -47,16 +48,29 @@ struct CampusWebView: UIViewRepresentable {
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
-        /// 앱 안의 페이지(file://)와 폰트 CDN은 웹뷰에서, 그 밖의 외부 링크는 Safari로 열어요.
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+        /// 앱 안의 페이지(file://)는 웹뷰에서 열고, 사용자가 누른 외부 링크(App Store 등)는 시스템에 넘겨요.
+        /// App Store 링크는 App Store 앱으로, 그 밖의 웹 주소는 Safari로 열려요.
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            guard let url = action.request.url, action.navigationType == .linkActivated,
-                  let scheme = url.scheme, scheme.hasPrefix("http") else {
+            guard let url = action.request.url, let scheme = url.scheme?.lowercased() else {
                 decisionHandler(.allow); return
             }
-            UIApplication.shared.open(url)
-            decisionHandler(.cancel)
+            let userTapped = action.navigationType == .linkActivated || action.targetFrame == nil
+            let isExternal = !["file", "about", "data", "blob"].contains(scheme)
+            if isExternal && (userTapped || !scheme.hasPrefix("http")) {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
+
+        /// target="_blank" 링크: 새 창 대신 시스템으로 열어요.
+        func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                     for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+            if let url = action.request.url { UIApplication.shared.open(url) }
+            return nil
         }
     }
 }
