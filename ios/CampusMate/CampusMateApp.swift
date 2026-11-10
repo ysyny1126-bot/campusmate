@@ -21,6 +21,8 @@ struct CampusWebView: UIViewRepresentable {
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()          // 인증·찜 등 데모 상태(localStorage) 유지
         config.allowsInlineMediaPlayback = true
+        // OpenStreetMap 타일 이용 규칙: 요청하는 앱을 알 수 있는 User-Agent를 보내야 해요.
+        config.applicationNameForUserAgent = "CampusMateDemo/1.0 (iOS; github.com/ysyny1126-bot/campusmate)"
 
         let web = WKWebView(frame: .zero, configuration: config)
         let bg = UIColor(red: 245 / 255, green: 244 / 255, blue: 250 / 255, alpha: 1)

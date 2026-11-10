@@ -524,8 +524,7 @@
     cnt.innerHTML = `매물 <b>${list.length}</b>개`;
     const fc = $('#fp-count'); if (fc) fc.textContent = list.length;
     const fb = $('#filter-bar'); if (fb) fb.innerHTML = filterBar();
-    mapEl.innerHTML = mapBg() + list.map((r) => `<button class="pin ${r.deal === '룸쉐어' ? 'share' : ''} ${activeRoom === r.id ? 'active' : ''}" style="left:${(r.x / 6).toFixed(1)}%;top:${(r.y / 4).toFixed(1)}%" data-act="pin" data-id="${r.id}" aria-label="${esc(r.title)}, 월 ${r.rent}만원">${r.rent}만</button>`).join('')
-      + `<div class="map-legend"><span><i style="background:var(--navy-800)"></i>양도</span><span><i style="background:var(--blue-600)"></i>룸쉐어</span></div><span class="map-note">데모 지도</span><div class="map-zoom" aria-hidden="true"><span>+</span><span>−</span></div>`;
+    renderRoomMap(mapEl, list);
     listEl.innerHTML = list.length ? list.map((r) => roomCard(r, true)).join('')
       : `<div class="empty">${icon('search', 40)}<b>조건에 맞는 방이 없어요</b>필터를 조금 넓혀 보세요.<div style="margin-top:12px"><button class="btn btn-outline" data-act="rf-reset">필터 초기화</button></div></div>`;
     $$('.room-card', listEl).forEach((el) => el.classList.toggle('active', el.dataset.room === activeRoom));
@@ -588,7 +587,7 @@
           <a class="btn btn-outline btn-sm" style="margin-top:8px" href="#roommate-survey">내 생활 습관과 비교해 보기</a></section>` : ''}
         <section class="card pad"><h2 class="block-title">방 설명</h2><p class="prose">${esc(r.desc)}</p></section>
         <section class="card pad"><h2 class="block-title">위치</h2>
-          <div class="map-wrap mini">${mapBg()}<span class="pin active" style="left:${(r.x / 6).toFixed(1)}%;top:${(r.y / 4).toFixed(1)}%">${r.rent}만</span></div>
+          <div class="map-wrap mini" id="room-mini" aria-label="매물 위치 지도">${mapBg()}<span class="pin active" style="left:${(r.x / 6).toFixed(1)}%;top:${(r.y / 4).toFixed(1)}%">${r.rent}만</span></div>
           <div class="meta" style="margin-top:10px">${icon('walk')}정문까지 ${distLabel(r.dist)} · 도보 ${r.walk}분${r.bus ? ` · 버스 ${r.bus}분` : ''} · 정확한 주소는 문의 후 공개돼요</div></section>
       </div>
       <aside class="detail-aside grid" style="gap:16px">
@@ -1309,6 +1308,65 @@
     return parts.length ? parts.join('<div class="divider"></div>') : `<div class="empty">${icon('trophy', 36)}<b>아직 참여한 프로젝트가 없어요</b>마감이 가까운 공모전부터 둘러보세요.<div style="margin-top:12px"><a class="btn btn-primary" href="#contests">공모전 보기</a></div></div>`;
   }
 
+  /* ── 무료 지도: Leaflet + OpenStreetMap 타일. 타일을 못 불러오면 데모 지도로 자동 전환 ── */
+  const GEO = D.school.geo;
+  const toLatLng = (r) => (r.lat ? [r.lat, r.lng] : [GEO.lat - 0.0016 - (r.y - 100) * 0.00003, GEO.lng + (r.x - 320) * 0.000045]);
+  const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> 기여자';
+  let tilesOk = null; // null: 아직 모름, true: 정상, false: 차단·오프라인 → 데모 지도 사용
+  let lmap = null, lmarkers = null, lastFitKey = '', mmap = null;
+  const liveMapOk = () => !!window.L && tilesOk !== false;
+  const campusIcon = () => L.divIcon({ className: 'lp-icon', html: `<span class="campus-pin">${icon('building', 13)}${esc(D.school.short)}</span>`, iconSize: [0, 0] });
+
+  function makeMap(el, onFail, extra = {}) {
+    el.innerHTML = '';
+    el.classList.add('live');
+    const map = L.map(el, Object.assign({ scrollWheelZoom: false, zoomControl: true, attributionControl: true }, extra));
+    const layer = L.tileLayer(TILE_URL, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(map);
+    let loaded = false;
+    layer.on('tileload', () => { loaded = true; tilesOk = true; });
+    setTimeout(() => { if (!loaded && tilesOk !== true) { tilesOk = false; onFail(); } }, 4500);
+    L.marker([GEO.lat, GEO.lng], { icon: campusIcon(), interactive: false, keyboard: false }).addTo(map);
+    return map;
+  }
+
+  function svgRoomMap(mapEl, list) {
+    mapEl.classList.remove('live');
+    mapEl.innerHTML = mapBg() + list.map((r) => `<button class="pin ${r.deal === '룸쉐어' ? 'share' : ''} ${activeRoom === r.id ? 'active' : ''}" style="left:${(r.x / 6).toFixed(1)}%;top:${(r.y / 4).toFixed(1)}%" data-act="pin" data-id="${r.id}" aria-label="${esc(r.title)}, 월 ${r.rent}만원">${r.rent}만</button>`).join('')
+      + `<div class="map-legend"><span><i style="background:var(--navy-800)"></i>양도</span><span><i style="background:var(--blue-600)"></i>룸쉐어</span></div><span class="map-note">데모 지도</span><div class="map-zoom" aria-hidden="true"><span>+</span><span>−</span></div>`;
+  }
+
+  function renderRoomMap(mapEl, list) {
+    if (!liveMapOk()) { if (lmap) { lmap.remove(); lmap = null; } return svgRoomMap(mapEl, list); }
+    if (!lmap || lmap.getContainer() !== mapEl) {
+      if (lmap) lmap.remove();
+      lastFitKey = '';
+      lmap = makeMap(mapEl, () => { if (lmap) { lmap.remove(); lmap = null; } if ($('#room-map')) updateRooms(); });
+      lmarkers = L.layerGroup().addTo(lmap);
+      mapEl.insertAdjacentHTML('beforeend', `<div class="map-legend"><span><i style="background:var(--navy-800)"></i>양도</span><span><i style="background:var(--blue-600)"></i>룸쉐어</span><span class="geo-note">${esc(GEO.label)}</span></div>`);
+    }
+    lmarkers.clearLayers();
+    const pts = [[GEO.lat, GEO.lng]];
+    list.forEach((r) => {
+      const ll = toLatLng(r); pts.push(ll);
+      lmarkers.addLayer(L.marker(ll, { keyboard: false, riseOnHover: true, zIndexOffset: activeRoom === r.id ? 1000 : 0,
+        icon: L.divIcon({ className: 'lp-icon', iconSize: [0, 0], html: `<button class="pin ${r.deal === '룸쉐어' ? 'share' : ''} ${activeRoom === r.id ? 'active' : ''}" data-act="pin" data-id="${r.id}" aria-label="${esc(r.title)}, 월 ${r.rent}만원">${r.rent}만</button>` }) }));
+    });
+    const key = list.map((r) => r.id).join(',');
+    if (key !== lastFitKey) { lastFitKey = key; lmap.fitBounds(pts, { padding: [40, 40], maxZoom: 16 }); }
+  }
+
+  function initMiniMap(id) {
+    const el = $('#room-mini'), r = findRoom(id);
+    if (mmap) { mmap.remove(); mmap = null; }
+    if (!el || !r || !liveMapOk()) return;
+    const fallback = el.innerHTML;
+    mmap = makeMap(el, () => { if (mmap) { mmap.remove(); mmap = null; } el.classList.remove('live'); el.innerHTML = fallback; }, { dragging: !L.Browser.mobile, tap: false });
+    const ll = toLatLng(r);
+    L.marker(ll, { interactive: false, keyboard: false, icon: L.divIcon({ className: 'lp-icon', iconSize: [0, 0], html: `<span class="pin active">${r.rent}만</span>` }) }).addTo(mmap);
+    mmap.fitBounds([ll, [GEO.lat, GEO.lng]], { padding: [44, 44], maxZoom: 16 });
+  }
+
   function notFound() {
     return `<div class="card empty" style="margin-top:20px">${icon('search', 40)}<b>페이지를 찾을 수 없어요</b>삭제되었거나 차단한 사용자의 글일 수 있어요.<div style="margin-top:12px"><a class="btn btn-primary" href="#home">홈으로</a></div></div>`;
   }
@@ -1340,6 +1398,7 @@
     main.innerHTML = html;
     renderChrome(nav);
     if (p === 'rooms' && !a) updateRooms();
+    if (p === 'rooms' && a && a !== 'new') initMiniMap(a); else if (mmap) { mmap.remove(); mmap = null; }
     void b;
   }
   let lastHash = '';

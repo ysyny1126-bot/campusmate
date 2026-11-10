@@ -803,3 +803,17 @@ input[type=range] { width: 100%; accent-color: var(--navy-800); height: 28px; }
 button.more { background: none; cursor: pointer; }
 
 @media (max-width: 1279px) { .school-chip { display: none !important; } .desk-nav { margin-left: 8px; } .desk-nav a { padding: 7px 11px; font-size: 14px; } }
+
+/* ───────── Live map (Leaflet + OpenStreetMap) ───────── */
+.map-wrap.live .leaflet-tile-pane { filter: saturate(.55) brightness(1.04) contrast(.95); }
+.map-wrap { isolation: isolate; }
+.map-wrap.live { background: #E8EDF0; }
+.leaflet-container { font-family: inherit; }
+.lp-icon { background: none; border: 0; }
+.lp-icon .pin { position: absolute; left: 0; top: 0; }
+.campus-pin { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); display: inline-flex; gap: 4px; align-items: center; background: var(--mint-400); color: var(--navy-950); font-weight: 800; font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 2px solid #fff; box-shadow: var(--shadow); white-space: nowrap; }
+.map-wrap.live .map-legend { z-index: 800; bottom: 26px; flex-wrap: wrap; max-width: calc(100% - 80px); }
+.geo-note { color: var(--subtle); font-weight: 600; }
+.map-wrap .leaflet-bar { border: 0; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.map-wrap .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; color: var(--navy-900); }
+.map-wrap .leaflet-control-attribution { font-size: 10px; border-radius: 8px 0 0 0; }

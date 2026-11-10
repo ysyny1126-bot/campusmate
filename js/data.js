@@ -1,6 +1,8 @@
 /* CampusMate 데모 더미 데이터 — 학교명·인물은 모두 가상입니다. */
 window.CM_DATA = (() => {
-  const school = { name: '한빛대학교', short: '한빛대', domain: 'hanbit.ac.kr', students: 12480 };
+  const school = { name: '한빛대학교', short: '한빛대', domain: 'hanbit.ac.kr', students: 12480,
+    // 지도 기준 위치 (예시: 국립한국교통대학교 충주캠퍼스, 충북 충주시 대학로 50). 다른 학교로 바꾸려면 좌표만 수정하세요.
+    geo: { lat: 36.9706833, lng: 127.8706892, label: '예시 위치 · 한국교통대 충주캠퍼스' } };
 
   const safePlaces = [
     { id: 'dorm', name: '청운관(기숙사) 앞', desc: '24시간 CCTV · 경비실 바로 옆', hours: '24시간' },
