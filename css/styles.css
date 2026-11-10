@@ -55,7 +55,7 @@ ul, ol { list-style: none; }
 .skip-link:focus { top: 10px; }
 
 /* ───────── Top bar ───────── */
-.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: rgba(245, 244, 250, .88); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); }
+.topbar { position: sticky; top: 0; padding-top: env(safe-area-inset-top, 0px); z-index: 40; background: rgba(245, 244, 250, .88); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); }
 .topbar-inner { max-width: 1160px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
 .logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 18px; color: var(--navy-900); letter-spacing: -0.03em; }
 .logo-mark { width: 32px; height: 32px; border-radius: 11px; background: var(--navy-800); color: var(--mint-400); display: grid; place-items: center; }

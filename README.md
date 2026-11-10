@@ -23,6 +23,14 @@
 python3 -m http.server 8000
 ```
 
+## iOS 앱 (Xcode)
+웹 프로토타입을 WKWebView로 감싼 iOS 앱이 `ios/` 폴더에 있어요.
+
+1. `ios/CampusMate.xcodeproj`를 Xcode로 열어요.
+2. 상단에서 iPhone 시뮬레이터를 고르고 ▶︎(Run)을 눌러요.
+
+빌드할 때마다 저장소 루트의 `index.html`, `css/`, `js/`가 앱 번들의 `Web` 폴더로 복사돼서, 웹을 고치면 앱에도 그대로 반영돼요. 인터넷이 없어도 열리고, 폰트만 온라인일 때 받아와요.
+
 ## 구조
 | 파일 | 역할 |
 |---|---|
@@ -30,6 +38,7 @@ python3 -m http.server 8000
 | `css/styles.css` | 디자인 토큰과 컴포넌트 스타일 |
 | `js/data.js` | 한국어 더미 데이터 |
 | `js/app.js` | 라우팅, 화면 렌더링, 매칭 계산, 가짜 인증·채팅·지도, 폼 처리 |
+| `ios/` | 웹을 감싼 iOS 앱 (SwiftUI + WKWebView) |
 
 ## 데모 사용법
 - 상단 **학교 인증** → 아무 아이디 입력 → 화면에 표시되는 인증번호 입력
