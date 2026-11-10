@@ -2,7 +2,8 @@
 
 같은 학교 학생이라는 신뢰를 바탕으로, 대학 생활의 시작과 전환점에 필요한 사람과 정보를 연결해 주는 캠퍼스 생활 플랫폼의 데모 프로토타입이에요.
 
-- 데모 링크: https://claude.ai/artifact/1GzyUtTWnDz6NwPFAwfjAs
+- 사이트 (GitHub Pages): https://ysyny1126-bot.github.io/campusmate/
+- 데모 링크 (Claude): https://claude.ai/artifact/1GzyUtTWnDz6NwPFAwfjAs
 - 전체 기획·기능 정리: [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)
 
 ## 주요 기능
