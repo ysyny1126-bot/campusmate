@@ -325,7 +325,7 @@
   }
 
   function footer() {
-    return `<footer class="footer"><b>CampusMate · 데모 프로토타입</b><span>모든 학교·인물·매물·후기는 가상의 데이터예요. 인증·채팅·지도는 실제로 동작하지 않아요.</span></footer>`;
+    return `<footer class="footer"><b>CampusMate · 데모 프로토타입</b><span>${D.school.unofficial}</span><span>모든 학교·인물·매물·후기는 가상의 데이터예요. 인증·채팅·지도는 실제로 동작하지 않아요.</span></footer>`;
   }
 
   /* ── 룸메이트 ── */
@@ -1674,7 +1674,7 @@
       case 'review': openReview(id); break;
       case 'id-verify': S.idVerified = true; save(); route(); toast('신원 인증을 완료했어요 (데모) · 신뢰도 +4', 'id'); break;
       case 'v-back': V.step = 1; route(); break;
-      case 'addr-search': { const inp = $('#rn-addr'); inp.value = '한빛시 한빛동 대학로 12길 34'; toast('주소 검색 결과를 넣었어요 (데모)', 'pin'); break; }
+      case 'addr-search': { const inp = $('#rn-addr'); inp.value = '충청북도 충주시 대소원면 대학로 (예시)'; toast('주소 검색 결과를 넣었어요 (데모)', 'pin'); break; }
       case 'reset': openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--amber-100);color:var(--amber-800)">${icon('refresh', 30)}</div><h2 id="mtitle">데모 데이터를 초기화할까요?</h2><p class="muted" style="margin-top:8px;font-size:14.5px">인증 상태, 찜, 작성한 글이 모두 지워져요.</p><div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" data-act="reset-confirm">초기화</button></div></div>`); break;
       case 'reset-confirm': closeModal(); S = defaults(); save(); V.step = 1; location.hash = '#home'; route(); toast('초기화했어요', 'refresh'); break;
     }
