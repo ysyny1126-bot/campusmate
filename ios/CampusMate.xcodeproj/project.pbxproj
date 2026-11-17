@@ -133,7 +133,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# 저장소 루트의 웹 파일(index.html, css, js)을 앱 번들의 Web 폴더로 복사해요.\nset -e\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Web\"\nmkdir -p \"$DEST\"\nrsync -a --delete \"${SRCROOT}/../index.html\" \"${SRCROOT}/../css\" \"${SRCROOT}/../js\" \"$DEST/\"\n";
+			shellScript = "# 저장소 루트의 웹 파일(index.html, css, js)을 앱 번들의 Web 폴더로 복사해요.\nset -e\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Web\"\nmkdir -p \"$DEST\"\nrsync -a --delete \"${SRCROOT}/../index.html\" \"${SRCROOT}/../css\" \"${SRCROOT}/../assets\" \"${SRCROOT}/../js\" \"$DEST/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -201,7 +201,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "캠퍼스메이트";
+				INFOPLIST_KEY_CFBundleDisplayName = "이음";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -228,7 +228,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "캠퍼스메이트";
+				INFOPLIST_KEY_CFBundleDisplayName = "이음";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

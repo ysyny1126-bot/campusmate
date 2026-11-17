@@ -1,4 +1,4 @@
-/* CampusMate — 데모 SPA (로그인 없이 둘러보기, 인증·채팅·지도는 가짜 데이터) */
+/* 이음 — 데모 SPA (로그인 없이 둘러보기, 인증·채팅·지도는 가짜 데이터) */
 (() => {
   'use strict';
   const D = window.CM_DATA;
@@ -140,7 +140,22 @@
   /* ───────── Small components ───────── */
   const avatar = (name, cls = '') => { const h = hash(name) % 360; return `<span class="avatar ${cls}" style="background:hsl(${h} 42% 40%)" aria-hidden="true">${esc(String(name).replace(/[^가-힣A-Za-z0-9]/g, '').charAt(0) || '익')}</span>`; };
   const ring = (v, size = 64, unit = "%", label = "호환도") => `<div class="ring ${v >= 85 ? '' : v >= 70 ? 'mid' : 'low'}" style="--v:${v};--s:${size}px" role="img" aria-label="${label} ${v}${unit === "%" ? "퍼센트" : "점"}"><span>${v}<small>${unit}</small></span></div>`;
-  const BADGE = { school: ['b-school', 'shield', '학교 인증'], proof: ['b-proof', 'file', '거주 증빙'], id: ['b-id', 'id', '신원 인증'], review: ['b-review', 'clock', '증빙 검토 중'] };
+  const BADGE = { school: ['b-school', 'shield', '학교 인증'], proof: ['b-proof', 'file', '거주 증빙'], id: ['b-id', 'id', '신원 인증'], review: ['b-review', 'clock', '증빙 검토 중'], consent: ['b-proof', 'check', '집주인 동의'] };
+  /* 캐릭터 잇고 이미지 · 예시 표시 · 실거래 시세 비교 */
+  const charImg = (n, cls = '', alt = '') => `<img class="char ${cls}" src="assets/char/${n}.jpg" alt="${esc(alt)}" ${alt ? '' : 'aria-hidden="true"'} loading="lazy">`;
+  const isSample = (x) => !String(x.id).startsWith('u');
+  const sampleTag = (x) => (isSample(x) ? '<span class="sample-tag" title="실제 매물이 아닌 예시 데이터">예시</span>' : '');
+  const sizeM2 = (r) => { const m = String(r.size || '').match(/([\d.]+)\s*평/); return m ? +m[1] * 3.3 : null; };
+  function rentVs(r) {
+    const R = window.CM_RENT; if (!R || r.deal === '룸쉐어' || !r.rent) return null;
+    const a = sizeM2(r), key = a == null ? null : a <= 20 ? '20㎡ 이하' : a <= 33 ? '20~33㎡' : '33㎡ 초과';
+    const base = (key && R.daeBySize[key]) || R.daeSmall;
+    const conv = r.rent + r.deposit * 0.005;
+    return { pct: Math.round(((conv - base.convMed) / base.convMed) * 100), conv: Math.round(conv * 10) / 10, base, key: key || '33㎡ 이하' };
+  }
+  const rentTag = (r) => { const v = rentVs(r); if (!v) return ''; const t = Math.abs(v.pct) < 5 ? '시세 수준' : v.pct < 0 ? `시세보다 ${-v.pct}% 저렴` : `시세보다 ${v.pct}% 비쌈`; return `<span class="rent-tag ${v.pct <= -5 ? 'low' : v.pct >= 5 ? 'high' : ''}">${t}</span>`; };
+  const housingTabs = (active) => `<nav class="seg nav housing-tabs" aria-label="방·룸메 메뉴">${[['rooms', '들어갈 방', 'door'], ['roommate', '같이 살 사람', 'users'], ['rooms-new', '내 방 넘기기', 'plus']].map(([k, l, ic]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${icon(ic, 16)}${l}</a>`).join('')}</nav>`;
+  const housingHead = (active, sub) => `<div class="housing-head"><div><h1>방·룸메</h1><p>${sub}</p></div>${housingTabs(active)}</div>`;
   const badges = (arr) => `<div class="badges">${arr.map((b) => `<span class="badge ${BADGE[b][0]}">${icon(BADGE[b][1], 13)}${BADGE[b][2]}</span>`).join('')}</div>`;
   const trust = (v) => `<span class="trust" title="신뢰도 점수">신뢰도 ${v}<span class="trust-bar"><i style="width:${v}%"></i></span></span>`;
   const favBtn = (kind, id, on, label) => `<button class="fav-btn ${on ? 'on' : ''}" data-act="fav-${kind}" data-id="${id}" aria-pressed="${on}" aria-label="${on ? '찜 해제' : '찜하기'}: ${esc(label)}">${icon('heart', 20)}</button>`;
@@ -204,13 +219,13 @@
     return `<article class="mate-card clickable" data-href="#roommate-${c.id}">
       <div class="mate-top">${avatar(c.nick)}
         <div class="who"><div class="mate-nick"><a href="#roommate-${c.id}">${esc(c.nick)}</a></div>
-        <div class="meta">${esc(c.dept)} · ${gradeLabel(c.grade)}${mutual ? ' · <b style="color:var(--mint-800)">서로 관심</b>' : ''}</div></div>
+        <div class="meta">${esc(c.dept)} · ${gradeLabel(c.grade)}${mutual ? ' · <b style="color:var(--mint-800)">연결됨</b>' : ''}</div></div>
         ${ring(m.score, 56)}</div>
       <ul class="reasons">${m.reasons.slice(0, compact ? 2 : 3).map((r) => `<li>${icon('check', 16)}${esc(r)}</li>`).join('')}</ul>
       <div class="card-actions">${mutual
         ? `<button class="btn btn-mint" data-act="mate-chat" data-id="${c.id}">${icon('chat', 18)}채팅하기</button>`
-        : sent ? `<button class="btn btn-done" data-act="interest" data-id="${c.id}" aria-pressed="true">${icon('check', 18)}관심 보냄</button>`
-          : `<button class="btn btn-primary" data-act="interest" data-id="${c.id}" aria-pressed="false">${icon('heart', 18)}관심 보내기</button>`}</div>
+        : sent ? `<button class="btn btn-done" data-act="interest" data-id="${c.id}" aria-pressed="true">${icon('check', 18)}요청 보냄</button>`
+          : `<button class="btn btn-primary" data-act="interest" data-id="${c.id}" aria-pressed="false">${icon('heart', 18)}연락 요청</button>`}</div>
     </article>`;
   }
 
@@ -222,8 +237,8 @@
         ${r.status === 'review' ? '<span class="tag badge b-review">검토 중</span>' : ''}
         ${favBtn('room', r.id, fav, r.title)}</div>
       <div class="room-body">
-        <span class="room-kicker">${esc(r.deal)} · ${esc(r.type)}</span>
-        <div class="price">월세 ${r.deposit}/${r.rent}</div>
+        <span class="room-kicker">${sampleTag(r)}${esc(r.deal)} · ${esc(r.type)}</span>
+        <div class="price">월세 ${r.deposit}/${r.rent} ${rentTag(r)}</div>
         <h3><a href="#rooms-${r.id}">${esc(r.title)}</a></h3>
         <div class="meta">정문 도보 ${r.walk}분 · 관리비 ${r.maint}만${proof ? ` · <span class="vmark">${icon('shield', 14)}증빙</span>` : ''}</div>
       </div></article>`;
@@ -250,6 +265,35 @@
         <span class="${p.likes > 50 ? 'hot' : ''}">${icon('heart')}${p.likes + (liked ? 1 : 0)}</span><span>${icon('chat')}${cc}</span></div></a>`;
   }
 
+  /* ───────── 시기 맞춤 홈 ───────── */
+  const nextTermStart = () => { const y = +TODAY.slice(0, 4); return [`${y}-03-02`, `${y}-09-01`, `${y + 1}-03-02`].find((d) => dday(d) >= 0); };
+  const SEASONS = {
+    move: { name: '개강 전', cls: 's-move', img: 'cheer', alt: '응원하는 잇고', tag: (pv) => `${pv ? '개강 2주 전 미리보기' : `개강 D-${dday(nextTermStart())}`} · 방 구하는 시즌`, title: '같이 살 사람,<br>지금 제일 많아요',
+      sub: () => `룸메 후보 ${ranked().length}명 · 넘기는 방 ${allRooms().length}개`, go: ['#rooms', '방·룸메 보러 가기'] },
+    term: { name: '학기 중', cls: 's-term', img: 'team', alt: '응원 도구를 든 잇고', tag: (pv) => `${pv ? '미리보기 · ' : ''}학기 중 · 팀플 시즌`, title: '팀플 팀원,<br>여기서 구해요',
+      sub: () => `접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건`, go: ['#contests', '팀플·공모전 보기'] },
+    exam: { name: '시험 기간', cls: 's-exam', img: 'think', alt: '고민하는 잇고', tag: (pv) => `${pv ? '미리보기 · ' : ''}시험 기간`, title: '전공책은 싸게 사고,<br>끝나면 팔아요',
+      sub: () => `중고 ${allItems().length}개 거래 중 · 교내 직거래`, go: ['#market', '중고거래 보기'] },
+  };
+  /* 학사일정(대략): 방학·개강 직전 = 방 구하는 시즌, 중간·기말 = 시험 기간, 나머지 = 학기 중 */
+  function seasonOf(d) {
+    const [, m, dd] = d.split('-').map(Number), md = m * 100 + dd;
+    if (md >= 1215 || md <= 310 || (md >= 615 && md <= 905)) return 'move';
+    if ((md >= 415 && md <= 428) || (md >= 1020 && md <= 1027) || (md >= 601 && md < 615) || (md >= 1201 && md < 1215)) return 'exam';
+    return 'term';
+  }
+  let seasonPick = null;
+  /* 진행 중인 매칭: 요청 → 수락 → 만남 체크인 → 후기 */
+  function progressStrip() {
+    const rows = S.interests.map((id) => D.mates.find((c) => c.id === id)).filter(Boolean).slice(0, 2).map((c) => {
+      const step = isMutual(c) ? 2 : 1;
+      return `<a class="prog-row" href="#roommate-${c.id}"><span class="prog-kind">룸메</span><b>${esc(c.nick)}</b>
+        <span class="prog-steps">${['요청', '수락', '만남 체크인', '후기'].map((t, i) => `<i class="${i < step ? 'd' : i === step ? 'n' : ''}">${t}</i>`).join('')}</span></a>`;
+    });
+    if (!rows.length) return '';
+    return `<section class="prog-strip" aria-label="진행 중인 매칭"><div class="prog-head"><b>진행 중인 매칭 ${S.interests.length}건</b><a href="#roommate">모두 보기</a></div>${rows.join('')}</section>`;
+  }
+
   /* ───────── Pages ───────── */
   function pageHome() {
     const all = ranked();
@@ -258,36 +302,41 @@
     const rooms = allRooms().slice(0, 6);
     const items = [...allItems()].sort((a, b) => b.likes - a.likes).slice(0, 6);
     const posts = [...allPosts()].sort((a, b) => b.likes - a.likes).slice(0, 3);
+    const sk = seasonPick || seasonOf(TODAY), se = SEASONS[sk];
+    const R = window.CM_RENT;
     return `
     <section class="greet">
-      ${avatar(D.me.nick)}
-      <div class="greet-txt"><b>안녕하세요, ${D.me.nick}님</b><span>11월 10일 화요일 · ${D.school.name}</span></div>
+      ${charImg('icon', 'greet-char')}
+      <div class="greet-txt"><b>안녕하세요, ${D.me.nick}님</b><span>${esc(S.stype)} · ${D.school.name}</span></div>
       <a class="icon-btn round" href="#rooms" aria-label="방 검색하기">${icon('search', 20)}</a>
     </section>
 
     <div class="home-top">
       <div class="ht-left">
-        <a class="hero-card" href="${best ? `#roommate-${best.c.id}` : '#roommate'}">
-          <div class="hc-text">
-            <span class="hc-kicker">오늘의 룸메이트</span>
-            <h1>${best ? `나와 ${best.m.score}% 맞는<br>룸메이트가 있어요` : '내게 맞는<br>룸메이트 찾기'}</h1>
-            <p>${best ? esc(best.m.reasons[0] || '') : '생활 습관 설문으로 시작해요'}</p>
-            <div class="stack">${top.map((x) => avatar(x.c.nick, 'sm')).join('')}${all.length > 3 ? `<span class="more-dot">+${all.length - 3}</span>` : ''}</div>
+        <a class="season-card ${se.cls}" href="${se.go[0]}">
+          <div class="sc-text">
+            <span class="sc-tag">${se.tag(sk !== seasonOf(TODAY))}</span>
+            <h1>${se.title}</h1>
+            <p>${se.sub()}</p>
+            <span class="sc-go">${se.go[1]}${icon('right', 16)}</span>
           </div>
-          <div class="hc-art" aria-hidden="true"><span class="o o2"></span><span class="o o1"></span><span class="o o3"></span><span class="o o4"></span></div>
+          ${charImg(se.img, 'sc-char', se.alt)}
         </a>
+        <div class="season-pick" role="group" aria-label="시기별 홈 미리보기 (발표용)"><span>시기 미리보기</span>${Object.keys(SEASONS).map((k) => `<button class="${k === sk ? 'on' : ''}" data-act="season" data-v="${k}" aria-pressed="${k === sk}">${SEASONS[k].name}</button>`).join('')}</div>
+        ${progressStrip()}
+        ${R ? `<a class="real-rent" href="#rooms"><span class="rr-txt"><small>실제 데이터 · 국토교통부 실거래 ${R.counts.daeSmall}건</small>대소원면 원룸(33㎡ 이하) 월세 중앙값</span><b>${R.daeSmall.rentMed}만 원</b><span class="rr-sub">보증금 ${R.daeSmall.depMed}만</span></a>` : ''}
         ${S.verified ? '' : `<a class="notice" href="#verify">${icon('shield', 20)}<span><b>학교 인증</b>을 마치면 채팅·글쓰기를 할 수 있어요</span>${icon('right', 18)}</a>`}
       </div>
       <section class="section" aria-labelledby="h-go">
         <div class="section-head"><h2 id="h-go">무엇을 찾고 있나요?</h2></div>
         <div class="bento">
-          <a class="tile t-peach tall" href="#roommate"><span class="tile-tag">생활 습관 매칭</span><b>룸메이트<br>찾기</b><span class="tile-sub">추천 ${all.length}명</span>
-            ${best ? `<span class="tile-foot">${avatar(best.c.nick, 'sm')}<span><small>최고 호환도</small><br>${best.m.score}% · ${esc(best.c.nick)}</span></span>` : ''}</a>
-          <a class="tile t-sky" href="#rooms"><span class="tile-tag">양도 · 룸쉐어</span><b>방 구하기</b><span class="tile-sub">매물 ${allRooms().length}개</span><span class="tile-ic">${icon('door', 22)}</span></a>
+          <a class="tile t-peach tall" href="#rooms"><span class="tile-tag">룸메 · 양도 · 룸쉐어</span><b>방·룸메</b><span class="tile-sub">룸메 후보 ${all.length}명 · 방 ${allRooms().length}개</span>
+            ${charImg('match', 'tile-char')}
+            ${best ? `<span class="tile-foot">${avatar(best.c.nick, 'sm')}<span><small>나와 가장 잘 맞는 후보</small><br>${best.m.score}% · ${esc(best.c.nick)}</span></span>` : ''}</a>
           <a class="tile t-pink" href="#market"><span class="tile-tag">전공책 · 나눔</span><b>중고거래</b><span class="tile-sub">${allItems().length}개 거래 중</span><span class="tile-ic">${icon('bag', 22)}</span></a>
           <a class="tile t-lav" href="#clubs"><span class="tile-tag">신입생 · 복학생</span><b>동아리·행사</b><span class="tile-sub">모집 중 ${D.clubs.filter((c) => c.recruit.status !== 'closed').length}곳</span><span class="tile-ic">${icon('calendar', 22)}</span></a>
-          <a class="tile t-mint" href="#community"><span class="tile-tag">HOT</span><b>커뮤니티</b><span class="tile-sub ellip">${esc(posts[0] ? posts[0].title : '')}</span><span class="tile-ic">${icon('chats', 22)}</span></a>
-          <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>프로젝트 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
+          <a class="tile t-mint wide" href="#community"><span class="tile-ic">${icon('chats', 20)}</span><span style="flex:1;min-width:0"><b>커뮤니티</b><span class="tile-sub ellip">HOT · ${esc(posts[0] ? posts[0].title : '')}</span></span>${icon('right', 20)}</a>
+          <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>팀플 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
         </div>
       </section>
     </div>
@@ -298,7 +347,7 @@
     </section>
 
     <section class="section" aria-labelledby="h-room">
-      <div class="section-head"><h2 id="h-room">새로 올라온 방</h2><a class="more" href="#rooms">전체 보기${icon('right', 16)}</a></div>
+      <div class="section-head"><h2 id="h-room">새로 올라온 방 <span class="small muted">(예시 매물)</span></h2><a class="more" href="#rooms">전체 보기${icon('right', 16)}</a></div>
       <div class="hscroll">${rooms.map((r) => roomCard(r)).join('')}</div>
     </section>
 
@@ -325,7 +374,7 @@
   }
 
   function footer() {
-    return `<footer class="footer"><b>CampusMate · 데모 프로토타입</b><span>${D.school.unofficial}</span><span>모든 학교·인물·매물·후기는 가상의 데이터예요. 인증·채팅·지도는 실제로 동작하지 않아요.</span></footer>`;
+    return `<footer class="footer"><b>이음 · 데모 프로토타입</b><span>${D.school.unofficial}</span><button class="link-btn" data-act="onboard">처음 소개 다시 보기</button><span>매물·인물·후기는 예시 데이터예요 (실거래 시세만 실제 공공데이터). 인증·채팅·지도는 실제로 동작하지 않아요.</span></footer>`;
   }
 
   /* ── 룸메이트 ── */
@@ -335,8 +384,8 @@
     const s = S.survey;
     const q = (k) => D.questions.find((x) => x.k === k);
     return `
-    <div class="page-head"><div><h1>룸메이트 매칭</h1><p>생활 습관 설문과 항목별 중요도로 계산한 <b>양방향</b> 호환도예요.</p></div>
-      <a class="btn btn-outline" href="#roommate-survey">${icon('edit', 18)}설문 수정</a></div>
+    ${housingHead('roommate', '생활 습관 설문으로 <b>호환도를 자동 계산</b>하고, 후보 중 마음에 드는 사람에게 연락을 요청해요.')}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><a class="btn btn-outline btn-sm" href="#roommate-survey">${icon('edit', 16)}설문 수정</a></div>
     <div class="card pad" style="display:grid;gap:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>내 생활 습관 요약</b><span class="small muted">${s.gender === '여' ? '여학생' : '남학생'} 기숙사 · 같은 성별끼리만 매칭돼요</span></div>
       <div class="chip-row">
@@ -346,10 +395,11 @@
       </div>
       <div class="small muted">매우 중요: ${D.questions.filter((x) => S.weights[x.k] === 2).map((x) => x.label).join(', ') || '없음'}</div>
     </div>
-    <div class="info-box" style="margin-top:12px">${icon('lock', 18)}<span>처음엔 닉네임·학과·생활 습관만 보여요. <b>서로 관심</b>을 누르면 실명·사진·SNS가 공개되고 채팅이 열려요.${mutualCount ? ` 현재 <b>${mutualCount}명</b>과 서로 관심 상태예요.` : ''}</span></div>
-    <div class="section-head" style="margin-top:24px"><h2>추천 룸메이트 ${list.length}명</h2><span class="small muted">호환도 높은 순</span></div>
+    <div class="info-box" style="margin-top:12px">${icon('lock', 18)}<span>처음엔 닉네임·학과·생활 습관만 보여요. 상대가 <b>연락 요청을 수락</b>하면 실명·사진이 공개되고 채팅이 열려요.${mutualCount ? ` 현재 <b>${mutualCount}명</b>과 연결됐어요.` : ''}</span></div>
+    <div class="info-box mint" style="margin-top:8px">${charImg('match', 'ib-char')}<span><b>생활관 룸메이트는 서로 지정해서 함께 신청할 수 있어요.</b> 연결되면 채팅에서 신청 기간과 호실 유형을 맞춰 보세요.</span></div>
+    <div class="section-head" style="margin-top:24px"><h2>자동 계산한 후보 ${list.length}명</h2><span class="small muted">호환도 높은 순 · 예시 프로필</span></div>
     ${list.length ? `<div class="mate-grid">${list.map((x) => mateCard(x)).join('')}</div>`
-      : `<div class="card empty">${icon('users', 40)}<b>추천할 룸메이트가 없어요</b>차단을 해제하거나 설문을 수정해 보세요.</div>`}
+      : `<div class="card empty">${icon('users', 40)}<b>아직 맞는 후보가 없어요</b>차단을 해제하거나 설문을 수정해 보세요.</div>`}
     ${footer()}`;
   }
 
@@ -500,6 +550,7 @@
   function pageRooms() {
     rfOpen = null;
     return `<div class="rooms-page">
+      ${housingHead('rooms', '양도·룸쉐어 방을 지도로 찾고, <b>실거래 시세</b>와 비교해요. 지금 보이는 매물은 <b>예시</b>예요.')}
       <div class="rooms-top">
         <label class="search-box">${icon('search', 18)}<input id="room-q" type="search" placeholder="동네, 방 종류 검색" value="${esc(RF.q)}" aria-label="매물 검색"></label>
         <div class="filter-bar" id="filter-bar" role="toolbar" aria-label="필터">${filterBar()}</div>
@@ -572,13 +623,14 @@
           <div class="thumbs">${seeds.map((s, i) => `<button class="${i === 0 ? 'active' : ''}" data-act="gal" data-seed="${s}" data-i="${i + 1}" data-total="${r.photos}" aria-label="사진 ${i + 1} 보기">${roomArt(s)}</button>`).join('')}</div></div>
         <section>
           ${badges(r.status === 'review' ? ['school', 'review'] : r.badges)}
-          <h1 class="detail-title">${esc(r.title)}</h1>
+          <h1 class="detail-title">${sampleTag(r)}${esc(r.title)}</h1>
           <div class="meta">${icon('pin')}${esc(r.area)} · ${esc(r.type)} ${esc(r.size)} · ${esc(r.floor)} · ${r.posted} · 조회 ${r.views}</div>
         </section>
         ${safetyBanner(false)}
         <section class="card pad"><h2 class="block-title">비용</h2>
           <div class="kv three"><div><small>보증금</small><b>${r.deposit}만</b></div><div><small>월세</small><b>${r.rent}만</b></div><div><small>관리비</small><b>${r.maint}만</b></div></div>
           <p class="small muted" style="margin-top:10px">관리비 포함: ${esc(r.maintIncl)}${r.deal === '룸쉐어' ? ' · 표시 금액은 1인 부담 기준' : ''}</p></section>
+        ${rentCompare(r)}
         <section class="card pad"><h2 class="block-title">계약 정보</h2>
           <div class="kv"><div><small>입주 가능일</small><b>${fmtDate(r.avail)}</b></div><div><small>계약 기간</small><b>${termLabel(r.months)} (~${r.until})</b></div><div><small>입주 가능 성별</small><b>${r.gender}</b></div><div><small>흡연</small><b>${r.smoke}</b></div></div></section>
         <section class="card pad"><h2 class="block-title">옵션</h2>
@@ -615,6 +667,18 @@
     </div>`;
   }
 
+  /* 실거래 시세 비교: 환산 월세 = 월세 + 보증금 × 연 6% ÷ 12 */
+  function rentCompare(r) {
+    const v = rentVs(r), R = window.CM_RENT; if (!v) return '';
+    const b = v.base, max = Math.max(v.conv, b.convMed, b.rent75 + b.depMed * 0.005) * 1.15;
+    const bar = (label, val, cls) => `<div class="rc-row"><span>${label}</span><div class="rc-bar"><i class="${cls}" style="width:${Math.round((val / max) * 100)}%"></i></div><b>${val}만</b></div>`;
+    const warn = v.pct <= -30 ? `<div class="info-box amber" style="margin-top:10px">${icon('alert', 18)}<span>시세보다 많이 싸요. 허위 매물일 수 있으니 <b>방을 직접 보고 등기부등본을 확인</b>하기 전에는 돈을 보내지 마세요.</span></div>` : '';
+    return `<section class="card pad rent-compare"><h2 class="block-title">${icon('sparkle', 18)}실거래 시세와 비교 ${rentTag(r)}</h2>
+      ${bar('이 방', v.conv, 'me')}${bar(`대소원면 ${v.key} 중앙값`, b.convMed, 'base')}
+      <p class="small muted" style="margin-top:8px">보증금을 월세로 바꿔 더한 <b>환산 월세</b>로 비교했어요 (보증금 × 연 6% ÷ 12). 같은 크기 실거래 ${b.n}건 · 월세 ${b.rent25}~${b.rent75}만이 가운데 절반이에요.</p>
+      <p class="small muted">출처: ${esc(R.source)} · ${R.period.slice(0, 4)}.${R.period.slice(4, 6)}~${R.period.slice(7, 11)}.${R.period.slice(11)}</p>${warn}</section>`;
+  }
+
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
       <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
@@ -622,10 +686,10 @@
   }
 
   function pageRoomNew() {
-    if (!S.verified) return `<a class="back-link" href="#rooms">${icon('left', 18)}방 목록</a>` + gatePanel('방 등록');
+    if (!S.verified) return housingHead('rooms-new', '방을 넘기거나 함께 살 사람을 구해요.') + gatePanel('방 올리기');
     return `<div class="survey-wrap">
-      <a class="back-link" href="#rooms">${icon('left', 18)}방 목록</a>
-      <div class="page-head"><div><h1>방 등록하기</h1><p>거주 증빙을 올리면 <b>거주 증빙</b> 배지가 붙어 문의가 평균 2.4배 많아요.</p></div></div>
+      ${housingHead('rooms-new', '방을 넘기거나(양도) 남는 방에 함께 살 사람(룸쉐어)을 구해요.')}
+      <ol class="verify-steps" aria-label="올리기 전 확인 3단계"><li class="done">${icon('shield', 16)}학교 인증<small>완료</small></li><li>${icon('file', 16)}계약서 사진<small>필수</small></li><li>${icon('check', 16)}집주인 동의<small>필수</small></li></ol>
       ${safetyBanner(true)}
       <form data-form="room" class="grid" style="gap:14px;margin-top:14px" novalidate>
         <section class="card form-section"><h2><span class="num">1</span>기본 정보</h2>
@@ -661,11 +725,13 @@
           <div class="field"><label for="rn-desc">설명</label><textarea class="textarea" id="rn-desc" name="desc" placeholder="채광, 소음, 주변 편의시설, 양도 사유 등을 적어 주세요. 룸쉐어라면 생활 규칙도 함께 적어 주세요."></textarea>
           <span class="hint">계좌번호·외부 메신저 아이디·선입금 요구 문구는 자동으로 차단돼요.</span></div>
         </section>
-        <section class="card form-section"><h2><span class="num">6</span>거주 증빙</h2>
-          <div class="info-box">${icon('file', 18)}<span>임대차계약서 또는 최근 3개월 공과금 고지서 중 하나를 올려 주세요. 주민등록번호 등 민감 정보는 가리고 올려 주세요. 검토 후 바로 파기돼요.</span></div>
-          <label class="upload"><span class="ui">${icon('file', 22)}</span><span><b>증빙 서류 올리기</b><br><span class="small muted">JPG, PNG, PDF · 1개</span></span><input type="file" name="proof" accept="image/*,.pdf" data-preview="pv-proof"></label>
+        <section class="card form-section"><h2><span class="num">6</span>계약서 확인 · 집주인 동의 <span class="req">필수</span></h2>
+          <div class="info-box">${icon('file', 18)}<span><b>임대차계약서에서 주소·계약 기간·임대인 이름이 보이는 부분</b>만 찍어 올려 주세요. 주민등록번호·계좌번호는 가리고 올려 주세요. 운영팀이 확인한 뒤 바로 파기해요.</span></div>
+          <label class="upload"><span class="ui">${icon('file', 22)}</span><span><b>계약서 사진 올리기 (필수)</b><br><span class="small muted">JPG, PNG, PDF · 1개</span></span><input type="file" name="proof" accept="image/*,.pdf" data-preview="pv-proof"></label>
           <div class="previews" id="pv-proof"></div>
-          <label class="check"><input type="checkbox" name="agree" required><span>집주인(임대인)에게 양도·전대 동의를 받았거나 받을 예정이며, 허위 매물 등록 시 이용이 제한될 수 있음에 동의해요.</span></label>
+          <div class="field"><span class="field-label">집주인(임대인) 동의</span>${radioChips('consent', [['받음', '동의를 받았어요'], ['예정', '계약 넘기기 전에 받을게요']], '')}
+            <span class="hint">집주인 동의 없이 양도·전대하면 계약 위반이 될 수 있어요. ‘받았어요’를 고르면 <b>집주인 동의</b> 배지가 붙어요.</span></div>
+          <label class="check"><input type="checkbox" name="agree" required><span>입력한 내용이 사실이며, 허위 매물을 올리면 이용이 제한될 수 있음에 동의해요.</span></label>
         </section>
         <p class="error-text" id="room-err" role="alert"></p>
         <button class="btn btn-primary btn-lg btn-block" type="submit">등록하고 검토 요청하기</button>
@@ -1385,14 +1451,14 @@
     const url = p === 'android' ? x.android : x.ios;
     const label = p === 'ios' ? 'App Store에서 열기' : p === 'android' ? 'Play 스토어에서 찾기' : 'App Store 페이지 보기';
     openModal(modalBox(`${esc(x.name)}(으)로 이동할게요`, `
-      <p style="font-size:14.5px">${esc(x.name)}은(는) CampusMate와 <b>별개의 외부 서비스</b>예요. 매물·계약·결제는 ${esc(x.name)}과 집주인의 정책을 따라요.</p>
+      <p style="font-size:14.5px">${esc(x.name)}은(는) 이음과 <b>별개의 외부 서비스</b>예요. 매물·계약·결제는 ${esc(x.name)}과 집주인의 정책을 따라요.</p>
       <ul class="rules" style="margin-top:10px">
         <li>${icon('check')}앱이 설치돼 있으면 스토어에서 ‘열기’를 누르면 돼요</li>
         <li>${icon('check')}서비스 학교: ${esc(x.schools)}</li>
         <li>${icon('alert')}계약 전에 방을 직접 보고, 등기부등본을 확인하세요</li>
       </ul>
       <div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><a class="btn btn-primary" href="${url}" target="_blank" rel="noopener noreferrer" data-act="close-go">${label}</a></div>
-      <p class="small muted" style="margin-top:12px;text-align:center">CampusMate는 ${esc(x.name)}과 제휴 관계가 아니며, 링크만 연결해요.</p>`));
+      <p class="small muted" style="margin-top:12px;text-align:center">이음은 ${esc(x.name)}과 제휴 관계가 아니며, 링크만 연결해요.</p>`));
   }
 
   function notFound() {
@@ -1407,7 +1473,7 @@
     let html, nav = p, cta = false;
     switch (p) {
       case 'home': html = pageHome(); break;
-      case 'roommate': html = a === 'survey' ? pageSurvey() : a ? (cta = true, pageMate(a)) : pageRoommate(); break;
+      case 'roommate': html = a === 'survey' ? pageSurvey() : a ? (cta = true, pageMate(a)) : pageRoommate(); nav = 'rooms'; break;
       case 'rooms': html = a === 'new' ? pageRoomNew() : a ? (cta = true, pageRoom(a)) : pageRooms(); break;
       case 'market': html = a === 'new' ? pageItemNew() : a ? (cta = true, pageItem(a)) : pageMarket(); break;
       case 'community': html = pageCommunity(a); break;
@@ -1441,9 +1507,9 @@
 
   function renderChrome(nav) {
     $$('.desk-nav a').forEach((a) => { const on = a.dataset.nav === nav; a.classList.toggle('active', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
-    const tabs = [['home', 'home', '홈'], ['roommate', 'users', '룸메이트'], ['rooms', 'door', '방 찾기'], ['market', 'bag', '거래'], ['my', 'user', '마이페이지']];
-    const tabNav = ['community', 'clubs', 'teams'].includes(nav) ? 'home' : nav;
-    $('#tabbar').innerHTML = `<div class="tabbar-pill">${tabs.map(([k, ic, l]) => `<a href="#${k}" class="${tabNav === k ? 'active' : ''}" aria-label="${l}" ${tabNav === k ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span class="tl" aria-hidden="true">${l}</span></a>`).join('')}</div>`;
+    const tabs = [['home', 'home', '홈', 'home'], ['rooms', 'door', '방·룸메', 'rooms'], ['market', 'bag', '중고', 'market'], ['contests', 'trophy', '팀플', 'teams'], ['my', 'user', 'MY', 'my']];
+    const tabNav = ['community', 'clubs'].includes(nav) ? 'home' : nav;
+    $('#tabbar').innerHTML = `<div class="tabbar-pill">${tabs.map(([k, ic, l, n]) => `<a href="#${k}" class="${tabNav === n ? 'active' : ''}" aria-label="${l}" ${tabNav === n ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span class="tl" aria-hidden="true">${l}</span></a>`).join('')}</div>`;
     $('#top-actions').innerHTML = `
       <button class="icon-btn mobile-only" data-act="menu" aria-label="전체 메뉴">${icon('grid', 22)}</button>
       <button class="icon-btn" data-act="notif" aria-label="알림 3개">${icon('bell', 22)}<span class="dot"></span></button>
@@ -1462,6 +1528,23 @@
   }
   function closeModal() { slot.innerHTML = ''; document.body.style.overflow = ''; chat = null; if (lastFocus && document.contains(lastFocus)) lastFocus.focus(); }
   const modalBox = (title, body, actions = '') => `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="modal-head"><h2 id="mtitle">${title}</h2><button class="icon-btn" data-act="close" aria-label="닫기">${icon('x')}</button></div>${body}${actions}</div>`;
+  /* 첫 실행 소개 3장: 인사 → 학생 유형 → 무엇부터 */
+  let obStep = 0;
+  function openOnboard() { obStep = 0; renderOnboard(); }
+  function renderOnboard() {
+    const steps = [
+      `${charImg('hero', 'ob-char', '손 흔드는 잇고')}<h2 id="mtitle">안녕! 나는 잇고야</h2><p>이음은 ${esc(D.school.name)} 학생끼리<br>룸메·방·중고·팀플을 <b>안전하게 이어 주는</b> 곳이야.</p>`,
+      `${charImg('think', 'ob-char', '궁금해하는 잇고')}<h2 id="mtitle">너는 어떤 학생이야?</h2><p>맞는 정보를 먼저 보여 줄게.</p><div class="ob-opts" role="group" aria-label="학생 유형">${['신입생', '복학생', '재학생'].map((t) => `<button class="ob-opt ${S.stype === t ? 'on' : ''}" data-act="ob-type" data-v="${t}" aria-pressed="${S.stype === t}">${t}</button>`).join('')}</div>`,
+      `${charImg('match', 'ob-char', '하트를 든 잇고')}<h2 id="mtitle">무엇부터 찾아볼까?</h2><div class="ob-go">${[['#rooms', '방·룸메', '같이 살 사람 · 들어갈 방'], ['#market', '중고거래', '전공책 · 자취템'], ['#contests', '팀플·공모전', '팀원 구하기'], ['#clubs', '동아리·행사', `${S.stype} 환영 동아리`]].map(([h, t, sub]) => `<button data-act="ob-go" data-v="${h}"><b>${t}</b><span>${sub}</span></button>`).join('')}</div>`,
+    ];
+    const inner = `<div class="ob-dots" aria-label="${obStep + 1} / 3단계">${steps.map((_, i) => `<i class="${i === obStep ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="ob-body">${steps[obStep]}</div>
+      <div class="ob-actions">${obStep < 2 ? `<button class="btn btn-ghost" data-act="ob-go" data-v="#home">건너뛰기</button><button class="btn btn-primary" data-act="ob-next" autofocus>다음${icon('right', 16)}</button>` : `<button class="btn btn-ghost" data-act="ob-go" data-v="#home">홈에서 시작하기</button>`}</div>`;
+    const cur = slot.querySelector('.modal.onboard');
+    if (cur) { cur.innerHTML = inner; const f = cur.querySelector('[autofocus], .ob-opt.on, .ob-go button'); if (f) f.focus(); return; }
+    openModal(`<div class="modal onboard" role="dialog" aria-modal="true" aria-labelledby="mtitle">${inner}</div>`, 'ob-root');
+  }
+
   function toast(msg, ic = 'check') {
     const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = `${icon(ic, 18)}<span>${msg}</span>`;
     $('#toasts').appendChild(el); setTimeout(() => el.remove(), 2600);
@@ -1561,6 +1644,11 @@
     if (el.tagName === 'BUTTON' || act === 'close') e.preventDefault();
     switch (act) {
       case 'close': closeModal(); break;
+      case 'ob-next': obStep = Math.min(2, obStep + 1); renderOnboard(); break;
+      case 'ob-type': S.stype = el.dataset.v; save(); renderOnboard(); break;
+      case 'ob-go': S.onboarded = true; save(); closeModal(); if (location.hash === el.dataset.v) route(); else location.hash = el.dataset.v; break;
+      case 'onboard': openOnboard(); break;
+      case 'season': seasonPick = el.dataset.v; route(); break;
       case 'close-go': slot.innerHTML = ''; document.body.style.overflow = ''; chat = null; break;
       case 'notif': openNotif(); break;
       case 'ext-app': openExt(id); break;
@@ -1604,14 +1692,14 @@
       case 'ev-filter': evFilter = el.dataset.k; route(); break;
       case 'event-join': { if (needVerify('행사 참여')) return; const on = toggleIn(S.going, id); save(); route(); toast(on ? '참여 예정에 추가했어요. 하루 전에 알려드릴게요' : '참여를 취소했어요', on ? 'calendar' : 'x'); break; }
       case 'interest': {
-        if (needVerify('룸메이트 관심 보내기')) return;
+        if (needVerify('룸메이트 연락 요청')) return;
         const c = D.mates.find((x) => x.id === id);
         const added = toggleIn(S.interests, id); save(); route();
         if (added && c.likedMe) {
           openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--mint-100);color:var(--mint-800)">${icon('heart', 30)}</div>
-            <h2 id="mtitle">서로 관심을 보냈어요! 🎉</h2><p class="muted" style="margin-top:8px;font-size:14.5px"><b>${esc(c.nick)}</b>님도 회원님에게 관심을 보냈어요. 이제 전체 프로필을 보고 채팅할 수 있어요.</p>
+            <h2 id="mtitle">연결됐어요! 🎉</h2><p class="muted" style="margin-top:8px;font-size:14.5px"><b>${esc(c.nick)}</b>님도 회원님에게 연락을 요청했어요. 이제 전체 프로필을 보고 채팅할 수 있어요.</p>
             <div class="modal-actions"><a class="btn btn-outline" href="#roommate-${c.id}" data-act="close-go">프로필 보기</a><button class="btn btn-mint" data-act="mate-chat" data-id="${c.id}">${icon('chat', 18)}채팅 시작</button></div></div>`);
-        } else toast(added ? '관심을 보냈어요. 상대도 관심을 누르면 채팅이 열려요' : '관심을 취소했어요', added ? 'heart' : 'x');
+        } else toast(added ? '연락 요청을 보냈어요. 상대가 수락하면 채팅이 열려요' : '연락 요청을 취소했어요', added ? 'heart' : 'x');
         break;
       }
       case 'mate-chat': {
@@ -1766,12 +1854,14 @@
         const title = String(fd.get('title') || '').trim(), addr = String(fd.get('addr') || '').trim();
         const deposit = +fd.get('deposit'), rent = +fd.get('rent'), desc = String(fd.get('desc') || '');
         if (!title || !addr || !fd.get('deposit') || !fd.get('rent')) { err.textContent = '제목, 주소, 보증금, 월세는 꼭 입력해 주세요.'; return; }
-        if (!fd.get('agree')) { err.textContent = '임대인 동의 및 허위 매물 정책에 동의해 주세요.'; return; }
+        if (!f.querySelector('[name=proof]').files.length) { err.textContent = '계약서 사진을 올려 주세요. 주소·계약 기간·임대인 이름이 보이면 돼요.'; return; }
+        if (!fd.get('consent')) { err.textContent = '집주인 동의 여부를 골라 주세요.'; return; }
+        if (!fd.get('agree')) { err.textContent = '허위 매물 정책에 동의해 주세요.'; return; }
         if (FRAUD.test(title + desc)) { err.textContent = '허위 매물 필터: 선입금·계좌·외부 메신저 유도 문구가 포함되어 있어요. 해당 문구를 지워 주세요.'; return; }
         const hasProof = f.querySelector('[name=proof]').files.length > 0;
-        const r = { id: 'ur' + Date.now(), seed: Math.floor(Math.random() * 8), deal: fd.get('deal'), type: fd.get('type'), title, area: addr.split(' ').slice(1, 2).join(' ') || '한빛동', size: '-', floor: '-',
+        const r = { id: 'ur' + Date.now(), seed: Math.floor(Math.random() * 8), deal: fd.get('deal'), type: fd.get('type'), title, area: addr.split(' ').slice(1, 3).join(' ') || '대소원면', size: '-', floor: '-',
           deposit, rent, maint: +fd.get('maint') || 0, maintIncl: '작성자 문의', avail: fd.get('avail') || '2027-01-01', months: +fd.get('months') || 12, until: '-', dist: 700, walk: 9,
-          gender: fd.get('gender'), smoke: fd.get('smoke'), options: fd.getAll('options'), badges: hasProof ? ['school', 'proof'] : ['school'], status: 'review',
+          gender: fd.get('gender'), smoke: fd.get('smoke'), options: fd.getAll('options'), badges: ['school', 'proof', ...(fd.get('consent') === '받음' ? ['consent'] : [])], consent: fd.get('consent'), status: 'review',
           x: 200 + Math.random() * 260, y: 240 + Math.random() * 80, photos: Math.max(1, f.querySelector('[name=photos]').files.length), posted: '방금', views: 0, likes: 0,
           author: { nick: D.me.nick, trust: myTrust(), deals: D.deals.length, dept: S.survey.dept }, desc: desc || '설명이 없어요.', share: null };
         S.myRooms.unshift(r); save();
@@ -1831,4 +1921,5 @@
   if (!location.hash) history.replaceState(null, '', '#home');
   lastHash = location.hash;
   route();
+  if (!S.onboarded) openOnboard();
 })();

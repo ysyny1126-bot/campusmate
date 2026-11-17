@@ -1,7 +1,7 @@
 import SwiftUI
 import WebKit
 
-/// CampusMate 웹 프로토타입(index.html · css · js)을 앱 번들에 담아 WKWebView로 띄우는 iOS 래퍼 앱.
+/// 이음(옛 이름 CampusMate) 웹 프로토타입(index.html · css · js)을 앱 번들에 담아 WKWebView로 띄우는 iOS 래퍼 앱.
 /// 웹 파일은 빌드할 때마다 저장소 루트에서 앱 번들의 Web 폴더로 복사돼요 (Build Phases › Copy Web Files).
 @main
 struct CampusMateApp: App {
@@ -22,7 +22,7 @@ struct CampusWebView: UIViewRepresentable {
         config.websiteDataStore = .default()          // 인증·찜 등 데모 상태(localStorage) 유지
         config.allowsInlineMediaPlayback = true
         // OpenStreetMap 타일 이용 규칙: 요청하는 앱을 알 수 있는 User-Agent를 보내야 해요.
-        config.applicationNameForUserAgent = "CampusMateDemo/1.0 (iOS; github.com/ysyny1126-bot/campusmate)"
+        config.applicationNameForUserAgent = "IeumDemo/1.0 (iOS; github.com/ysyny1126-bot/campusmate)"
 
         let web = WKWebView(frame: .zero, configuration: config)
         let bg = UIColor(red: 245 / 255, green: 244 / 255, blue: 250 / 255, alpha: 1)

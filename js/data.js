@@ -1,4 +1,4 @@
-/* CampusMate 데모 더미 데이터 — 학교명·인물은 모두 가상입니다. */
+/* 이음 데모 더미 데이터 — 학교명·인물은 모두 가상입니다. */
 window.CM_DATA = (() => {
   const school = { name: '국립한국교통대학교', short: '한국교통대', domain: 'ut.ac.kr', // 학생 메일 도메인은 학교 확인 후 수정
     unofficial: '국립한국교통대학교의 공식 서비스가 아닌 학생 팀 프로젝트(데모)예요.',
@@ -129,7 +129,7 @@ window.CM_DATA = (() => {
       desc: '얌전한 고양이 한 마리(중성화 완료)와 살고 있어요. 알레르기 없는 분만 연락 주세요!',
       share: { current: '시각디자인과 4학년 1명 + 고양이 1마리', rules: ['비흡연자만', '고양이 알레르기 없는 분', '공용 공간 청소 주 1회', '방문객 사전 협의'] } },
     { id: 'r8', seed: 7, deal: '양도', type: '원룸', title: '겨울방학 단기 양도 (3개월) · 정문 앞', area: '대소원면 본리', size: '5.5평', floor: '5층 / 5층',
-      deposit: 100, rent: 38, maint: 5, maintIncl: '수도·인터넷', avail: '2026-12-22', months: 3, until: '2027.03', dist: 260, walk: 4,
+      deposit: 100, rent: 30, maint: 5, maintIncl: '수도·인터넷', avail: '2026-12-22', months: 3, until: '2027.03', dist: 260, walk: 4,
       gender: '여성', smoke: '비흡연', options: ['에어컨', '세탁기', '냉장고', '침대', '책상', '와이파이'],
       badges: ['school', 'proof', 'id'], x: 262, y: 252, photos: 4, posted: '30분 전', views: 64, likes: 6,
       author: author('방학엔본가', 93, 15, '경영학과 2학년'),

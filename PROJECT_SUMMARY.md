@@ -1,4 +1,4 @@
-# CampusMate(캠퍼스메이트) 프로젝트 정리
+# 이음(옛 이름 CampusMate · 캠퍼스메이트) 프로젝트 정리
 
 - 공유 링크: https://claude.ai/artifact/1GzyUtTWnDz6NwPFAwfjAs (링크가 있는 누구나 볼 수 있음)
 - 로컬 실행: `index.html` 더블클릭 (빌드 필요 없음)

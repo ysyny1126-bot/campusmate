@@ -1,4 +1,4 @@
-/* ───────── CampusMate Design Tokens — calm, pastel, airy ───────── */
+/* ───────── 이음 Design Tokens — calm, pastel, airy ───────── */
 :root {
   --navy-950: #0C1022;
   --navy-900: #12172E;
@@ -826,3 +826,93 @@ button.more { background: none; cursor: pointer; }
 .ext-body b { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
 .ext-body p { font-size: 13px; color: var(--muted); }
 .room-list .ext-card { grid-column: 1 / -1; }
+
+/* ───────── 이음: 캐릭터 잇고 · 시기 맞춤 홈 · 방·룸메 · 첫 실행 소개 ───────── */
+.logo-img { width: 32px; height: 32px; border-radius: 10px; object-fit: cover; box-shadow: 0 2px 8px rgba(60, 40, 140, .15); }
+.char { display: block; object-fit: cover; }
+.greet-char { width: 44px; height: 44px; border-radius: 15px; }
+.link-btn { color: inherit; text-decoration: underline; text-underline-offset: 3px; font-size: inherit; justify-self: start; }
+.sample-tag { display: inline-block; vertical-align: 1px; font-size: 11px; font-weight: 800; letter-spacing: 0; padding: 1px 7px; border-radius: 6px; background: #FFF0C7; color: var(--amber-800); margin-right: 6px; }
+.rent-tag { display: inline-block; vertical-align: 2px; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); letter-spacing: -.01em; }
+.rent-tag.low { background: var(--mint-100); color: var(--mint-800); }
+.rent-tag.high { background: var(--coral-100); color: var(--coral-800); }
+
+.season-card { position: relative; overflow: hidden; display: block; border-radius: 28px; padding: 22px 20px; min-height: 196px; color: #fff; transition: transform .18s; }
+.season-card:hover { transform: translateY(-2px); }
+.s-move { background: linear-gradient(140deg, #6C5CE7, #8F7BFF 58%, #8EDCC4); }
+.s-term { background: linear-gradient(140deg, #2F6FE4, #6E8BFF 58%, #F7B5EE); }
+.s-exam { background: linear-gradient(140deg, #3A3F63, #6C5CE7 62%, #FFC46B); }
+.sc-text { position: relative; z-index: 1; max-width: 62%; }
+.sc-tag { display: inline-block; font-size: 12px; font-weight: 700; background: rgba(255, 255, 255, .22); padding: 4px 11px; border-radius: 999px; }
+.season-card h1 { font-size: 25px; line-height: 1.22; font-weight: 800; letter-spacing: -.045em; margin: 10px 0 6px; }
+.season-card p { font-size: 13px; opacity: .92; font-weight: 600; }
+.sc-go { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; background: #fff; color: #3F31B0; font-weight: 800; font-size: 13px; padding: 8px 14px; border-radius: 999px; }
+.sc-char { position: absolute; right: 14px; bottom: 16px; width: 112px; height: 112px; border-radius: 50%; object-position: 50% 40%; background: #fff; border: 3px solid rgba(255, 255, 255, .75); box-shadow: 0 8px 22px rgba(30, 20, 110, .28); }
+.season-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: var(--subtle); }
+.season-pick button { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #fff; color: var(--muted); border: 1px solid var(--line); }
+.season-pick button.on { background: var(--navy-900); color: #fff; border-color: var(--navy-900); }
+.prog-strip { background: #fff; border-radius: 22px; padding: 14px 16px; margin-top: 12px; display: grid; gap: 10px; }
+.prog-head { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.prog-head a { font-size: 13px; color: var(--muted); font-weight: 600; }
+.prog-row { display: grid; grid-template-columns: auto 1fr; gap: 6px 8px; align-items: center; font-size: 13.5px; }
+.prog-kind { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #E9E4FF; color: #4B3DB8; }
+.prog-steps { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.prog-steps i { font-style: normal; font-size: 11px; text-align: center; padding-top: 6px; border-top: 3px solid var(--line); color: var(--subtle); }
+.prog-steps i.d { border-color: var(--mint-500); color: var(--mint-800); font-weight: 700; }
+.prog-steps i.n { border-color: #6C5CE7; color: #4B3DB8; font-weight: 800; }
+.real-rent { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--mint-100); color: var(--mint-800); border-radius: 20px; padding: 13px 16px; margin-top: 12px; font-size: 13px; font-weight: 600; }
+.rr-txt { flex: 1; min-width: 160px; display: grid; }
+.rr-txt small { font-size: 11px; opacity: .85; }
+.real-rent b { font-size: 22px; font-weight: 800; letter-spacing: -.03em; color: #075240; }
+.rr-sub { font-size: 12px; }
+.tile-char { position: absolute; right: 8px; top: 50%; transform: translateY(-62%); width: 104px; height: 82px; border-radius: 18px; mix-blend-mode: multiply; }
+.t-peach .tile-sub { max-width: 60%; }
+@media (min-width: 1024px) {
+  .ht-left .season-card { flex: 1; padding: 38px 34px; }
+  .season-card h1 { font-size: 36px; }
+  .sc-char { width: 168px; height: 168px; right: 30px; bottom: 30px; }
+}
+
+.housing-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 10px 0 14px; }
+.housing-head h1 { font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.housing-head p { font-size: 13.5px; color: var(--muted); max-width: 60ch; }
+.housing-tabs { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; max-width: 460px; background: #fff; }
+.housing-tabs a { display: inline-flex; justify-content: center; align-items: center; gap: 4px; height: 38px; padding: 0 4px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.housing-tabs a.active { background: var(--navy-900); color: #fff; }
+.rooms-page .housing-head { padding: 0 16px; }
+.ib-char { width: 46px; height: 38px; border-radius: 10px; mix-blend-mode: multiply; flex-shrink: 0; margin-top: -4px; }
+.verify-steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 14px; }
+.verify-steps li { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; background: #fff; border-radius: 16px; padding: 12px 6px; font-size: 13px; font-weight: 700; border: 1.5px solid var(--line); }
+.verify-steps li .ic { color: #6C5CE7; }
+.verify-steps li small { font-size: 11px; font-weight: 700; color: var(--coral-800); }
+.verify-steps li.done { border-color: var(--mint-500); }
+.verify-steps li.done small, .verify-steps li.done .ic { color: var(--mint-800); }
+.req { font-size: 11px; font-weight: 800; color: var(--coral-800); background: var(--coral-100); padding: 2px 7px; border-radius: 6px; margin-left: 4px; vertical-align: 2px; }
+.rent-compare .block-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rc-row { display: grid; grid-template-columns: minmax(0, 150px) 1fr auto; gap: 10px; align-items: center; font-size: 13px; margin-top: 8px; }
+.rc-bar { height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.rc-bar i { display: block; height: 100%; border-radius: 999px; }
+.rc-bar i.me { background: #6C5CE7; }
+.rc-bar i.base { background: var(--mint-500); }
+
+.ob-root { align-items: center; }
+.modal.onboard { max-width: 400px; text-align: center; padding: 22px 22px 18px; display: grid; gap: 14px; }
+.ob-dots { display: flex; justify-content: center; gap: 6px; }
+.ob-dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--line-strong); transition: width .2s; }
+.ob-dots i.on { width: 22px; background: #6C5CE7; }
+.ob-body { display: grid; gap: 8px; justify-items: center; }
+.ob-char { width: 150px; height: 140px; border-radius: 28px; object-position: 50% 30%; }
+.ob-body h2 { font-size: 22px; font-weight: 800; letter-spacing: -.04em; }
+.ob-body p { color: var(--muted); font-size: 14.5px; }
+.ob-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin-top: 6px; }
+.ob-opt { padding: 14px 6px; border-radius: 16px; background: var(--surface-2); font-weight: 800; font-size: 15px; border: 2px solid transparent; }
+.ob-opt.on { background: #EFEBFF; border-color: #6C5CE7; color: #3F31B0; }
+.ob-go { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 4px; }
+.ob-go button { display: grid; gap: 2px; text-align: left; padding: 13px 12px; border-radius: 16px; background: var(--surface-2); }
+.ob-go button:nth-child(1) { background: #FFE9C9; } .ob-go button:nth-child(2) { background: #FBE1F6; }
+.ob-go button:nth-child(3) { background: #DDF7EE; } .ob-go button:nth-child(4) { background: #E4DEFF; }
+.ob-go b { font-size: 15px; } .ob-go span { font-size: 12px; color: var(--muted); }
+.ob-actions { display: flex; justify-content: space-between; gap: 8px; }
+.ob-actions .btn-primary { flex: 1; }
+.ob-actions .btn-ghost:only-child { flex: 1; }
+@media (max-width: 420px) { .housing-tabs a .ic { display: none; } .housing-tabs a { font-size: 13px; } }
