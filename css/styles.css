@@ -55,7 +55,7 @@ ul, ol { list-style: none; }
 .skip-link:focus { top: 10px; }
 
 /* ───────── Top bar ───────── */
-.topbar { position: sticky; top: 0; padding-top: env(safe-area-inset-top, 0px); z-index: 40; background: rgba(245, 244, 250, .88); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); }
+.topbar { position: sticky; top: 0; padding-top: env(safe-area-inset-top, 0px); z-index: 40; background: rgba(255, 255, 255, .62); backdrop-filter: saturate(1.8) blur(18px); -webkit-backdrop-filter: saturate(1.8) blur(18px); border-bottom: 1px solid rgba(255, 255, 255, .8); box-shadow: 0 6px 24px rgba(60, 50, 140, .08); }
 .topbar-inner { max-width: 1160px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 10px; padding: 0 16px; }
 .logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 18px; color: var(--navy-900); letter-spacing: -0.03em; }
 .logo-mark { width: 32px; height: 32px; border-radius: 11px; background: var(--navy-800); color: var(--mint-400); display: grid; place-items: center; }
@@ -66,11 +66,11 @@ ul, ol { list-style: none; }
 .desk-nav a.active { color: #fff; background: var(--navy-800); }
 .top-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; }
 .icon-btn { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--navy-900); position: relative; }
-.icon-btn:hover { background: rgba(26, 33, 66, .06); }
+.icon-btn:hover { background: rgba(108, 92, 231, .08); }
 .icon-btn.round { background: #fff; }
 .dot { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--coral-500); border: 2px solid var(--bg); }
 .verify-pill { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; }
-.verify-pill.off { background: var(--navy-800); color: #fff; }
+.verify-pill.off { background: #6C5CE7; color: #fff; box-shadow: 0 6px 16px rgba(108, 92, 231, .3); }
 .verify-pill.on { background: var(--mint-100); color: var(--mint-800); }
 
 /* ───────── Floating pill tab bar ───────── */
