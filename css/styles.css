@@ -75,11 +75,12 @@ ul, ol { list-style: none; }
 
 /* ───────── Floating pill tab bar ───────── */
 .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; padding: 0 14px calc(14px + env(safe-area-inset-bottom)); pointer-events: none; }
-.tabbar-pill { pointer-events: auto; max-width: 480px; margin: 0 auto; height: 66px; border-radius: 999px; background: var(--navy-900); display: flex; align-items: center; justify-content: space-between; padding: 0 7px; box-shadow: 0 14px 34px rgba(12, 16, 34, .28); }
-.tabbar a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 52px; min-width: 52px; border-radius: 999px; color: #AEB3CC; transition: background .2s, color .2s, padding .2s; }
-.tabbar a:hover { color: #fff; }
+/* 밝은 화면과 어울리도록 반투명 유리 느낌: 뒤 내용이 흐릿하게 비쳐요 */
+.tabbar-pill { pointer-events: auto; max-width: 480px; margin: 0 auto; height: 66px; border-radius: 999px; background: rgba(255, 255, 255, .72); -webkit-backdrop-filter: saturate(1.8) blur(18px); backdrop-filter: saturate(1.8) blur(18px); border: 1px solid rgba(255, 255, 255, .85); display: flex; align-items: center; justify-content: space-between; padding: 0 7px; box-shadow: 0 10px 30px rgba(60, 50, 140, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
+.tabbar a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 52px; min-width: 52px; border-radius: 999px; color: #6E7290; transition: background .2s, color .2s, padding .2s; }
+.tabbar a:hover { color: var(--navy-900); }
 .tabbar a .tl { display: none; font-size: 13.5px; font-weight: 800; white-space: nowrap; }
-.tabbar a.active { background: #fff; color: var(--navy-900); padding: 0 16px; }
+.tabbar a.active { background: #6C5CE7; color: #fff; padding: 0 16px; box-shadow: 0 6px 16px rgba(108, 92, 231, .35); }
 .tabbar a.active .tl { display: inline; }
 
 /* ───────── Layout ───────── */
