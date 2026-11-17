@@ -387,5 +387,29 @@ window.CM_DATA = (() => {
       android: 'https://play.google.com/store/search?q=%EB%B8%94%EB%A3%A8%EB%B0%8D%20%EC%9E%90%EC%B7%A8%EB%B0%A9&c=apps' },
   ];
 
-  return { externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  /* ── 생활 매칭 (택시 동행 · 배달 공동 주문) — 모두 예시 데이터 ──
+   * 시간은 '페이지를 연 시각 기준 몇 분 뒤'로 적어 두어 데모에서 항상 남은 시간이 살아 있게 했어요.
+   * 금액은 모집자가 입력한 예상값이라는 가정의 예시예요 (실제 요금 아님). */
+  const lifeSpots = [
+    { name: '정문 버스정류장', zone: '교내' }, { name: '생활관(기숙사) 앞', zone: '교내' }, { name: '학생회관 1층', zone: '교내' },
+    { name: '충주공용버스터미널', zone: '교통 거점' }, { name: '충주역', zone: '교통 거점' }, { name: '충주 시내', zone: '시내' },
+  ];
+  const LP = (nick, trust, dept, items) => ({ nick, trust, dept, items: items || [] });
+  const taxis = [
+    { id: 'tx1', from: '정문 버스정류장', to: '충주공용버스터미널', departIn: 55, closeIn: 35, cap: 4, fare: 15000, leader: LP('주말엔본가', 84, '경영학과'), members: [LP('기차타는공대생', 80, '전기공학과')], note: '금요일 귀가해요. 캐리어 1개 있어요. 정류장 벤치 앞에서 모여요.' },
+    { id: 'tx2', from: '충주공용버스터미널', to: '정문 버스정류장', departIn: 100, closeIn: 75, cap: 3, fare: 15000, leader: LP('러닝하는경영인', 95, '경영학과'), members: [LP('새벽감성러', 63, '시각디자인학과'), LP('아침형고양이', 88, '간호학과')], note: '터미널 1번 승강장 앞에서 만나요.' },
+    { id: 'tx3', from: '생활관(기숙사) 앞', to: '충주역', departIn: 190, closeIn: 160, cap: 4, fare: 17000, leader: LP('도서관지박령', 91, '컴퓨터공학과'), members: [], note: '기차 시간 맞춰서 여유 있게 출발해요.' },
+    { id: 'tx4', from: '정문 버스정류장', to: '충주 시내', departIn: -20, closeIn: -35, cap: 4, fare: 13000, leader: LP('깔끔한두부', 78, '건축학과'), members: [], note: '저녁 약속 있어서 시내 가요.' },
+  ];
+  const deliveryCats = ['치킨', '피자', '분식', '한식', '중식', '기타'];
+  const deliveries = [
+    { id: 'dl1', shop: '정문 치킨', cat: '치킨', pickup: '생활관(기숙사) 앞', closeIn: 25, minOrder: 20000, fee: 3000, cap: 4,
+      leader: LP('아침형고양이', 88, '간호학과', [{ n: '후라이드 반 마리', p: 9000, q: 1 }]), members: [LP('조용한밤샘러', 80, '기계공학과', [{ n: '양념 반 마리', p: 9500, q: 1 }])], note: '생활관 1층 로비에서 나눠요. 콜라는 같이 나눠 마셔요.' },
+    { id: 'dl2', shop: '대학로 피자', cat: '피자', pickup: '학생회관 1층', closeIn: 12, minOrder: 18000, fee: 2000, cap: 3,
+      leader: LP('깔끔한두부', 78, '건축학과', [{ n: '콤비네이션 M (반판)', p: 12900, q: 1 }]), members: [LP('주말엔본가', 84, '경영학과', [{ n: '치즈 오븐 스파게티', p: 9900, q: 1 }])], note: '최소 금액은 넘었어요. 한 분만 더 오시면 배달비가 줄어요!' },
+    { id: 'dl3', shop: '본리 분식', cat: '분식', pickup: '정문 버스정류장', closeIn: 48, minOrder: 15000, fee: 3500, cap: 5,
+      leader: LP('도서관지박령', 91, '컴퓨터공학과', [{ n: '떡볶이 1인분', p: 4500, q: 1 }, { n: '김밥', p: 3000, q: 1 }]), members: [], note: '시험 기간 야식! 정류장 옆 벤치에서 받아요.' },
+  ];
+
+  return { lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();

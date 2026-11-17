@@ -68,7 +68,7 @@
     verified: false, email: '', idVerified: false,
     survey: JSON.parse(JSON.stringify(D.mySurvey)), weights: { ...D.myWeights },
     interests: [], favRooms: [], favItems: [], blocked: [], reports: [],
-    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {},
+    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0,
   });
   let S = load();
   function load() {
@@ -175,7 +175,7 @@
   }
   const rentTag = (r) => { const v = rentVs(r); if (!v) return ''; const t = Math.abs(v.pct) < 5 ? '시세 수준' : v.pct < 0 ? `시세보다 ${-v.pct}% 저렴` : `시세보다 ${v.pct}% 비쌈`; return `<span class="rent-tag ${v.pct <= -5 ? 'low' : v.pct >= 5 ? 'high' : ''}">${t}</span>`; };
   const housingTabs = (active) => `<nav class="seg nav housing-tabs" aria-label="방·룸메 메뉴">${[['rooms', '들어갈 방', 'door'], ['roommate', '같이 살 사람', 'users'], ['rooms-new', '내 방 넘기기', 'plus']].map(([k, l, ic]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${icon(ic, 16)}${l}</a>`).join('')}</nav>`;
-  const housingHead = (active, sub) => `<div class="housing-head"><div><h1>방·룸메</h1><p>${sub}</p></div>${housingTabs(active)}</div>`;
+  const housingHead = (active, sub) => `<div class="housing-head"><div><h1>주거 · 방·룸메</h1><p>${sub}</p></div>${housingTabs(active)}</div>`;
   const badges = (arr) => `<div class="badges">${arr.map((b) => `<span class="badge ${BADGE[b][0]}">${icon(BADGE[b][1], 13)}${BADGE[b][2]}</span>`).join('')}</div>`;
   const trust = (v) => `<span class="trust" title="신뢰도 점수">신뢰도 ${v}<span class="trust-bar"><i style="width:${v}%"></i></span></span>`;
   const favBtn = (kind, id, on, label) => `<button class="fav-btn ${on ? 'on' : ''}" data-act="fav-${kind}" data-id="${id}" aria-pressed="${on}" aria-label="${on ? '찜 해제' : '찜하기'}: ${esc(label)}">${icon('heart', 20)}</button>`;
@@ -351,7 +351,7 @@
           <a class="tile t-peach tall" href="#rooms"><span class="tile-tag">룸메 · 양도 · 룸쉐어</span><b>방·룸메</b><span class="tile-sub">룸메 후보 ${all.length}명 · 방 ${allRooms().length}개</span>
             ${charImg('match', 'tile-char')}
             ${best ? `<span class="tile-foot">${avatar(best.c.nick, 'sm')}<span><small>나와 가장 잘 맞는 후보</small><br>${best.m.score}% · ${esc(best.c.nick)}</span></span>` : ''}</a>
-          <a class="tile t-pink" href="#market"><span class="tile-tag">전공책 · 나눔</span><b>중고거래</b><span class="tile-sub">${allItems().length}개 거래 중</span><span class="tile-ic">${icon('bag', 22)}</span></a>
+          <a class="tile t-pink" href="#taxi"><span class="tile-tag">택시 · 배달 · 중고</span><b>생활 매칭</b><span class="tile-sub">지금 모집 ${allG().filter((g) => gStatus(g) === 'recruit').length}건</span><span class="tile-ic">${icon('car', 22)}</span></a>
           <a class="tile t-lav" href="#clubs"><span class="tile-tag">신입생 · 복학생</span><b>동아리·행사</b><span class="tile-sub">모집 중 ${D.clubs.filter((c) => c.recruit.status !== 'closed').length}곳</span><span class="tile-ic">${icon('calendar', 22)}</span></a>
           <a class="tile t-mint wide" href="#community"><span class="tile-ic">${icon('chats', 20)}</span><span style="flex:1;min-width:0"><b>커뮤니티</b><span class="tile-sub ellip">HOT · ${esc(posts[0] ? posts[0].title : '')}</span></span>${icon('right', 20)}</a>
           <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>팀플 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
@@ -359,6 +359,8 @@
       </section>
     </div>
 
+    ${(() => { const lv = (t) => allG(t).filter((g) => gStatus(g) === 'recruit').sort((x, y) => x.closeAt - y.closeAt).slice(0, 2); const cards = [...lv('taxi').map(taxiCard), ...lv('delivery').map(deliveryCard)];
+      return cards.length ? `<section class="section" aria-labelledby="h-life"><div class="section-head"><h2 id="h-life">지금 모집 중 · 택시·배달</h2><a class="more" href="#taxi">전체 보기${icon('right', 16)}</a></div><div class="hscroll life-h">${cards.join('')}</div></section>` : ''; })()}
     <section class="section" aria-labelledby="h-ev">
       <div class="section-head"><h2 id="h-ev">이번 주 캠퍼스 행사</h2><a class="more" href="#events">행사 캘린더${icon('right', 16)}</a></div>
       ${homeEvents()}
@@ -498,6 +500,9 @@
   }
 
   /* ── 방 찾기 (지도 + 리스트, 필터 pill) ── */
+  ICONS.car = '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>';
+  ICONS.utensils = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
+  ICONS.arrow = '<path d="M5 12h14M12 5l7 7-7 7"/>';
   ICONS.down = '<path d="m6 9 6 6 6-6"/>';
   const RF_DEFAULT = () => ({ rent: 80, deposit: 'all', maint: 'all', from: '', term: 'all', dist: 'all', gender: 'all', smoke: 'all', deal: 'all', options: [] });
   const RF = Object.assign(RF_DEFAULT(), { sort: 'rec', q: '' });
@@ -703,6 +708,11 @@
     }
   }
   function matchesMyBody() {
+    const mine = allG().filter((g) => g.mine || (myM(g) && myM(g).status !== 'left'));
+    const rows = mine.map((g) => `<a class="list-row" href="#${g.type}-${g.id}"><span class="lr-art" style="background:${g.type === 'taxi' ? '#FFF1C2' : '#FFE9C9'}">${icon(g.type === 'taxi' ? 'car' : 'utensils', 22)}</span><span class="lr-body"><b>${esc(gTitle(g))}</b><span class="small muted">${g.mine ? '내 모집글' : MY_ST[myM(g).status]} · ${gCount(g)}/${g.cap}명${g.type === 'taxi' ? ` · 출발 ${clock(g.departAt)}` : ` · 마감 ${clock(g.closeAt)}`}</span></span>${stChip(g)}</a>`).join('');
+    return (rows ? `<h3 class="block-title" style="font-size:15px">생활 매칭 · 택시·배달</h3>${rows}<div class="divider"></div><h3 class="block-title" style="font-size:15px">룸메 · 방 · 중고</h3>` : '') + matchesMyBody0();
+  }
+  function matchesMyBody0() {
     const list = matchList(true);
     const flow = `<ol class="flow-line" aria-label="매칭 진행 순서">${['요청', '수락', '채팅', '만남 체크인', '상호 후기', '신뢰도'].map((t) => `<li>${t}</li>`).join('')}</ol>`;
     if (!list.length) return flow + `<div class="empty">${charImg('think', 'empty-char')}<b>아직 진행 중인 매칭이 없어요</b>룸메 후보에게 연락을 요청하거나, 방·중고 글에서 문의를 시작해 보세요.<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap"><a class="btn btn-sm btn-primary" href="#roommate">룸메 후보 보기</a><a class="btn btn-sm btn-outline" href="#market">중고거래 보기</a></div></div>`;
@@ -740,6 +750,281 @@
       <textarea class="textarea" name="text" style="min-height:80px;margin-top:12px" placeholder="다른 학생들에게 도움이 되는 후기를 남겨 주세요 (선택)" aria-label="후기 내용"></textarea>
       <p class="small muted" style="margin-top:8px">상대도 후기를 남기면 <b>두 후기가 동시에 공개</b>돼요. 먼저 쓴 후기를 보고 보복 후기를 쓸 수 없어요.</p>
       <div class="modal-actions"><button class="btn btn-primary btn-lg" type="submit">후기 보내기</button></div></form>`));
+  }
+
+  /* 내가 올린 모집글에 들어오는 데모 신청자 (승인·거절을 시연하기 위한 예시) */
+  const demoApplicants = (type) => D.mates.filter((c) => !S.blocked.includes(c.nick)).slice(3, 5).map((c, i) => ({ nick: c.nick, trust: c.trust, dept: c.dept, items: type === 'delivery' ? [{ n: i ? '사이드 메뉴' : '1인 세트', p: i ? 4500 : 9000, q: 1 }] : [] }));
+  /* ═════════ Store: 모임(Gatherings) — 택시 동행 · 배달 공동 주문 ═════════
+   * 나중에 서버 DB로 옮길 때 그대로 테이블이 되도록 모양을 맞췄어요.
+   *  - Gatherings      : 모집글 (type: taxi | delivery, cap 정원, closeAt 마감, departAt 출발)
+   *  - GatheringMembers: S.gm[gid] = { status: applied | approved | final | done | left | rejected, items }
+   *  - OrderItems      : 참여자별 메뉴 (items: [{ n 메뉴, p 가격, q 수량 }])
+   *  - SharedExpense   : S.settle[gid] = { total, shares: [{ nick, amount }] } — 금액 표시만, 결제·보관 없음
+   * 지켜야 할 규칙(서버에서도 같아요): 같은 글 중복 신청 금지, 정원 초과 금지, 마감 시간 지나면 자동 종료 */
+  const T0 = Date.now();
+  const SAMPLE_G = [...D.taxis.map((x) => ({ ...x, type: 'taxi' })), ...D.deliveries.map((x) => ({ ...x, type: 'delivery' }))]
+    .map((g) => ({ ...g, closeAt: T0 + g.closeIn * 60000, departAt: g.departIn != null ? T0 + g.departIn * 60000 : null }));
+  const G_STATUS = { recruit: ['모집 중', 'st-recruit'], full: ['모집 완료', 'st-full'], progress: ['진행 중', 'st-progress'], done: ['완료', 'st-done'], cancel: ['취소', 'st-cancel'], expired: ['만료', 'st-expired'] };
+  const CANCEL_LIMIT = 3;   // 운영 정책 초안: 확정 후 취소가 이 횟수 이상이면 7일간 참여 제한
+  const allG = (type) => [...S.myGath, ...SAMPLE_G].filter((g) => !type || g.type === type).filter((g) => !S.blocked.includes(g.leader.nick));
+  const findG = (id) => [...S.myGath, ...SAMPLE_G].find((g) => g.id === id);
+  const myM = (g) => (g.mine ? null : S.gm[g.id] || null);
+  const isIn = (g) => g.mine || (myM(g) && ['approved', 'final', 'done'].includes(myM(g).status));
+  const gPeople = (g) => [g.leader, ...g.members, ...(!g.mine && isIn(g) ? [P_ME(g)] : [])];
+  const P_ME = (g) => ({ nick: D.me.nick, trust: myTrust(), dept: S.survey.dept, items: (S.gm[g.id] && S.gm[g.id].items) || [], me: true });
+  const gCount = (g) => gPeople(g).length;
+  function gStatus(g) {
+    if (g.canceled) return 'cancel';
+    if (g.done || (myM(g) && myM(g).status === 'done')) return 'done';
+    const n = gCount(g);
+    if (Date.now() >= g.closeAt) return n >= 2 ? 'progress' : 'expired';
+    return n >= g.cap ? 'full' : 'recruit';
+  }
+  const stChip = (g) => { const [t, c] = G_STATUS[gStatus(g)]; return `<span class="st-chip ${c}">${t}</span>`; };
+  const wonN = (n) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+  const ceil10 = (n) => Math.ceil(n / 10) * 10;
+  const clock = (ts) => { const d = new Date(ts); return `${d.getHours() < 12 ? '오전' : '오후'} ${((d.getHours() + 11) % 12) + 1}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  function until(ts) {
+    const s = Math.round((ts - Date.now()) / 1000);
+    if (s <= 0) return '마감';
+    const m = Math.floor(s / 60);
+    return m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : m >= 10 ? `${m}분` : `${m}분 ${String(s % 60).padStart(2, '0')}초`;
+  }
+  const untilEl = (ts) => `<b data-until="${ts}">${until(ts)}</b>`;
+  const itemsSum = (items) => (items || []).reduce((a, x) => a + x.p * (x.q || 1), 0);
+  const orderTotal = (g) => gPeople(g).reduce((a, p) => a + itemsSum(p.items), 0);
+  const taxiTitle = (g) => `${g.from} → ${g.to}`;
+  const gTitle = (g) => (g.type === 'taxi' ? taxiTitle(g) : `${g.shop} 공동 주문`);
+  const lateNight = (ts) => { const h = new Date(ts).getHours(); return h >= 23 || h < 6; };
+
+  /* ── 카드 ── */
+  function taxiCard(g) {
+    const n = gCount(g), st = gStatus(g);
+    return `<article class="life-card clickable ${['recruit', 'full'].includes(st) ? '' : 'is-off'}" data-href="#taxi-${g.id}">
+      <div class="lc-top">${stChip(g)}${sampleTag(g)}${st === 'recruit' ? `<span class="lc-time">${icon('clock', 14)}마감까지 ${untilEl(g.closeAt)}</span>` : ''}</div>
+      <div class="lc-route"><b>${esc(g.from)}</b>${icon('arrow', 16)}<b>${esc(g.to)}</b></div>
+      <div class="lc-meta">출발 ${clock(g.departAt)} · <span class="seats" aria-label="현재 ${n}명, 최대 ${g.cap}명">${Array.from({ length: g.cap }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span> 현재 ${n}명 / 최대 ${g.cap}명</div>
+      <div class="lc-foot"><span class="lc-price"><small>${st === 'recruit' && !isIn(g) ? '내가 타면 1인 (예상)' : '1인 부담 (예상)'}</small>${wonN(ceil10(g.fare / Math.max(n + (st === 'recruit' && !isIn(g) ? 1 : 0), 1)))}</span>
+        ${st === 'recruit' && !g.mine && !myM(g) ? `<button class="btn btn-primary btn-sm" data-act="g-apply" data-id="${g.id}">참여하기</button>` : myM(g) || g.mine ? `<span class="badge b-school">${g.mine ? '내 모집글' : MY_ST[myM(g).status]}</span>` : ''}</div>
+    </article>`;
+  }
+  function deliveryCard(g) {
+    const n = gCount(g), st = gStatus(g), tot = orderTotal(g), pct = Math.min(100, Math.round((tot / g.minOrder) * 100));
+    return `<article class="life-card clickable ${['recruit', 'full'].includes(st) ? '' : 'is-off'}" data-href="#delivery-${g.id}">
+      <div class="lc-top">${stChip(g)}${sampleTag(g)}<span class="chip sm-chip">${esc(g.cat)}</span>${st === 'recruit' ? `<span class="lc-time">${icon('clock', 14)}주문 마감 ${untilEl(g.closeAt)}</span>` : ''}</div>
+      <div class="lc-route"><b>${esc(g.shop)}</b><span class="small muted">${icon('pin', 13, 'style="display:inline;vertical-align:-2px"')} ${esc(g.pickup)}에서 받아요</span></div>
+      <div class="min-bar" aria-label="최소 주문 금액 ${pct}퍼센트 달성"><i style="width:${pct}%" class="${pct >= 100 ? 'ok' : ''}"></i></div>
+      <div class="lc-meta"><b>${wonN(tot)}</b> / 최소 ${wonN(g.minOrder)} ${pct >= 100 ? '<span class="ok-txt">달성</span>' : ''} · 배달비 ${wonN(g.fee)} · 현재 ${n}명 참여 (최대 ${g.cap}명)</div>
+      <div class="lc-foot"><span class="lc-price"><small>${isIn(g) ? '내 배달비' : '참여하면 1인 배달비'}</small>${wonN(ceil10(g.fee / (n + (isIn(g) ? 0 : 1))))}</span>
+        ${st === 'recruit' && !g.mine && !myM(g) ? `<button class="btn btn-primary btn-sm" data-act="g-apply" data-id="${g.id}">공동 주문 참여하기</button>` : myM(g) || g.mine ? `<span class="badge b-school">${g.mine ? '내 모집글' : MY_ST[myM(g).status]}</span>` : ''}</div>
+    </article>`;
+  }
+  const MY_ST = { applied: '승인 대기', approved: '참여 확정', final: '탑승 확정', done: '완료', left: '취소함', rejected: '정원 마감' };
+
+  /* ── 생활 매칭 목록 ── */
+  const lifeTabs = (active) => `<nav class="seg nav housing-tabs life-tabs" aria-label="생활 매칭 메뉴">${[['taxi', '택시 같이 타기', 'car'], ['delivery', '배달 같이 시키기', 'utensils'], ['market', '중고거래', 'bag']].map(([k, l, ic]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${icon(ic, 16)}${l}</a>`).join('')}</nav>`;
+  const lifeHead = (active, sub) => `<div class="housing-head"><div><h1>생활 매칭</h1><p>${sub}</p></div>${lifeTabs(active)}</div>`;
+  let taxiF = '전체', dlvF = '전체';
+  function listSplit(list) {
+    const live = list.filter((g) => ['recruit', 'full'].includes(gStatus(g))).sort((a, b) => a.closeAt - b.closeAt);
+    const past = list.filter((g) => !live.includes(g));
+    return { live, past };
+  }
+  function pageTaxi() {
+    const zone = (name) => (D.lifeSpots.find((x) => x.name === name) || {}).zone;
+    const list = allG('taxi').filter((g) => taxiF === '전체' || (taxiF === '학교에서 출발' ? zone(g.from) === '교내' : zone(g.to) === '교내'));
+    const { live, past } = listSplit(list);
+    return `${lifeHead('taxi', '같은 방향 가는 학생과 택시비를 나눠요. <b>택시 호출과 결제는 이음이 하지 않아요</b> — 만나서 직접 잡고, 미터기 금액으로 정산해요.')}
+      <div class="life-bar"><div class="tabs" role="group" aria-label="출발·도착 필터">${['전체', '학교에서 출발', '학교로 도착'].map((x) => `<button class="tab ${taxiF === x ? 'active' : ''}" data-act="taxi-f" data-v="${x}" aria-pressed="${taxiF === x}">${x}</button>`).join('')}</div>
+        <a class="btn btn-primary btn-sm" href="#taxi-new">${icon('plus', 16)}동행 모집</a></div>
+      <div class="life-grid">${live.length ? live.map(taxiCard).join('') : `<div class="card empty">${charImg('think', 'empty-char')}<b>지금 모집 중인 택시가 없어요</b>직접 모집글을 올려 보세요.</div>`}</div>
+      ${past.length ? `<h2 class="past-h">지난 모집</h2><div class="life-grid">${past.map(taxiCard).join('')}</div>` : ''}
+      ${footer()}`;
+  }
+  function pageDelivery() {
+    const list = allG('delivery').filter((g) => dlvF === '전체' || g.cat === dlvF);
+    const { live, past } = listSplit(list);
+    return `${lifeHead('delivery', '최소 주문 금액을 채우고 배달비를 나눠요. <b>주문·결제는 모집자가 배달앱에서 직접</b> 하고, 이음은 각자 낼 금액만 정리해 줘요.')}
+      <div class="life-bar"><div class="tabs" role="group" aria-label="음식 종류">${['전체', ...D.deliveryCats].map((x) => `<button class="tab ${dlvF === x ? 'active' : ''}" data-act="dlv-f" data-v="${x}" aria-pressed="${dlvF === x}">${x}</button>`).join('')}</div>
+        <a class="btn btn-primary btn-sm" href="#delivery-new">${icon('plus', 16)}공동 주문 모집</a></div>
+      <div class="life-grid">${live.length ? live.map(deliveryCard).join('') : `<div class="card empty">${charImg('eat', 'empty-char')}<b>지금 모집 중인 공동 주문이 없어요</b>먹고 싶은 메뉴로 직접 모집해 보세요.</div>`}</div>
+      ${past.length ? `<h2 class="past-h">지난 모집</h2><div class="life-grid">${past.map(deliveryCard).join('')}</div>` : ''}
+      ${footer()}`;
+  }
+
+  /* ── 상세 ── */
+  function peopleBlock(g) {
+    const show = isIn(g);
+    const ppl = gPeople(g);
+    return `<section class="card pad"><h2 class="block-title">${icon('users', 18)}참여자 ${ppl.length}명 / 최대 ${g.cap}명</h2>
+      <div class="ppl">${ppl.map((p, i) => `<div class="ppl-row">${avatar(show || i === 0 ? p.nick : '익명')}<span><b>${show || i === 0 ? esc(p.nick) : '참여자'}${i === 0 ? ' <span class="badge b-proof">모집자</span>' : ''}${p.me ? ' <span class="badge b-school">나</span>' : ''}</b><small class="muted">${show || i === 0 ? esc(p.dept) + ' · ' : ''}학교 인증 · 신뢰도 ${p.trust}</small></span>
+        ${g.type === 'delivery' && show ? `<span class="ppl-sum">${p.items.length ? wonN(itemsSum(p.items)) : '<span class="muted small">메뉴 아직</span>'}</span>` : ''}</div>`).join('')}
+        ${Array.from({ length: Math.max(0, g.cap - ppl.length) }, () => '<div class="ppl-row empty-slot"><span class="slot-dot"></span><span class="muted small">빈자리</span></div>').join('')}</div>
+      ${show ? '' : '<p class="small muted" style="margin-top:8px">참여가 확정되면 다른 참여자의 닉네임·학과가 보여요.</p>'}
+      ${g.mine && g.pending && g.pending.length ? `<div class="pending"><b class="small">참여 신청 ${g.pending.length}건 <span class="muted">(데모 신청자)</span></b>${g.pending.map((p) => `<div class="ppl-row">${avatar(p.nick)}<span><b>${esc(p.nick)}</b><small class="muted">${esc(p.dept)} · 신뢰도 ${p.trust}</small></span><span class="pd-btns"><button class="btn btn-sm btn-ghost" data-act="g-reject" data-id="${g.id}" data-nick="${esc(p.nick)}">거절</button><button class="btn btn-sm btn-primary" data-act="g-approve" data-id="${g.id}" data-nick="${esc(p.nick)}">승인</button></span></div>`).join('')}</div>` : ''}
+    </section>`;
+  }
+  function gActions(g) {
+    const st = gStatus(g), m = myM(g), chatBtn = `<button class="btn btn-outline" data-act="g-chat" data-id="${g.id}">${icon('chats', 18)}참여자 채팅방</button>`;
+    if (st === 'cancel') return '<span class="muted">모집자가 모집을 취소했어요.</span>';
+    if (g.mine) {
+      if (st === 'done') return `<span class="badge b-school">${icon('check', 13)}완료된 모집이에요</span>`;
+      const doneBtn = g.type === 'taxi'
+        ? (gCount(g) >= 2 ? `<button class="btn btn-mint" data-act="g-settle" data-id="${g.id}">${icon('check', 18)}이용 완료 · 정산</button>` : '')
+        : !g.closed ? `<button class="btn btn-primary" data-act="g-close" data-id="${g.id}">주문 마감하기</button>` : !g.ordered ? `<button class="btn btn-primary" data-act="g-ordered" data-id="${g.id}">배달앱에서 주문했어요</button>` : `<button class="btn btn-mint" data-act="g-recv" data-id="${g.id}">${icon('check', 18)}음식 나눠 주기 완료</button>`;
+      return `${gCount(g) >= 2 ? chatBtn : ''}${doneBtn}<button class="btn btn-ghost-danger btn-sm" data-act="g-delist" data-id="${g.id}">모집 취소</button>`;
+    }
+    if (!m) return st === 'recruit' ? `<button class="btn btn-primary btn-lg" data-act="g-apply" data-id="${g.id}">${g.type === 'taxi' ? '동행 참여 신청' : '공동 주문 참여 신청'}</button>` : `<span class="muted">${G_STATUS[st][0]}된 모집글이에요.</span>`;
+    switch (m.status) {
+      case 'applied': return `<span class="muted">${icon('clock', 15, 'style="display:inline;vertical-align:-2px"')} 모집자 승인을 기다리는 중</span><button class="btn btn-ghost btn-sm" data-act="g-leave" data-id="${g.id}">신청 취소</button>`;
+      case 'approved':
+        if (g.type === 'taxi') return `${chatBtn}<button class="btn btn-primary" data-act="g-final" data-id="${g.id}">출발 전 최종 확인</button><button class="btn btn-ghost btn-sm" data-act="g-leave" data-id="${g.id}">참여 취소</button>`;
+        return st === 'recruit' || st === 'full'
+          ? `${chatBtn}<button class="btn btn-primary" data-act="g-menu" data-id="${g.id}">${icon('utensils', 18)}${m.items && m.items.length ? '내 메뉴 수정' : '내 메뉴 담기'}</button><button class="btn btn-ghost btn-sm" data-act="g-leave" data-id="${g.id}">참여 취소</button>`
+          : `${chatBtn}<button class="btn btn-mint" data-act="g-recv" data-id="${g.id}">${icon('check', 18)}음식 받았어요</button>`;
+      case 'final': return `${chatBtn}<button class="btn btn-mint" data-act="g-settle" data-id="${g.id}">${icon('check', 18)}이용 완료 · 정산</button>`;
+      case 'done': return `<span class="badge b-school">${icon('check', 13)}완료 · 후기를 남겼어요</span>`;
+      case 'rejected': return '<span class="muted">정원이 차서 참여하지 못했어요.</span>';
+      default: return '<span class="muted">참여를 취소했어요.</span>';
+    }
+  }
+  function settleBlock(g) {
+    const rec = S.settle[g.id]; if (!rec) return '';
+    return `<section class="card pad"><h2 class="block-title">${icon('file', 18)}정산 기록</h2>
+      <div class="split-table">${rec.shares.map((x) => `<div><span>${esc(x.nick)}${x.nick === D.me.nick ? ' (나)' : ''}</span><b>${wonN(x.amount)}</b></div>`).join('')}<div class="tot"><span>합계</span><b>${wonN(rec.total)}</b></div></div>
+      <p class="small muted" style="margin-top:8px">이음은 금액만 기록해요. 송금은 참여자끼리 직접 하고, 이음은 돈을 보관하지 않아요.</p></section>`;
+  }
+  function pageTaxiOne(id) {
+    const g = findG(id); if (!g || g.type !== 'taxi') return notFound();
+    const n = gCount(g), st = gStatus(g);
+    return `<a class="back-link" href="#taxi">${icon('left', 18)}택시 목록</a>
+    <div class="detail-grid"><div class="grid" style="gap:16px">
+      <section class="card pad g-hero"><div class="lc-top">${stChip(g)}${sampleTag(g)}${st === 'recruit' ? `<span class="lc-time">${icon('clock', 14)}모집 마감까지 ${untilEl(g.closeAt)}</span>` : ''}</div>
+        <h1 class="g-route"><span>${esc(g.from)}</span>${icon('arrow', 22)}<span>${esc(g.to)}</span></h1>
+        <div class="meta">${icon('clock')}<span>출발 ${clock(g.departAt)} · 모집 마감 ${clock(g.closeAt)} · 모집자 ${esc(g.leader.nick)} (신뢰도 ${g.leader.trust})</span></div></section>
+      ${peopleBlock(g)}
+      <section class="card pad"><h2 class="block-title">${icon('sparkle', 18)}예상 비용</h2>
+        <div class="kv three"><div><small>예상 택시비 (모집자 입력)</small><b>${wonN(g.fare)}</b></div><div><small>지금 ${n}명이면 1인</small><b>${wonN(ceil10(g.fare / n))}</b></div><div><small>${g.cap}명 다 차면 1인</small><b>${wonN(ceil10(g.fare / g.cap))}</b></div></div>
+        <p class="small muted" style="margin-top:10px">실제 금액은 <b>택시 미터기 요금</b>으로 정해요. 내리는 곳이 다르면 이용 완료 후 정산 화면에서 사람마다 금액을 조정할 수 있어요. 10원 단위로 올려서 계산했어요.</p></section>
+      ${settleBlock(g)}
+      <section class="card pad"><h2 class="block-title">${icon('shield', 18)}안전하게 타요</h2>
+        <ul class="rules"><li>${icon('pin')}모이는 곳: <b>${esc(g.from)}</b> — 밝고 사람이 많은 곳에서 모여요</li><li>${icon('check')}참여자는 모두 학교 인증 학생이에요</li>
+          <li>${icon('alert')}이음은 택시를 호출하지 않아요. 모인 뒤 카카오T 등으로 <b>직접 호출</b>하세요</li><li>${icon('flag')}불편한 일이 생기면 바로 신고하세요. 담당자 전원에게 전달돼요</li></ul>
+        ${lateNight(g.departAt) ? `<div class="info-box amber" style="margin-top:10px">${icon('moon', 18)}<span>늦은 시간 출발이에요. 친구에게 동행 정보를 알려 두세요.</span></div>` : ''}</section>
+      ${g.note ? `<section class="card pad"><h2 class="block-title">모집자 메모</h2><p class="prose">${esc(g.note)}</p></section>` : ''}
+      <div class="report-row"><button class="btn btn-sm btn-ghost-danger" data-act="report" data-label="택시 동행 · ${esc(taxiTitle(g))}" data-fake="1">${icon('flag', 15)}허위 모집글 신고</button>${g.mine ? '' : `<button class="btn btn-sm btn-ghost" data-act="block" data-key="${esc(g.leader.nick)}">${icon('ban', 15)}모집자 차단</button>`}</div>
+    </div>
+    <aside class="detail-aside"><section class="card pad g-actions">${gActions(g)}</section></aside></div>`;
+  }
+  function pageDeliveryOne(id) {
+    const g = findG(id); if (!g || g.type !== 'delivery') return notFound();
+    const n = gCount(g), st = gStatus(g), tot = orderTotal(g), pct = Math.min(100, Math.round((tot / g.minOrder) * 100));
+    const me = isIn(g) ? gPeople(g).find((p) => p.me || (g.mine && p === g.leader)) : null;
+    const feeShare = ceil10(g.fee / n);
+    return `<a class="back-link" href="#delivery">${icon('left', 18)}공동 주문 목록</a>
+    <div class="detail-grid"><div class="grid" style="gap:16px">
+      <section class="card pad g-hero"><div class="lc-top">${stChip(g)}${sampleTag(g)}<span class="chip sm-chip">${esc(g.cat)}</span>${st === 'recruit' ? `<span class="lc-time">${icon('clock', 14)}주문 마감까지 ${untilEl(g.closeAt)}</span>` : ''}</div>
+        <h1 class="g-route"><span>${esc(g.shop)}</span></h1>
+        <div class="meta">${icon('pin')}<span>${esc(g.pickup)}에서 받아요 · 마감 ${clock(g.closeAt)} · 모집자 ${esc(g.leader.nick)} (신뢰도 ${g.leader.trust})</span></div>
+        <div class="min-bar big" aria-label="최소 주문 금액 ${pct}퍼센트 달성"><i style="width:${pct}%" class="${pct >= 100 ? 'ok' : ''}"></i></div>
+        <div class="small"><b>${wonN(tot)}</b> / 최소 주문 ${wonN(g.minOrder)} · ${pct >= 100 ? '<span class="ok-txt">최소 금액 달성</span>' : `${wonN(g.minOrder - tot)} 더 필요해요`}</div></section>
+      ${peopleBlock(g)}
+      <section class="card pad"><h2 class="block-title">${icon('sparkle', 18)}비용 나누기</h2>
+        <p class="small muted" style="margin-bottom:10px"><b>음식값은 각자 담은 만큼</b>, 배달비 ${wonN(g.fee)}는 참여자 ${n}명이 똑같이 나눠요 (1인 ${wonN(feeShare)}, 10원 단위 올림).</p>
+        ${me ? `<div class="split-table"><div><span>내 음식값</span><b>${wonN(itemsSum(me.items))}</b></div><div><span>배달비 나눔</span><b>${wonN(feeShare)}</b></div><div class="tot"><span>내가 낼 금액 (예상)</span><b>${wonN(itemsSum(me.items) + feeShare)}</b></div></div>
+          ${me.items.length ? `<ul class="my-items">${me.items.map((x) => `<li>${esc(x.n)} × ${x.q}<span>${wonN(x.p * x.q)}</span></li>`).join('')}</ul>` : ''}`
+        : `<div class="kv three"><div><small>배달비</small><b>${wonN(g.fee)}</b></div><div><small>지금 1인 배달비</small><b>${wonN(feeShare)}</b></div><div><small>내가 오면 1인</small><b>${wonN(ceil10(g.fee / (n + 1)))}</b></div></div>`}
+        ${isIn(g) ? `<details style="margin-top:10px"><summary class="small" style="cursor:pointer;font-weight:700">참여자별 주문 내역</summary><div class="split-table" style="margin-top:8px">${gPeople(g).map((p) => `<div><span>${esc(p.nick)}</span><b>${wonN(itemsSum(p.items) + feeShare)}</b></div>`).join('')}<div class="tot"><span>총 결제 (음식 + 배달비)</span><b>${wonN(tot + g.fee)}</b></div></div><p class="small muted">10원 단위 올림 때문에 합계가 몇십 원 다를 수 있어요. 남는 금액은 모집자가 돌려줘요.</p></details>` : ''}</section>
+      ${settleBlock(g)}
+      <section class="card pad"><h2 class="block-title">${icon('shield', 18)}이렇게 운영해요</h2>
+        <ul class="rules"><li>${icon('check')}모집자가 배달앱에서 직접 주문·결제하고, 참여자는 모집자에게 각자 송금해요. <b>이음은 돈을 보관하지 않아요</b></li>
+          <li>${icon('lock')}계좌 안내는 참여가 확정된 사람만 있는 채팅방에서만 해 주세요</li>
+          <li>${icon('alert')}주문 마감 뒤에는 취소할 수 없어요. 미입금·음식 미전달은 신고해 주세요</li><li>${icon('pin')}받는 곳: <b>${esc(g.pickup)}</b></li></ul></section>
+      ${g.note ? `<section class="card pad"><h2 class="block-title">모집자 메모</h2><p class="prose">${esc(g.note)}</p></section>` : ''}
+      <div class="report-row"><button class="btn btn-sm btn-ghost-danger" data-act="report" data-label="공동 주문 · ${esc(g.shop)}" data-fake="1">${icon('flag', 15)}허위 모집글·미입금 신고</button>${g.mine ? '' : `<button class="btn btn-sm btn-ghost" data-act="block" data-key="${esc(g.leader.nick)}">${icon('ban', 15)}모집자 차단</button>`}</div>
+    </div>
+    <aside class="detail-aside"><section class="card pad g-actions">${gActions(g)}</section></aside></div>`;
+  }
+
+  /* ── 모집글 올리기 ── */
+  const spotOpts = (cur) => D.lifeSpots.map((x) => `<option ${x.name === cur ? 'selected' : ''}>${x.name}</option>`).join('') + '<option value="__custom">직접 입력</option>';
+  function pageTaxiNew() {
+    if (!S.verified) return lifeHead('taxi', '같은 방향 가는 학생과 택시비를 나눠요.') + gatePanel('택시 동행 모집');
+    return `<div class="survey-wrap">${lifeHead('taxi', '모집글을 올리면 같은 방향 학생이 참여를 신청해요. 승인은 내가 해요.')}
+      <form data-form="taxi" class="card form-section grid" style="gap:14px" novalidate>
+        <div class="form-grid two"><div class="field"><label for="tx-from">출발</label><select class="select" id="tx-from" name="from">${spotOpts('정문 버스정류장')}</select><input class="input custom-spot" name="fromC" placeholder="출발 장소 직접 입력" hidden></div>
+          <div class="field"><label for="tx-to">도착</label><select class="select" id="tx-to" name="to">${spotOpts('충주공용버스터미널')}</select><input class="input custom-spot" name="toC" placeholder="도착 장소 직접 입력" hidden></div></div>
+        <span class="hint">지도 검색(카카오 장소 검색)은 아직 연결 전이라, 자주 가는 장소 목록과 직접 입력으로 받아요.</span>
+        <div class="form-grid three"><div class="field"><label for="tx-time">출발 시간</label><input class="input" type="time" id="tx-time" name="time" value="${(() => { const d = new Date(Date.now() + 3600000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes() - (d.getMinutes() % 10)).padStart(2, '0')}`; })()}"></div>
+          <div class="field"><label for="tx-close">모집 마감</label><select class="select" id="tx-close" name="close"><option value="10">출발 10분 전</option><option value="20" selected>출발 20분 전</option><option value="30">출발 30분 전</option></select></div>
+          <div class="field"><label for="tx-cap">최대 인원 (나 포함)</label><select class="select" id="tx-cap" name="cap"><option>2</option><option>3</option><option selected>4</option></select></div></div>
+        <div class="field"><label for="tx-fare">예상 택시비</label><div class="input-group"><input class="input" id="tx-fare" name="fare" type="number" min="1000" step="500" inputmode="numeric" placeholder="15000"><span class="suffix">원</span></div><span class="hint">대략 적어 주세요. 실제 금액은 미터기 요금으로 정산해요.</span></div>
+        <div class="field"><label for="tx-note">참고 사항</label><textarea class="textarea" id="tx-note" name="note" placeholder="예) 캐리어 1개 있어요 · 정류장 벤치 앞에서 모여요"></textarea><span class="hint">계좌번호·외부 메신저 아이디는 올릴 수 없어요.</span></div>
+        <p class="error-text" id="tx-err" role="alert"></p>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">택시 동행 모집하기</button>
+      </form></div>`;
+  }
+  function pageDeliveryNew() {
+    if (!S.verified) return lifeHead('delivery', '배달비를 나눠요.') + gatePanel('공동 주문 모집');
+    return `<div class="survey-wrap">${lifeHead('delivery', '음식점과 조건을 올리면 같이 시킬 학생이 참여를 신청해요.')}
+      <form data-form="delivery" class="card form-section grid" style="gap:14px" novalidate>
+        <div class="form-grid two"><div class="field"><label for="dl-shop">음식점 이름</label><input class="input" id="dl-shop" name="shop" maxlength="30" placeholder="예) 정문 치킨"></div>
+          <div class="field"><label for="dl-cat">음식 종류</label><select class="select" id="dl-cat" name="cat">${D.deliveryCats.map((c) => `<option>${c}</option>`).join('')}</select></div></div>
+        <div class="form-grid two"><div class="field"><label for="dl-pick">받는 곳</label><select class="select" id="dl-pick" name="pickup">${D.safePlaces.filter((p) => !p.off).map((p) => `<option>${p.name}</option>`).join('')}</select></div>
+          <div class="field"><label for="dl-close">주문 마감</label><select class="select" id="dl-close" name="close"><option value="15">15분 뒤</option><option value="30" selected>30분 뒤</option><option value="45">45분 뒤</option><option value="60">1시간 뒤</option></select></div></div>
+        <div class="form-grid three"><div class="field"><label for="dl-min">최소 주문 금액</label><div class="input-group"><input class="input" id="dl-min" name="min" type="number" min="0" step="500" inputmode="numeric" placeholder="20000"><span class="suffix">원</span></div></div>
+          <div class="field"><label for="dl-fee">배달비</label><div class="input-group"><input class="input" id="dl-fee" name="fee" type="number" min="0" step="100" inputmode="numeric" placeholder="3000"><span class="suffix">원</span></div></div>
+          <div class="field"><label for="dl-cap">최대 인원 (나 포함)</label><select class="select" id="dl-cap" name="cap">${[2, 3, 4, 5, 6].map((x) => `<option ${x === 4 ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div>
+        <div class="form-grid two"><div class="field"><label for="dl-item">내 메뉴</label><input class="input" id="dl-item" name="item" maxlength="30" placeholder="예) 후라이드 반 마리"></div>
+          <div class="field"><label for="dl-price">내 메뉴 가격</label><div class="input-group"><input class="input" id="dl-price" name="price" type="number" min="0" step="100" inputmode="numeric" placeholder="9000"><span class="suffix">원</span></div></div></div>
+        <div class="field"><label for="dl-note">참고 사항</label><textarea class="textarea" id="dl-note" name="note" placeholder="예) 생활관 1층 로비에서 나눠요"></textarea><span class="hint">음식점·메뉴는 직접 입력해요. 배달앱 자동 주문은 연결돼 있지 않아요.</span></div>
+        <p class="error-text" id="dl-err" role="alert"></p>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">공동 주문 모집하기</button>
+      </form></div>`;
+  }
+
+  /* ── 모달: 메뉴 담기 · 정산 · 그룹 채팅 ── */
+  function openOrderMenu(g) {
+    const items = (S.gm[g.id] && S.gm[g.id].items) || [];
+    const row = (x, i) => `<div class="menu-row"><input class="input" name="n${i}" placeholder="메뉴 이름" value="${esc(x ? x.n : '')}" aria-label="메뉴 ${i + 1} 이름"><input class="input" name="p${i}" type="number" min="0" step="100" placeholder="가격" value="${x ? x.p : ''}" aria-label="메뉴 ${i + 1} 가격"><input class="input" name="q${i}" type="number" min="1" max="9" value="${x ? x.q : 1}" aria-label="메뉴 ${i + 1} 수량"></div>`;
+    openModal(modalBox(`${esc(g.shop)} · 내 메뉴 담기`, `<form data-form="g-menu" data-id="${g.id}" class="grid" style="gap:10px">
+      <div class="menu-head small muted"><span>메뉴</span><span>가격(원)</span><span>수량</span></div>
+      ${[0, 1, 2].map((i) => row(items[i], i)).join('')}
+      <p class="small muted">주문 마감(${clock(g.closeAt)}) 전까지 바꿀 수 있어요.</p>
+      <p class="error-text" id="gm-err" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" type="submit">담기</button></div></form>`));
+  }
+  function openSettle(g) {
+    const ppl = gPeople(g), each = ceil10(g.fare / ppl.length);
+    openModal(modalBox('이용 완료 · 정산', `<form data-form="g-settle" data-id="${g.id}" class="grid" style="gap:12px">
+      <div class="field"><label for="st-total">실제 미터기 요금</label><div class="input-group"><input class="input" id="st-total" name="total" type="number" min="0" step="100" value="${g.fare}" data-split="${ppl.length}"><span class="suffix">원</span></div></div>
+      <div class="field"><span class="field-label">한 사람씩 낼 금액 · 내리는 곳이 다르면 바꿔 주세요</span>
+        ${ppl.map((p, i) => `<div class="share-row"><span>${esc(p.nick)}${p.me || (g.mine && i === 0) ? ' (나)' : ''}</span><div class="input-group"><input class="input" name="s${i}" type="number" min="0" step="10" value="${each}" aria-label="${esc(p.nick)} 금액"><span class="suffix">원</span></div></div>`).join('')}
+        <button type="button" class="link-btn small" data-act="split-even">똑같이 나누기</button></div>
+      <fieldset style="border:0"><legend class="field-label">동행 후기</legend><div class="star-input">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="gs${n}" name="stars" value="${n}" ${n === 5 ? 'checked' : ''}><label for="gs${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
+      <p class="small muted">금액 합계가 실제 요금과 같아야 저장돼요. 송금은 참여자끼리 직접 해요.</p>
+      <p class="error-text" id="st-err" role="alert"></p>
+      <div class="modal-actions"><button class="btn btn-primary btn-lg" type="submit">정산 기록하고 완료</button></div></form>`));
+  }
+  function openRecv(g) {
+    const ppl = gPeople(g), fs = ceil10(g.fee / ppl.length);
+    openModal(modalBox('음식 받기 완료', `<form data-form="g-recv" data-id="${g.id}" class="grid" style="gap:12px">
+      <div class="split-table">${ppl.map((p) => `<div><span>${esc(p.nick)}</span><b>${wonN(itemsSum(p.items) + fs)}</b></div>`).join('')}<div class="tot"><span>총액 (음식 ${wonN(orderTotal(g))} + 배달비 ${wonN(g.fee)})</span><b>${wonN(orderTotal(g) + g.fee)}</b></div></div>
+      <fieldset style="border:0"><legend class="field-label">공동 주문 후기</legend><div class="star-input">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="gr${n}" name="stars" value="${n}" ${n === 5 ? 'checked' : ''}><label for="gr${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
+      <p class="small muted">이 금액표가 정산 기록으로 남아요. 송금은 참여자끼리 직접 해요.</p>
+      <div class="modal-actions"><button class="btn btn-primary btn-lg" type="submit">받았어요 · 완료</button></div></form>`));
+  }
+  function openGChat(g) {
+    const ppl = gPeople(g).filter((p) => !p.me && !(g.mine && p === g.leader));
+    const names = ppl.map((p) => p.nick);
+    const speak = (i, t) => `${names[i % Math.max(names.length, 1)] || '참여자'}: ${t}`;
+    const key = 'g-' + g.id;
+    if (!S.chats[key]) S.chats[key] = [{ t: 'sys', text: `참여가 확정된 ${gCount(g)}명만 있는 비공개 채팅방이에요.${g.type === 'delivery' ? ' 계좌 안내는 이 방에서만 해 주세요. 이음은 돈을 보관하지 않아요.' : ' 택시는 모인 뒤 직접 호출해요.'}`, at: nowTime() }];
+    openChat(key, { name: g.type === 'taxi' ? `택시 · ${taxiTitle(g)}` : `공동 주문 · ${g.shop}`, trust: g.leader.trust,
+      greeting: speak(0, g.type === 'taxi' ? `안녕하세요! ${clock(g.departAt)}에 ${g.from}에서 봬요.` : `안녕하세요! ${clock(g.closeAt)}에 주문 마감할게요. 메뉴 담아 주세요.`),
+      ctx: ctxBar(icon(g.type === 'taxi' ? 'car' : 'utensils', 22), gTitle(g), `${gCount(g)}명 참여 · ${G_STATUS[gStatus(g)][0]}`),
+      quick: g.type === 'taxi' ? ['도착했어요!', '5분 정도 늦을 것 같아요', '택시 호출할게요', '정산은 미터기 기준으로 해요'] : ['메뉴 담았어요', '도착하면 알려 주세요', '송금은 받은 뒤에 할게요', '감사합니다!'],
+      replies: g.type === 'taxi' ? [speak(0, '네 좋아요!'), speak(1, '저도 거의 도착했어요.'), speak(0, '정산은 내릴 때 미터기 보고 나눠요.')] : [speak(0, '확인했어요!'), speak(1, '저도 담았어요.'), speak(0, '도착하면 채팅 남길게요.')] });
   }
 
   /* 실거래 시세 비교: 환산 월세 = 월세 + 보증금 × 연 6% ÷ 12 */
@@ -1554,7 +1839,9 @@
       case 'home': html = pageHome(); break;
       case 'roommate': html = a === 'survey' ? pageSurvey() : a ? (cta = true, pageMate(a)) : pageRoommate(); nav = 'rooms'; break;
       case 'rooms': html = a === 'new' ? pageRoomNew() : a ? (cta = true, pageRoom(a)) : pageRooms(); break;
-      case 'market': html = a === 'new' ? pageItemNew() : a ? (cta = true, pageItem(a)) : pageMarket(); break;
+      case 'market': html = a === 'new' ? pageItemNew() : a ? (cta = true, pageItem(a)) : pageMarket(); nav = 'life'; break;
+      case 'taxi': html = a === 'new' ? pageTaxiNew() : a ? pageTaxiOne(a) : pageTaxi(); nav = 'life'; break;
+      case 'delivery': html = a === 'new' ? pageDeliveryNew() : a ? pageDeliveryOne(a) : pageDelivery(); nav = 'life'; break;
       case 'community': html = pageCommunity(a); break;
       case 'post': html = pagePost(a); nav = 'community'; break;
       case 'write': html = pageWrite(a); nav = 'community'; break;
@@ -1567,6 +1854,8 @@
       case 'verify': html = pageVerify(); nav = 'my'; break;
       default: html = notFound();
     }
+    if (!a && ['contests', 'teams', 'people', 'clubs', 'events'].includes(p)) html = actSwitch(['clubs', 'events'].includes(p) ? p : 'contests') + html;
+    if (!a && p === 'market') html = `<div class="hub-switch">${lifeTabs('market')}</div>` + html;
     main.className = 'page' + (cta ? ' has-cta' : '') + (p === 'rooms' && !a ? ' wide' : '');
     main.innerHTML = html;
     renderChrome(nav);
@@ -1588,10 +1877,11 @@
     }
   }
 
+  const actSwitch = (active) => `<nav class="seg nav housing-tabs hub-switch" aria-label="활동 메뉴">${[['contests', '공모전·팀', 'trophy'], ['clubs', '동아리', 'users'], ['events', '행사', 'calendar']].map(([k, l, ic]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${icon(ic, 16)}${l}</a>`).join('')}</nav>`;
   function renderChrome(nav) {
     $$('.desk-nav a').forEach((a) => { const on = a.dataset.nav === nav; a.classList.toggle('active', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
-    const tabs = [['home', 'home', '홈', 'home'], ['rooms', 'door', '방·룸메', 'rooms'], ['market', 'bag', '중고', 'market'], ['contests', 'trophy', '팀플', 'teams'], ['my', 'user', 'MY', 'my']];
-    const tabNav = ['community', 'clubs'].includes(nav) ? 'home' : nav;
+    const tabs = [['home', 'home', '홈', 'home'], ['rooms', 'door', '주거', 'rooms'], ['contests', 'trophy', '활동', 'act'], ['taxi', 'car', '생활', 'life'], ['my', 'user', 'MY', 'my']];
+    const tabNav = nav === 'community' ? 'home' : ['teams', 'clubs'].includes(nav) ? 'act' : nav;
     $('#tabbar').innerHTML = `<div class="tabbar-pill">${tabs.map(([k, ic, l, n]) => `<a href="#${k}" class="${tabNav === n ? 'active' : ''}" aria-label="${l}" ${tabNav === n ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span class="tl" aria-hidden="true">${l}</span></a>`).join('')}</div>`;
     $('#top-actions').innerHTML = `
       <button class="icon-btn mobile-only" data-act="menu" aria-label="전체 메뉴">${icon('grid', 22)}</button>
@@ -1734,6 +2024,44 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 'taxi-f': taxiF = el.dataset.v; route(); break;
+      case 'dlv-f': dlvF = el.dataset.v; route(); break;
+      case 'g-apply': {
+        if (needVerify('생활 매칭 참여')) return;
+        const g = findG(id); if (!g) return;
+        if (S.cancels >= CANCEL_LIMIT) return toast(`확정 후 취소가 ${CANCEL_LIMIT}회 이상이라 7일간 참여할 수 없어요 (운영 정책 초안)`, 'ban');
+        if (gStatus(g) !== 'recruit') return toast('지금은 참여할 수 없는 모집글이에요', 'x');
+        if (myM(g) && myM(g).status !== 'left') return toast('이미 신청한 모집글이에요', 'check');
+        if (gCount(g) >= g.cap) return toast('정원이 다 찼어요', 'x');
+        S.gm[g.id] = { status: 'applied', items: [], at: Date.now() }; save(); route();
+        toast('참여를 신청했어요. 모집자가 승인하면 알려 드릴게요', 'send');
+        setTimeout(() => { const m = S.gm[g.id]; if (!m || m.status !== 'applied') return;
+          if (gCount(g) < g.cap && Date.now() < g.closeAt) { m.status = 'approved'; toast(`${g.leader.nick}님이 참여를 승인했어요${g.type === 'delivery' ? ' · 메뉴를 담아 주세요' : ''}`, 'check'); }
+          else { m.status = 'rejected'; toast('아쉽게도 정원이 먼저 찼어요', 'x'); }
+          save(); if (!slot.innerHTML) route(); }, 1800);
+        break;
+      }
+      case 'g-leave': {
+        const g = findG(id), m = S.gm[id]; if (!g || !m) return;
+        const confirmed = ['approved', 'final'].includes(m.status);
+        m.status = 'left'; if (confirmed) { S.cancels += 1; if (g.type === 'taxi' && Date.now() > g.closeAt) S.trustBonus -= 1; }
+        save(); route(); toast(confirmed ? `참여를 취소했어요 · 확정 후 취소 ${S.cancels}회 (${CANCEL_LIMIT}회부터 7일 제한)` : '신청을 취소했어요', 'x'); break;
+      }
+      case 'g-final': { S.gm[id].status = 'final'; save(); route(); const g = findG(id); toast(`최종 확인 완료 · ${clock(g.departAt)}에 ${g.from}에서 만나요`, 'check'); break; }
+      case 'g-chat': openGChat(findG(id)); break;
+      case 'g-menu': openOrderMenu(findG(id)); break;
+      case 'g-settle': openSettle(findG(id)); break;
+      case 'g-recv': openRecv(findG(id)); break;
+      case 'split-even': { const f = el.closest('form'), t = +f.total.value || 0, n = +f.total.dataset.split, e = Math.floor(t / n / 10) * 10; for (let i = 0; i < n; i++) f['s' + i].value = i === n - 1 ? t - e * (n - 1) : e; break; }
+      case 'g-approve': case 'g-reject': {
+        const g = findG(id), i = g.pending.findIndex((x) => x.nick === el.dataset.nick); if (i < 0) return;
+        if (act === 'g-approve' && gCount(g) >= g.cap) return toast('정원이 다 차서 더 승인할 수 없어요', 'x');
+        const [pp] = g.pending.splice(i, 1); if (act === 'g-approve') g.members.push(pp);
+        save(); route(); toast(act === 'g-approve' ? `${pp.nick}님을 승인했어요` : `${pp.nick}님의 신청을 거절했어요`, act === 'g-approve' ? 'check' : 'x'); break;
+      }
+      case 'g-close': { const g = findG(id); g.closeAt = Date.now(); g.closed = true; g.pending = []; save(); route(); toast(gCount(g) >= 2 ? '주문을 마감했어요. 배달앱에서 주문해 주세요' : '참여자가 없어 모집이 종료됐어요', 'clock'); break; }
+      case 'g-ordered': { const g = findG(id); g.ordered = true; save(); route(); toast('참여자들에게 주문 완료를 알렸어요', 'send'); break; }
+      case 'g-delist': { const g = findG(id); g.canceled = true; g.pending = []; save(); route(); toast('모집을 취소했어요. 참여자에게 알림이 가요', 'x'); break; }
       case 'm-accept': { const m = S.matches[el.dataset.key]; m.stage = 'acc'; if (m.kind === '룸메' && !S.interests.includes(m.id)) S.interests.push(m.id); save(); route(); toast(`${m.with}님이 연락 요청을 수락했어요. 이제 채팅할 수 있어요`, 'heart'); break; }
       case 'm-met': { const m = S.matches[el.dataset.key]; m.stage = 'met'; m.metAt = nowTime(); save(); route(); openMatchReview(m.key); break; }
       case 'm-review': openMatchReview(el.dataset.key); break;
@@ -1919,6 +2247,60 @@
         S.reports.unshift({ target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
         closeModal(); toast('신고가 접수됐어요. 24시간 안에 검토할게요', 'flag'); break;
       }
+      case 'taxi': {
+        const err = $('#tx-err');
+        const from = fd.get('from') === '__custom' ? String(fd.get('fromC') || '').trim() : fd.get('from');
+        const to = fd.get('to') === '__custom' ? String(fd.get('toC') || '').trim() : fd.get('to');
+        if (!from || !to) { err.textContent = '출발과 도착 장소를 입력해 주세요.'; return; }
+        if (from === to) { err.textContent = '출발과 도착이 같아요.'; return; }
+        const [hh, mm] = String(fd.get('time') || '').split(':').map(Number);
+        if (Number.isNaN(hh) || Number.isNaN(mm)) { err.textContent = '출발 시간을 골라 주세요.'; return; }
+        const d = new Date(); d.setHours(hh, mm, 0, 0); if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
+        const departAt = d.getTime(), closeAt = departAt - +fd.get('close') * 60000;
+        if (closeAt - Date.now() < 5 * 60000) { err.textContent = '모집 마감까지 5분 이상 남도록 출발 시간을 늦춰 주세요.'; return; }
+        const fare = +fd.get('fare'); if (!fare || fare < 1000) { err.textContent = '예상 택시비를 1,000원 이상으로 적어 주세요.'; return; }
+        const note = String(fd.get('note') || '').trim();
+        if (FRAUD.test(note)) { err.textContent = '계좌번호·외부 메신저·선입금 관련 문구는 올릴 수 없어요.'; return; }
+        const g = { id: 'ug' + Date.now(), type: 'taxi', mine: true, from, to, departAt, closeAt, cap: +fd.get('cap'), fare, note,
+          leader: { nick: D.me.nick, trust: myTrust(), dept: S.survey.dept, items: [] }, members: [], pending: demoApplicants('taxi') };
+        S.myGath.unshift(g); save(); location.hash = '#taxi-' + g.id; toast('택시 동행을 모집했어요. 데모 신청자 2명이 왔어요', 'car'); break;
+      }
+      case 'delivery': {
+        const err = $('#dl-err');
+        const shop = String(fd.get('shop') || '').trim(), item = String(fd.get('item') || '').trim(), price = +fd.get('price');
+        if (!shop) { err.textContent = '음식점 이름을 적어 주세요.'; return; }
+        if (fd.get('min') === '' || fd.get('fee') === '') { err.textContent = '최소 주문 금액과 배달비를 적어 주세요 (없으면 0).'; return; }
+        if (!item || !(price > 0)) { err.textContent = '내 메뉴와 가격을 적어 주세요.'; return; }
+        const note = String(fd.get('note') || '').trim();
+        if (FRAUD.test(shop + note + item)) { err.textContent = '계좌번호·외부 메신저·선입금 관련 문구는 올릴 수 없어요.'; return; }
+        const g = { id: 'ug' + Date.now(), type: 'delivery', mine: true, shop, cat: fd.get('cat'), pickup: fd.get('pickup'), closeAt: Date.now() + +fd.get('close') * 60000, departAt: null,
+          minOrder: +fd.get('min'), fee: +fd.get('fee'), cap: +fd.get('cap'), note,
+          leader: { nick: D.me.nick, trust: myTrust(), dept: S.survey.dept, items: [{ n: item, p: price, q: 1 }] }, members: [], pending: demoApplicants('delivery') };
+        S.myGath.unshift(g); save(); location.hash = '#delivery-' + g.id; toast('공동 주문을 모집했어요. 데모 신청자 2명이 왔어요', 'utensils'); break;
+      }
+      case 'g-menu': {
+        const g = findG(f.dataset.id), err = $('#gm-err');
+        if (Date.now() >= g.closeAt) { err.textContent = '주문이 마감돼서 바꿀 수 없어요.'; return; }
+        const items = [0, 1, 2].map((i) => ({ n: String(fd.get('n' + i) || '').trim(), p: +fd.get('p' + i), q: Math.max(1, +fd.get('q' + i) || 1) })).filter((x) => x.n && x.p > 0);
+        if (!items.length) { err.textContent = '메뉴 이름과 가격을 하나 이상 적어 주세요.'; return; }
+        S.gm[g.id].items = items; save(); closeModal(); route(); toast(`내 메뉴 ${wonN(itemsSum(items))}을 담았어요`, 'utensils'); break;
+      }
+      case 'g-settle': {
+        const g = findG(f.dataset.id), err = $('#st-err'), ppl = gPeople(g);
+        const total = +fd.get('total'), shares = ppl.map((pp, i) => ({ nick: pp.nick, amount: +fd.get('s' + i) || 0 }));
+        if (!(total > 0)) { err.textContent = '실제 미터기 요금을 적어 주세요.'; return; }
+        const sum = shares.reduce((a, x) => a + x.amount, 0);
+        if (sum !== total) { err.textContent = `나눈 금액 합계(${wonN(sum)})가 실제 요금(${wonN(total)})과 달라요. ‘똑같이 나누기’를 눌러 보세요.`; return; }
+        S.settle[g.id] = { kind: 'taxi', total, shares, stars: +fd.get('stars'), at: Date.now() };
+        if (g.mine) g.done = true; else S.gm[g.id].status = 'done';
+        S.trustBonus += 1; save(); closeModal(); route(); toast('정산을 기록하고 후기를 남겼어요 · 신뢰도 +1', 'star'); break;
+      }
+      case 'g-recv': {
+        const g = findG(f.dataset.id), ppl = gPeople(g), fs = ceil10(g.fee / ppl.length);
+        S.settle[g.id] = { kind: 'delivery', total: orderTotal(g) + g.fee, shares: ppl.map((pp) => ({ nick: pp.nick, amount: itemsSum(pp.items) + fs })), stars: +fd.get('stars'), at: Date.now() };
+        if (g.mine) g.done = true; else S.gm[g.id].status = 'done';
+        S.trustBonus += 1; save(); closeModal(); route(); toast('공동 주문을 완료했어요 · 신뢰도 +1', 'star'); break;
+      }
       case 'checkin': {
         const m = S.matches[f.dataset.key], err = $('#ci-err');
         const pl = fd.get('place'), date = fd.get('date'), time = String(fd.get('time') || '');
@@ -2034,6 +2416,15 @@
     }
   });
 
+  document.addEventListener('change', (e) => {
+    if (e.target.matches('select[name=from], select[name=to]')) { const c = e.target.parentElement.querySelector('.custom-spot'); if (c) { c.hidden = e.target.value !== '__custom'; if (!c.hidden) c.focus(); } }
+  });
+  /* 마감까지 남은 시간: 1초마다 숫자만 바꾸고, 마감되는 순간 화면을 다시 그려 상태(모집 중 → 마감)를 바꿔요 */
+  setInterval(() => {
+    let flipped = false;
+    document.querySelectorAll('[data-until]').forEach((el) => { const t = until(+el.dataset.until); if (t === '마감' && el.textContent !== '마감') flipped = true; el.textContent = t; });
+    if (flipped && !slot.innerHTML) route();
+  }, 1000);
   window.addEventListener('hashchange', onHash);
   if (!location.hash) history.replaceState(null, '', '#home');
   lastHash = location.hash;
