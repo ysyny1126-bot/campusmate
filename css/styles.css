@@ -1108,3 +1108,19 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .vm-body { flex: 1; min-width: 0; display: grid; font-size: 14px; }
 .vm-body small { font-size: 12px; color: var(--muted); }
 .ob-actions { flex-wrap: wrap; }
+
+/* ───────── 데모 안내 · 개인정보처리방침 ───────── */
+.demo-banner { display: flex; align-items: center; gap: 10px; background: var(--amber-100); color: var(--amber-800); border-radius: 18px; padding: 10px 8px 10px 14px; font-size: 13px; margin: 4px 0 12px; }
+.demo-banner > span { flex: 1; min-width: 0; }
+.demo-banner a { text-decoration: underline; font-weight: 700; }
+.demo-banner .icon-btn { width: 34px; height: 34px; color: var(--amber-800); }
+.footer-links a { text-decoration: underline; }
+.pv-sec h2 { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+.pv-list { list-style: disc; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+.pv-list b { color: var(--text); }
+.pv-list a { color: var(--blue-600); text-decoration: underline; }
+.pv-table { display: grid; gap: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 13px; margin-bottom: 8px; }
+.pv-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.pv-row:first-child { border-top: 0; }
+.pv-row.head { background: var(--surface-2); font-weight: 800; }
+@media (max-width: 600px) { .pv-row { grid-template-columns: 1fr; gap: 2px; } .pv-row.head { display: none; } .pv-row span:first-child { font-weight: 800; } }

@@ -328,6 +328,7 @@
     const sk = seasonPick || seasonOf(TODAY), se = SEASONS[sk];
     const R = window.CM_RENT;
     return `
+    ${S.demoNoticeClosed ? '' : `<div class="demo-banner" role="note">${icon('alert', 18)}<span><b>발표용 데모예요.</b> 실제 학생증·개인정보는 올리지 말고, 예시 이미지로 시험해 주세요. 입력한 내용은 이 기기에만 저장돼요. <a href="#privacy">자세히</a></span><button class="icon-btn" data-act="demo-close" aria-label="데모 안내 닫기">${icon('x', 18)}</button></div>`}
     <section class="greet">
       ${charImg('icon', 'greet-char')}
       <div class="greet-txt"><b>안녕하세요, ${D.me.nick}님</b><span>${esc(S.stype)} · ${D.school.name}</span></div>
@@ -400,7 +401,10 @@
   }
 
   function footer() {
-    return `<footer class="footer"><b>이음 · 데모 프로토타입</b><span>${D.school.unofficial}</span><button class="link-btn" data-act="onboard">처음 소개 다시 보기</button><span>매물·인물·후기는 예시 데이터예요 (실거래 시세만 실제 공공데이터). 인증·채팅·지도는 실제로 동작하지 않아요.</span></footer>`;
+    return `<footer class="footer"><b>이음 · 발표용 데모</b><span>${D.school.unofficial}</span>
+      <span>실제로 동작: 카카오 로그인(닉네임만), 실거래 시세(국토교통부), 공모전 정보(공식 공고 링크), 지도. 그 밖의 사람·매물·채팅·인증 결과는 <b>예시</b>예요.</span>
+      <span>입력한 내용은 <b>이 기기 브라우저에만</b> 저장되고 서버로 보내지 않아요.</span>
+      <span class="footer-links"><a href="#privacy">개인정보처리방침</a> · <button class="link-btn" data-act="onboard">처음 소개 다시 보기</button></span></footer>`;
   }
 
   /* ── 룸메이트 ── */
@@ -1330,6 +1334,29 @@
       <section class="card pad"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab ${tab === k ? 'active' : ''}" role="tab" aria-selected="${tab === k}" data-act="adm-tab" data-v="${k}">${l}</button>`).join('')}</div>${body}</section>`;
   }
 
+  /* ── 개인정보처리방침 (데모 단계 초안) ── */
+  function pagePrivacy() {
+    const sec = (n, t, body) => `<section class="pv-sec"><h2><span class="num">${n}</span>${t}</h2>${body}</section>`;
+    const li = (arr) => `<ul class="pv-list">${arr.map((x) => `<li>${x}</li>`).join('')}</ul>`;
+    return `<div class="survey-wrap privacy"><a class="back-link" href="#my">${icon('left', 18)}MY</a>
+      <div class="page-head"><div><h1>개인정보처리방침</h1><p>이음(국립한국교통대학교 학생 팀 프로젝트) · 시행일 2026년 11월 17일 · <b>발표용 데모 단계 초안</b></p></div></div>
+      <div class="info-box amber" style="margin-bottom:14px">${icon('alert', 18)}<span><b>지금은 발표용 데모예요.</b> 서버가 없어서 입력한 정보는 <b>여러분 기기의 브라우저에만</b> 저장되고, 이음 팀을 포함해 누구에게도 전송되지 않아요. 실제 학생증이나 민감한 정보는 올리지 말아 주세요. 정식 운영 전에는 이 방침을 다시 검토해서 고쳐 공지할게요.</span></div>
+      <div class="card pad grid" style="gap:18px">
+        ${sec(1, '받는 정보와 이유', `<div class="pv-table"><div class="pv-row head"><span>항목</span><span>언제</span><span>왜</span><span>어디에</span></div>
+          <div class="pv-row"><span>카카오 닉네임, 카카오 회원번호</span><span>카카오 로그인할 때 (동의 후)</span><span>로그인 상태 유지, 화면에 이름 표시</span><span>이 기기 브라우저</span></div>
+          <div class="pv-row"><span>학생 인증 서류 (학생증·재학증명서·합격증)</span><span>학생 인증할 때</span><span>교통대 학생 확인</span><span><b>저장 안 함</b> (데모: 파일 이름만 기기에 기록)</span></div>
+          <div class="pv-row"><span>생활 습관 설문, 관심 분야, 활동 시간</span><span>직접 입력할 때</span><span>룸메·팀·동아리 추천</span><span>이 기기 브라우저</span></div>
+          <div class="pv-row"><span>글, 채팅, 신청·매칭·정산 기록, 만남 체크인 장소·시간</span><span>기능을 쓸 때</span><span>서비스 기능 제공, 안전 확인</span><span>이 기기 브라우저</span></div></div>
+          <p class="small muted">이메일, 전화번호, 학번, 위치(GPS)는 받지 않고 실명도 따로 묻지 않아요. 다만 카카오 닉네임을 실명으로 해 둔 경우 그 이름이 보일 수 있어요.</p>`)}
+        ${sec(2, '보관 기간과 지우는 방법', li(['데모 단계: 브라우저에 남아 있는 동안 보관돼요. <b>MY › 이 기기의 내 데이터 모두 지우기</b>를 누르면 바로 모두 지워져요.', '로그아웃하면 로그인 정보와 인증 상태가 지워져요.', '정식 운영 시(예정): 학생 인증 서류는 <b>확인 즉시 파기</b>, 만남 체크인 기록은 30일 뒤 자동 삭제, 탈퇴하면 지체 없이 삭제해요.']))}
+        ${sec(3, '다른 곳에 주는지', li(['이음은 개인정보를 다른 사람이나 회사에 팔거나 제공하지 않아요.', '<b>카카오</b>: 카카오 로그인을 할 때 카카오가 로그인 정보를 처리해요. 이음은 그중 닉네임만 받아요.', '<b>GitHub Pages</b>: 웹사이트 파일을 전달하는 곳이에요. 일반적인 접속 기록(IP 등)이 남을 수 있어요.', '공공데이터(국토교통부 실거래가)와 공모전 정보는 공개된 정보를 요약한 것이라 개인정보와 관계없어요.']))}
+        ${sec(4, '여러분의 권리', li(['언제든 내 정보를 보고, 고치고, 지울 수 있어요 (MY 화면).', '카카오 계정 설정 › 연결된 서비스 관리에서 이음 연결을 끊을 수 있어요.', '동의를 거부하면 로그인이 필요한 기능(글쓰기·채팅·신청)은 쓸 수 없지만, 둘러보기는 할 수 있어요.']))}
+        ${sec(5, '안전하게 지키는 방법', li(['꼭 필요한 정보만 받아요 (닉네임 외 카카오 정보는 받지 않음).', '계좌번호·외부 메신저 아이디 같은 문구는 글과 모집글에 올릴 수 없게 막아요.', '정식 운영 시(예정): 접근 권한을 사람별로 나누고, 운영자 접속 기록을 남기고, 서류는 비공개 저장소에 잠깐만 보관해요.']))}
+        ${sec(6, '책임자와 문의', li(['개인정보 보호 책임: 이음 팀 (국립한국교통대학교 학생 팀 프로젝트)', '문의: 앱 안의 신고·문의 기능 또는 <a href="https://github.com/ysyny1126-bot/campusmate/issues" target="_blank" rel="noopener noreferrer">GitHub 저장소 문의(Issues)</a>', '개인정보 침해 신고: 개인정보침해신고센터(국번 없이 118) · 개인정보분쟁조정위원회(1833-6972)']))}
+        ${sec(7, '바뀔 때', `<p class="small">이 방침이 바뀌면 시행 7일 전에 앱 첫 화면에서 알려 드려요. 이 문서는 개인정보 보호법을 참고한 <b>데모 단계 초안</b>이고, 정식 운영 전에 전문가 검토를 받을 예정이에요.</p>`)}
+      </div>${footer()}</div>`;
+  }
+
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
       <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
@@ -1609,7 +1636,7 @@
         <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<a class="tab ${tab === k ? 'active' : ''}" role="tab" aria-selected="${tab === k}" href="#my-${k}">${l}</a>`).join('')}</div>
         ${body}
         <div class="divider"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-ghost" data-act="reset">${icon('refresh', 15)}데모 데이터 초기화</button><a class="btn btn-sm btn-ghost" href="#admin">${icon('shield', 15)}운영자 데모 화면</a></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-ghost" data-act="reset">${icon('refresh', 15)}이 기기의 내 데이터 모두 지우기</button><a class="btn btn-sm btn-ghost" href="#privacy">${icon('lock', 15)}개인정보처리방침</a><a class="btn btn-sm btn-ghost" href="#admin">${icon('shield', 15)}운영자 데모 화면</a></div>
       </section>
     </div>`;
   }
@@ -1642,6 +1669,7 @@
       ${rej ? `<div class="info-box amber" style="margin-bottom:10px">${icon('alert', 18)}<span>지난 서류가 반려됐어요: ${esc(S.verifyReq.reason || '정보가 잘 보이지 않아요')}. 다시 올려 주세요.</span></div>` : ''}
       <form data-form="v-doc" class="grid" style="gap:12px" novalidate>
         <fieldset class="vm-list"><legend class="field-label">인증 방법</legend>${VERIFY_METHODS.map(([k, t, sub, ic, on], i) => `<label class="vm ${on ? '' : 'dis'}"><input type="radio" name="method" value="${k}" ${i === 0 ? 'checked' : ''} ${on ? '' : 'disabled'}><span class="vm-ic">${icon(ic, 20)}</span><span class="vm-body"><b>${t}${i === 0 ? ' <span class="badge b-school">추천</span>' : ''}${on ? '' : ' <span class="badge b-gray">준비 중</span>'}</b><small>${sub}</small></span></label>`).join('')}</fieldset>
+        <div class="info-box amber">${icon('alert', 18)}<span><b>데모 안내:</b> 지금은 서류를 서버로 보내지도, 저장하지도 않아요. 그래도 <b>실제 학생증 대신 아무 예시 이미지</b>로 시험해 주세요.</span></div>
         <label class="upload"><span class="ui">${icon('camera', 22)}</span><span><b>사진 또는 파일 올리기</b><br><span class="small muted">JPG, PNG, PDF · 1개</span></span><input type="file" name="doc" accept="image/*,.pdf" data-preview="pv-doc"></label>
         <div class="previews" id="pv-doc"></div>
         <ul class="rules small"><li>${icon('check')}<b>학교 이름 · 이름 · 학번(또는 수험번호)</b>만 보이면 돼요</li><li>${icon('lock')}주민등록번호 뒷자리, 주소, 계좌번호는 가리고 올려 주세요</li><li>${icon('check')}확인이 끝나면 서류는 바로 지워요</li></ul>
@@ -2177,6 +2205,7 @@
       case 'people': html = pagePeople(); nav = 'teams'; break;
       case 'my': html = pageMy(a); break;
       case 'verify': html = pageVerify(); nav = 'my'; break;
+      case 'privacy': html = pagePrivacy(); nav = 'my'; break;
       default: html = notFound();
     }
     if (!a && ['contests', 'teams', 'people', 'clubs', 'events'].includes(p)) html = actSwitch(['clubs', 'events'].includes(p) ? p : 'contests') + html;
@@ -2268,7 +2297,7 @@
     }
     openModal(modalBox('카카오 로그인', `<div class="kakao-demo">${KAKAO_SYMBOL.replace('width="18" height="18"', 'width="40" height="40"')}
       <p style="font-size:14.5px">${KAKAO_KEY ? '<b>아이폰 앱에서는 아직 데모예요.</b> 앱용 카카오 SDK를 연결하기 전이라 예시 계정으로 로그인해요. 웹사이트에서는 실제 카카오 로그인이 돼요.' : '<b>지금은 데모예요.</b> 카카오 개발자 사이트에 앱을 등록하고 키를 넣으면 실제 카카오 로그인 화면으로 넘어가요.'}</p>
-      <ul class="rules small" style="text-align:left"><li>${icon('check')}받는 정보: 카카오 닉네임 (선택: 프로필 사진)</li><li>${icon('check')}카카오 계정은 <b>로그인</b>에만 쓰여요. 교통대 학생인지는 다음 단계 <b>학생 인증</b>에서 확인해요</li></ul></div>
+      <ul class="rules small" style="text-align:left"><li>${icon('check')}받는 정보: 카카오 닉네임 (선택: 프로필 사진)</li><li>${icon('check')}카카오 계정은 <b>로그인</b>에만 쓰여요. 교통대 학생인지는 다음 단계 <b>학생 인증</b>에서 확인해요</li><li>${icon('lock')}받은 닉네임은 이 기기 브라우저에만 저장돼요 · <a href="#privacy" data-act="close-go">개인정보처리방침</a></li></ul></div>
       <div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button>${kakaoBtn('예시 계정으로 계속 (데모)', 'grow').replace('data-act="kakao-login"', 'data-act="kakao-demo"')}</div>`));
   }
   function afterLogin() {
@@ -2374,7 +2403,7 @@
   function renderMsgs() {
     const box = $('#chat-body'); if (!box || !chat) return;
     const msgs = S.chats[chat.key];
-    box.innerHTML = `<div class="msg sys">${icon('shield', 16)}<span>학교 인증 학생끼리의 대화예요. <b>직접 만나 확인하기 전에는 절대 송금하지 마세요.</b> 외부 메신저 유도·선입금 요구는 신고해 주세요.</span></div>`
+    box.innerHTML = `<div class="msg sys">${icon('shield', 16)}<span><b>데모 채팅:</b> 상대는 예시 사용자이고 메시지는 실제로 전송되지 않아요. 실제 서비스에서는 학교 인증 학생끼리 대화해요. <b>직접 만나 확인하기 전에는 절대 송금하지 마세요.</b> 외부 메신저 유도·선입금 요구는 신고해 주세요.</span></div>`
       + msgs.map((m) => (m.t === 'sys' ? `<div class="msg sys checkin">${icon('pin', 16)}<span>${esc(m.text)}</span></div>` : `<div class="msg ${m.t}">${esc(m.text)}</div><span class="msg-time ${m.t === 'them' ? 'l' : ''}">${m.at}</span>`)).join('')
       + (chat.typing ? '<span class="typing">상대가 입력 중…</span>' : '');
     box.scrollTop = box.scrollHeight;
@@ -2416,6 +2445,7 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 'demo-close': S.demoNoticeClosed = true; save(); route(); break;
       case 'kakao-login': S.onboarded = true; save(); closeModal(); kakaoLogin(); break;
       case 'kakao-demo': S.login = { provider: 'kakao', nick: D.me.nick, at: Date.now(), demo: true }; save(); closeModal(); afterLogin(); break;
       case 'logout': S.login = null; S.verified = false; S.verifyReq = null; S.verifyMethod = ''; save(); route(); renderChrome(lastNav); toast('로그아웃했어요', 'x'); break;
@@ -2642,8 +2672,8 @@
       case 'id-verify': S.idVerified = true; save(); route(); toast('신원 인증을 완료했어요 (데모) · 신뢰도 +4', 'id'); break;
       case 'v-back': V.step = 1; route(); break;
       case 'addr-search': { const inp = $('#rn-addr'); inp.value = '충청북도 충주시 대소원면 대학로 (예시)'; toast('주소 검색 결과를 넣었어요 (데모)', 'pin'); break; }
-      case 'reset': openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--amber-100);color:var(--amber-800)">${icon('refresh', 30)}</div><h2 id="mtitle">데모 데이터를 초기화할까요?</h2><p class="muted" style="margin-top:8px;font-size:14.5px">인증 상태, 찜, 작성한 글이 모두 지워져요.</p><div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" data-act="reset-confirm">초기화</button></div></div>`); break;
-      case 'reset-confirm': closeModal(); S = defaults(); save(); V.step = 1; location.hash = '#home'; route(); toast('초기화했어요', 'refresh'); break;
+      case 'reset': openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--amber-100);color:var(--amber-800)">${icon('refresh', 30)}</div><h2 id="mtitle">이 기기의 내 데이터를 모두 지울까요?</h2><p class="muted" style="margin-top:8px;font-size:14.5px">로그인 정보(카카오 닉네임), 인증 상태, 찜, 작성한 글, 채팅, 매칭 기록이 이 브라우저에서 모두 지워져요. 되돌릴 수 없어요.</p><div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" data-act="reset-confirm">초기화</button></div></div>`); break;
+      case 'reset-confirm': closeModal(); S = defaults(); save(); V.step = 1; location.hash = '#home'; route(); toast('이 기기의 내 데이터를 모두 지웠어요', 'refresh'); break;
     }
   });
 
