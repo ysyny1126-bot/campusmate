@@ -10,6 +10,9 @@ window.CM_DATA = (() => {
     { id: 'lib', name: '중앙도서관 1층 로비', desc: '유동 인구 많음 · 출입 게이트 앞', hours: '07:00–23:00' },
     { id: 'union', name: '학생회관 1층', desc: '편의점 앞 테이블 · 학생지원팀 옆', hours: '08:00–22:00' },
     { id: 'gate', name: '정문 버스정류장', desc: '밝은 조명 · 보안초소 근처', hours: '24시간' },
+    /* 대학로(캠퍼스 밖) 장소: off = 신뢰도 기준을 넘어야 고를 수 있어요. sample = 실제 위치 확인 전 예시 */
+    { id: 'street', name: '대학로 큰길 편의점 앞', desc: '밝은 조명 · 유동 인구 많음', hours: '07:00–22:00', off: true, sample: true },
+    { id: 'office', name: '대소원면 행정복지센터 앞', desc: '공공기관 앞 · 큰길가', hours: '09:00–18:00', off: true, sample: true },
   ];
 
   /* ── 룸메이트 설문 문항 ── */
@@ -54,7 +57,7 @@ window.CM_DATA = (() => {
       intro: '실습 때문에 일찍 자고 일찍 일어나요. 밤에 조용한 분이면 좋겠어요.',
       answers: { sleep: 0, wake: 0, smoke: 0, drink: 0, clean: 4, study: 2, noise: 4, temp: 2, guest: 0, hobby: ['운동', '요리'], dept: '간호학과', grade: 2 },
       weights: w({ sleep: 2, noise: 2 }), real: { name: '정다은', insta: '@morning_cat', photoHue: 20 } },
-    { id: 'm6', nick: '새벽감성러', gender: '여', dept: '시각디자인과', grade: 2, dorm: '생활관 2인실', term: '2027-1학기', trust: 72, likedMe: true,
+    { id: 'm6', nick: '새벽감성러', gender: '여', dept: '시각디자인과', grade: 2, dorm: '생활관 2인실', term: '2027-1학기', trust: 63, likedMe: true,
       intro: '과제 때문에 늦게 자는 편이에요. 대신 조명은 스탠드만 쓸게요.',
       answers: { sleep: 4, wake: 4, smoke: 1, drink: 2, clean: 1, study: 1, noise: 1, temp: 1, guest: 2, hobby: ['음악', '사진', '영화·드라마'], dept: '시각디자인과', grade: 2 },
       weights: w({ guest: 2 }), real: { name: '한소희', insta: '@dawn.design', photoHue: 270 } },
@@ -147,7 +150,7 @@ window.CM_DATA = (() => {
     { id: 'i3', cat: '전자기기', emoji: '💻', title: '아이패드 9세대 64GB + 호환 펜슬', price: 280000, cond: '사용감 적음', place: 'union', time: '3시간 전', likes: 34, chats: 12,
       seller: seller('필기는종이로', 89, 17, '국어국문학과'), desc: '배터리 효율 91%, 액정 기스 없어요. 케이스·필름 같이 드려요. 학생회관에서 작동 확인 후 거래해요.' },
     { id: 'i4', cat: '가구', emoji: '🪑', title: '접이식 책상 + 의자 세트', price: 30000, cond: '사용감 있음', place: 'dorm', time: '5시간 전', likes: 6, chats: 2,
-      seller: seller('자취정리중', 77, 5, '수학과'), desc: '자취방 정리하면서 내놔요. 접으면 부피 작아서 혼자 옮기실 수 있어요.' },
+      seller: seller('자취정리중', 64, 5, '수학과'), desc: '자취방 정리하면서 내놔요. 접으면 부피 작아서 혼자 옮기실 수 있어요.' },
     { id: 'i5', cat: '무료 나눔', emoji: '🎁', title: '전기포트 무료 나눔 (졸업 정리)', price: 0, cond: '사용감 있음', place: 'gate', time: '20분 전', likes: 15, chats: 9,
       seller: seller('졸업합니다', 95, 41, '경영학과'), desc: '졸업 정리 중이라 나눔해요. 잘 작동합니다. 정문에서 오늘 저녁 6시 이후 가능해요.' },
     { id: 'i6', cat: '전공책', emoji: '📗', title: '토익 RC·LC 기본서 세트 (풀이 X)', price: 15000, cond: '새 상품급', place: 'lib', time: '어제', likes: 12, chats: 4,

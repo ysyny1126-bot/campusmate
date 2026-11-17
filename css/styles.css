@@ -916,3 +916,42 @@ button.more { background: none; cursor: pointer; }
 .ob-actions .btn-primary { flex: 1; }
 .ob-actions .btn-ghost:only-child { flex: 1; }
 @media (max-width: 420px) { .housing-tabs a .ic { display: none; } .housing-tabs a { font-size: 13px; } }
+
+/* ───────── 매칭 흐름: 내 매칭 · 만남 체크인 ───────── */
+.k-room { background: #DCE6FF !important; color: #2B48B5 !important; }
+.k-item { background: #FFE9C9 !important; color: #7A4E00 !important; }
+.prog-st { justify-self: end; font-size: 12px; }
+.flow-line { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 14px; padding: 0; counter-reset: f; }
+.flow-line li { counter-increment: f; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--surface-2); padding: 4px 10px 4px 8px; border-radius: 999px; }
+.flow-line li::before { content: counter(f); display: inline-grid; place-items: center; width: 16px; height: 16px; margin-right: 5px; border-radius: 50%; background: #6C5CE7; color: #fff; font-size: 10px; }
+.match-row { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
+.match-row:first-of-type { border-top: 0; }
+.match-row.is-done { opacity: .78; }
+.mr-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14.5px; }
+.mr-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mr-trust { font-size: 12px; font-weight: 700; color: var(--mint-800); background: var(--mint-100); padding: 2px 8px; border-radius: 999px; }
+.mr-trust.low { color: var(--amber-800); background: var(--amber-100); }
+.mr-safe { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; font-size: 12.5px; background: var(--blue-50); color: var(--navy-800); border-radius: 14px; padding: 10px 12px; }
+.mr-safe > span { flex: 1; min-width: 180px; }
+.mr-safe .link-btn { color: var(--coral-800); font-weight: 700; font-size: 12.5px; }
+.mr-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.empty-char { width: 96px; height: 80px; margin: 0 auto 8px; mix-blend-mode: multiply; }
+.trust-level { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 12px 14px; border-radius: 16px; font-size: 13.5px; }
+.trust-level > span { display: block; }
+.trust-level small { display: block; font-size: 11.5px; opacity: .8; margin-top: 2px; }
+.trust-level.ok { background: var(--mint-100); color: var(--mint-800); }
+.trust-level.low { background: var(--amber-100); color: var(--amber-800); }
+.place-list { border: 0; display: grid; gap: 6px; }
+.place-opt { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
+.place-opt:has(input:checked) { border-color: #6C5CE7; background: #F4F1FF; }
+.place-opt input { accent-color: #6C5CE7; }
+.place-opt.dis { opacity: .5; cursor: not-allowed; background: var(--surface-2); }
+.po-body { flex: 1; min-width: 0; display: grid; font-size: 14px; }
+.po-body small { font-size: 12px; color: var(--muted); }
+.place-opt em { font-style: normal; display: inline-flex; gap: 3px; align-items: center; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--mint-100); color: var(--mint-800); white-space: nowrap; }
+.place-opt em.off { background: #E9E4FF; color: #4B3DB8; }
+.msg.sys.checkin { background: #EFEBFF; color: #3F31B0; }
+.chat-head .btn-primary { flex-shrink: 0; }
+.chat-meet { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #F4F1FF; color: #3F31B0; font-size: 12.5px; font-weight: 600; }
+.chat-meet span { flex: 1; min-width: 0; }
+.chat-meet .btn { flex-shrink: 0; }

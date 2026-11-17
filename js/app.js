@@ -68,7 +68,7 @@
     verified: false, email: '', idVerified: false,
     survey: JSON.parse(JSON.stringify(D.mySurvey)), weights: { ...D.myWeights },
     interests: [], favRooms: [], favItems: [], blocked: [], reports: [],
-    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [],
+    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {},
   });
   let S = load();
   function load() {
@@ -126,6 +126,26 @@
   }
   const ranked = () => D.mates.filter((c) => c.gender === S.survey.gender && !S.blocked.includes(c.nick)).map((c) => ({ c, m: match(c) })).sort((a, b) => b.m.score - a.m.score);
   const isMutual = (c) => S.interests.includes(c.id) && c.likedMe;
+
+  /* ───────── 매칭 흐름: 요청 → 수락 → 채팅 → 만남 체크인 → 상호 후기 → 신뢰도 ───────── */
+  /* 임시 기준(팀 논의 중, 바꿀 수 있어요): 나와 상대 중 한 명이라도 이 점수보다 낮으면 교내 장소에서만 만나요 */
+  const TRUST_OFF = 70;
+  const KIND = { 룸메: { act: 'mate-chat', cls: 'k-mate' }, 방: { act: 'room-chat', cls: 'k-room' }, 중고: { act: 'item-chat', cls: 'k-item' } };
+  const STEP_CUR = { req: 1, acc: 2, plan: 2, met: 3, done: 4 };
+  const STEP_LABEL = ['요청', '수락', '만남 체크인', '후기'];
+  const STAGE_TXT = { req: '상대 수락 대기', acc: '채팅 중 · 만남 장소를 정해요', plan: '체크인 완료 · 만남 예정', met: '만남 완료 · 후기를 남겨요', done: '후기 완료' };
+  function ensureMatch(key, o) {
+    if (!S.matches[key]) S.matches[key] = { key, stage: 'acc', created: Date.now(), ...o };
+    else if (o.stage === 'acc' && S.matches[key].stage === 'req') S.matches[key].stage = 'acc';
+    save(); return S.matches[key];
+  }
+  const matchList = (all) => Object.values(S.matches).filter((m) => all || m.stage !== 'done').sort((a, b) => (STEP_CUR[b.stage] - STEP_CUR[a.stage]) || b.created - a.created);
+  const lowTrust = (m) => Math.min(myTrust(), m.trust) < TRUST_OFF;
+  const stepBar = (m) => `<span class="prog-steps">${STEP_LABEL.map((t, i) => `<i class="${i < STEP_CUR[m.stage] ? 'd' : i === STEP_CUR[m.stage] ? 'n' : ''}">${t}</i>`).join('')}</span>`;
+  const meetLine = (m) => (m.meet ? `${icon('pin', 13, 'style="display:inline;vertical-align:-2px"')} ${esc(place(m.meet.place).name)} · ${fmtDate(m.meet.date)} ${m.meet.time}` : '');
+  function syncMatches() {
+    S.interests.forEach((id) => { const c = D.mates.find((x) => x.id === id); if (c && !S.matches['mate-' + id]) S.matches['mate-' + id] = { key: 'mate-' + id, id, kind: '룸메', with: c.nick, trust: c.trust, title: `${c.dorm} 룸메이트`, href: `#roommate-${id}`, stage: c.likedMe ? 'acc' : 'req', created: Date.now() }; });
+  }
 
   /* ───────── Data accessors ───────── */
   const allRooms = () => [...S.myRooms, ...D.rooms].filter((r) => !S.blocked.includes(r.author.nick));
@@ -285,13 +305,11 @@
   let seasonPick = null;
   /* 진행 중인 매칭: 요청 → 수락 → 만남 체크인 → 후기 */
   function progressStrip() {
-    const rows = S.interests.map((id) => D.mates.find((c) => c.id === id)).filter(Boolean).slice(0, 2).map((c) => {
-      const step = isMutual(c) ? 2 : 1;
-      return `<a class="prog-row" href="#roommate-${c.id}"><span class="prog-kind">룸메</span><b>${esc(c.nick)}</b>
-        <span class="prog-steps">${['요청', '수락', '만남 체크인', '후기'].map((t, i) => `<i class="${i < step ? 'd' : i === step ? 'n' : ''}">${t}</i>`).join('')}</span></a>`;
-    });
-    if (!rows.length) return '';
-    return `<section class="prog-strip" aria-label="진행 중인 매칭"><div class="prog-head"><b>진행 중인 매칭 ${S.interests.length}건</b><a href="#roommate">모두 보기</a></div>${rows.join('')}</section>`;
+    const list = matchList();
+    if (!list.length) return '';
+    const rows = list.slice(0, 2).map((m) => `<a class="prog-row" href="#my-matches"><span class="prog-kind ${KIND[m.kind].cls}">${m.kind}</span><b>${esc(m.with)}</b>
+        <span class="small muted prog-st">${STAGE_TXT[m.stage]}</span>${stepBar(m)}</a>`);
+    return `<section class="prog-strip" aria-label="진행 중인 매칭"><div class="prog-head"><b>진행 중인 매칭 ${list.length}건</b><a href="#my-matches">모두 보기</a></div>${rows.join('')}</section>`;
   }
 
   /* ───────── Pages ───────── */
@@ -667,6 +685,63 @@
     </div>`;
   }
 
+  /* ── 내 매칭 ── */
+  const REVIEW_TAGS = {
+    룸메: ['생활 습관이 설명과 같아요', '약속을 잘 지켜요', '대화가 편해요', '배려심이 있어요'],
+    방: ['방 상태가 설명과 같아요', '약속을 잘 지켜요', '계약 설명이 정확해요', '친절해요'],
+    중고: ['상품 상태가 설명과 같아요', '약속을 잘 지켜요', '응답이 빨라요', '친절해요'],
+  };
+  const REVIEW_BACK = { 룸메: '만나서 이야기해 보니 생활 패턴이 정말 잘 맞았어요. 시간 약속도 잘 지켜요!', 방: '방 보러 오셔서 꼼꼼하게 확인하셨고, 약속 시간도 정확했어요.', 중고: '약속 장소에 먼저 와 계셨어요. 거래 깔끔했어요!' };
+  function matchActions(m) {
+    const chatBtn = `<button class="btn btn-sm btn-outline" data-act="${KIND[m.kind].act}" data-id="${m.id}">${icon('chat', 15)}채팅</button>`;
+    switch (m.stage) {
+      case 'req': return `<span class="small muted">상대가 수락하면 채팅이 열려요</span><button class="btn btn-sm btn-ghost" data-act="m-accept" data-key="${m.key}">상대 수락 (데모)</button>`;
+      case 'acc': return `${chatBtn}<button class="btn btn-sm btn-primary" data-act="checkin" data-key="${m.key}">${icon('pin', 15)}만남 체크인</button>`;
+      case 'plan': return `${chatBtn}<button class="btn btn-sm btn-ghost" data-act="checkin" data-key="${m.key}">일정 바꾸기</button><button class="btn btn-sm btn-mint" data-act="m-met" data-key="${m.key}">${icon('check', 15)}잘 만났어요</button>`;
+      case 'met': return `<button class="btn btn-sm btn-primary" data-act="m-review" data-key="${m.key}">${icon('star', 15)}후기 남기기</button>`;
+      default: return `<span class="badge b-school">${icon('check', 13)}후기 완료 · 신뢰도 +2</span>`;
+    }
+  }
+  function matchesMyBody() {
+    const list = matchList(true);
+    const flow = `<ol class="flow-line" aria-label="매칭 진행 순서">${['요청', '수락', '채팅', '만남 체크인', '상호 후기', '신뢰도'].map((t) => `<li>${t}</li>`).join('')}</ol>`;
+    if (!list.length) return flow + `<div class="empty">${charImg('think', 'empty-char')}<b>아직 진행 중인 매칭이 없어요</b>룸메 후보에게 연락을 요청하거나, 방·중고 글에서 문의를 시작해 보세요.<div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap"><a class="btn btn-sm btn-primary" href="#roommate">룸메 후보 보기</a><a class="btn btn-sm btn-outline" href="#market">중고거래 보기</a></div></div>`;
+    return flow + list.map((m) => `<article class="match-row ${m.stage === 'done' ? 'is-done' : ''}">
+      <div class="mr-top"><span class="prog-kind ${KIND[m.kind].cls}">${m.kind}</span><a href="${m.href}"><b>${esc(m.with)}</b></a><span class="small muted mr-title">${esc(m.title)}</span>
+        <span class="mr-trust ${m.trust < TRUST_OFF ? 'low' : ''}">신뢰도 ${m.trust}</span></div>
+      ${stepBar(m)}
+      <div class="small muted">${STAGE_TXT[m.stage]}${m.meet ? ` · ${meetLine(m)}` : ''}</div>
+      ${m.stage === 'plan' ? `<div class="mr-safe">${icon('shield', 15)}<span>만남 시간 30분 뒤까지 ‘잘 만났어요’를 누르지 않으면 알림을 보내고, 응답이 없으면 운영팀이 확인해요.</span><button class="link-btn" data-act="report" data-label="만남 · ${esc(m.with)}">문제가 생겼어요</button></div>` : ''}
+      <div class="mr-actions">${matchActions(m)}</div></article>`).join('');
+  }
+  function openCheckin(key) {
+    if (needVerify('만남 체크인')) return;
+    const m = S.matches[key]; if (!m) return;
+    const low = lowTrust(m), who = myTrust() < TRUST_OFF ? '내' : '상대';
+    const cur = (m.meet && m.meet.place) || 'union';
+    const opts = D.safePlaces.map((p) => { const dis = p.off && low; return `<label class="place-opt ${dis ? 'dis' : ''}"><input type="radio" name="place" value="${p.id}" ${dis ? 'disabled' : ''} ${p.id === cur && !dis ? 'checked' : ''}><span class="po-body"><b>${esc(p.name)}</b><small>${esc(p.desc)} · ${p.hours}${p.sample ? ' · 위치 확인 전 예시' : ''}</small></span><em class="${p.off ? 'off' : ''}">${dis ? icon('lock', 13) : ''}${p.off ? '대학로' : '교내'}</em></label>`; }).join('');
+    openModal(modalBox('만남 체크인', `
+      <p class="small muted" style="margin-bottom:10px"><b>${esc(m.with)}</b>님과 만나기 전에 장소와 시간을 기록해요. 기록은 운영팀만 볼 수 있고, 신고하면 <b>담당자 전원</b>에게 함께 전달돼요.</p>
+      ${low ? `<div class="info-box amber" style="margin-bottom:10px">${icon('lock', 18)}<span>${who} 신뢰도가 ${TRUST_OFF}점보다 낮아 <b>교내 장소에서만</b> 만날 수 있어요. 만남 후 후기가 쌓이면 대학로 장소도 열려요.</span></div>` : ''}
+      <form data-form="checkin" data-key="${key}" class="grid" style="gap:12px" novalidate>
+        <fieldset class="place-list"><legend class="field-label">어디서 만날까요? · 사람이 많고 밝은 곳만 고를 수 있어요</legend>${opts}</fieldset>
+        <div class="form-grid two"><div class="field"><label for="ci-date">날짜</label><input class="input" type="date" id="ci-date" name="date" min="${TODAY}" value="${(m.meet && m.meet.date) || TODAY}"></div>
+          <div class="field"><label for="ci-time">시간</label><input class="input" type="time" id="ci-time" name="time" min="07:00" max="22:00" step="600" value="${(m.meet && m.meet.time) || '17:00'}"></div></div>
+        <span class="hint">안전을 위해 오전 7시 ~ 오후 10시 사이만 고를 수 있어요.</span>
+        <p class="error-text" id="ci-err" role="alert"></p>
+        <div class="modal-actions"><button type="button" class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" type="submit">${icon('pin', 16)}체크인 기록하기</button></div>
+      </form>`));
+  }
+  function openMatchReview(key) {
+    const m = S.matches[key]; if (!m) return;
+    openModal(modalBox('만남 후기 남기기', `<p class="small muted" style="margin-bottom:12px"><b>${esc(m.with)}</b>님 · ${esc(m.title)}${m.meet ? `<br>${meetLine(m)}` : ''}</p>
+      <form data-form="m-review" data-key="${key}"><fieldset style="border:0"><legend class="sr-only">별점</legend><div class="star-input">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="ms${n}" name="stars" value="${n}" ${n === 5 ? 'checked' : ''}><label for="ms${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
+      <div class="opts" style="margin-top:14px">${REVIEW_TAGS[m.kind].map((t, i) => `<label class="opt sm"><input type="checkbox" name="tags" value="${t}" ${i === 1 ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
+      <textarea class="textarea" name="text" style="min-height:80px;margin-top:12px" placeholder="다른 학생들에게 도움이 되는 후기를 남겨 주세요 (선택)" aria-label="후기 내용"></textarea>
+      <p class="small muted" style="margin-top:8px">상대도 후기를 남기면 <b>두 후기가 동시에 공개</b>돼요. 먼저 쓴 후기를 보고 보복 후기를 쓸 수 없어요.</p>
+      <div class="modal-actions"><button class="btn btn-primary btn-lg" type="submit">후기 보내기</button></div></form>`));
+  }
+
   /* 실거래 시세 비교: 환산 월세 = 월세 + 보증금 × 연 6% ÷ 12 */
   function rentCompare(r) {
     const v = rentVs(r), R = window.CM_RENT; if (!v) return '';
@@ -889,16 +964,18 @@
   }
 
   /* ── 마이페이지 ── */
-  function pageMy(tab = 'listings') {
+  function pageMy(tab = 'matches') {
     const t = myTrust();
     const s = S.survey, q = (k) => D.questions.find((x) => x.k === k);
     const BT = [
       ['shield', '학교 인증', S.verified], ['id', '신원 인증', S.idVerified], ['file', '거주 증빙', S.myRooms.length > 0],
       ['star', '후기 10+', false], ['sparkle', '매칭 설문', true], ['heart', '나눔 천사', D.deals.some((d) => d.price === 0)],
     ];
-    const tabs = [['clubs', '동아리·행사'], ['teams', '팀·공모전'], ['listings', '내 매물'], ['favs', '찜한 목록'], ['deals', '거래 내역'], ['reviews', '받은 후기'], ['reports', '신고·차단']];
+    const tabs = [['matches', '내 매칭'], ['clubs', '동아리·행사'], ['teams', '팀·공모전'], ['listings', '내 매물'], ['favs', '찜한 목록'], ['deals', '거래 내역'], ['reviews', '받은 후기'], ['reports', '신고·차단']];
     let body = '';
-    if (tab === 'teams') {
+    if (tab === 'matches') {
+      body = matchesMyBody();
+    } else if (tab === 'teams') {
       body = teamsMyBody();
     } else if (tab === 'clubs') {
       body = clubsMyBody();
@@ -917,7 +994,8 @@
       body = D.deals.map((d) => { const done = d.reviewed || S.reviewed.includes(d.id); return `<div class="list-row"><span class="lr-art" style="background:var(--blue-50);color:var(--navy-800)">${icon(d.price === 0 ? 'gift' : 'bag', 24)}</span><span class="lr-body"><b>${esc(d.title)}</b><span class="small muted">${d.role} · ${won(d.price)} · ${esc(d.with)} · ${d.date}<br>${icon('pin', 12, 'style="display:inline;vertical-align:-1px"')} ${d.place}</span></span>
         ${done ? '<span class="badge b-school">후기 완료</span>' : `<button class="btn btn-sm btn-primary" data-act="review" data-id="${d.id}">후기 남기기</button>`}</div>`; }).join('');
     } else if (tab === 'reviews') {
-      const extra = S.reviewed.map(() => ({ from: '책정리중', stars: 5, text: '책 상태 설명 그대로였고 시간 약속도 잘 지켜주셨어요!', tags: ['시간 약속을 잘 지켜요'], when: '방금' }));
+      const extra = [...matchList(true).filter((m) => m.stage === 'done').map((m) => ({ from: m.with, stars: 5, text: REVIEW_BACK[m.kind], tags: [REVIEW_TAGS[m.kind][1]], when: '방금 · 상호 공개' })),
+        ...S.reviewed.map(() => ({ from: '책정리중', stars: 5, text: '책 상태 설명 그대로였고 시간 약속도 잘 지켜주셨어요!', tags: ['시간 약속을 잘 지켜요'], when: '방금' }))];
       body = [...extra, ...D.myReviews].map((r) => `<div class="review"><div style="display:flex;justify-content:space-between"><b class="small">${esc(r.from)}</b><span class="small muted">${r.when}</span></div><div class="stars" aria-label="별점 ${r.stars}점">${'★'.repeat(r.stars)}</div><p style="font-size:14px;margin:4px 0">${esc(r.text)}</p><div class="chip-row">${r.tags.map((x) => `<span class="chip" style="height:24px">${x}</span>`).join('')}</div></div>`).join('');
     } else {
       const reps = [...S.reports.map((r) => ({ ...r, status: '접수 · 24시간 내 검토' })), ...D.pastReports];
@@ -935,9 +1013,10 @@
         </section>
         <section class="card pad">
           <h2 class="block-title">신뢰도 점수</h2>
-          <div class="gauge">${ring(t, 84, "점", "신뢰도")}<div><div class="big">${t}<small> / 100</small></div><div class="small muted">상위 ${Math.max(3, 100 - t - 6)}% · 거래 ${D.deals.length}회 · 후기 ${D.myReviews.length + S.reviewed.length}개</div></div></div>
+          <div class="gauge">${ring(t, 84, "점", "신뢰도")}<div><div class="big">${t}<small> / 100</small></div><div class="small muted">상위 ${Math.max(3, 100 - t - 6)}% · 거래 ${D.deals.length}회 · 후기 ${D.myReviews.length + S.reviewed.length + matchList(true).filter((m) => m.stage === 'done').length}개</div></div></div>
+          <div class="trust-level ${t >= TRUST_OFF ? 'ok' : 'low'}">${icon(t >= TRUST_OFF ? 'check' : 'lock', 18)}<span>${t >= TRUST_OFF ? '<b>교내 + 대학로</b>에서 만날 수 있어요' : '<b>교내 장소</b>에서만 만날 수 있어요'}<small>기준 ${TRUST_OFF}점 (임시 기준 · 팀에서 정하는 중)</small></span></div>
           <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700;color:var(--blue-600)">신뢰도는 어떻게 계산되나요?</summary>
-            <p class="small muted" style="margin-top:8px">학교 인증(+6), 신원 인증(+4), 거주 증빙(+3), 받은 거래 후기, 응답률을 합산해요. 신고가 확인되면 점수가 깎여요.</p></details>
+            <p class="small muted" style="margin-top:8px">학교 인증(+6), 신원 인증(+4), 거주 증빙(+3), 만남·거래 후 상호 후기(+2씩)를 합산해요. 신고가 확인되면 점수가 깎여요.</p></details>
           <div class="badge-grid">${BT.map(([ic, l, on]) => `<div class="badge-tile ${on ? 'on' : 'off'}"><span class="bt">${icon(ic, 18)}</span>${l}<span class="sr-only">${on ? '획득' : '미획득'}</span></div>`).join('')}</div>
         </section>
         <section class="card pad">
@@ -1502,7 +1581,11 @@
     const sameBase = base === lastHash.split('-')[0] && /^#(my|community)$/.test(base);
     lastHash = location.hash;
     route();
-    if (!sameBase) window.scrollTo({ top: 0, behavior: "instant" });
+    if (!sameBase) {
+      /* 홈의 ‘진행 중인 매칭’에서 왔을 때, 폰 화면에서는 프로필 카드를 건너뛰고 매칭 목록으로 바로 내려가요 */
+      const tb = location.hash === '#my-matches' && innerWidth < 1024 && document.querySelector('.my-grid .tabs');
+      window.scrollTo({ top: tb ? tb.getBoundingClientRect().top + scrollY - 84 : 0, behavior: "instant" });
+    }
   }
 
   function renderChrome(nav) {
@@ -1597,6 +1680,7 @@
         <div class="who"><b>${esc(opt.name)} <span class="badge b-school">${icon('shield', 13)}인증</span></b><span class="small muted">신뢰도 ${opt.trust} · 보통 10분 내 응답</span></div>
         <button class="btn btn-sm btn-ghost-danger" data-act="report" data-label="채팅 · ${esc(opt.name)}">${icon('flag', 15)}신고</button></header>
       ${opt.ctx || ''}
+      ${S.matches[key] && ['acc', 'plan'].includes(S.matches[key].stage) ? `<div class="chat-meet">${icon('pin', 16)}<span>${S.matches[key].stage === 'plan' ? `체크인 완료 · ${meetLine(S.matches[key])}` : '만나기 전에 장소·시간을 기록해요'}</span><button class="btn btn-sm ${S.matches[key].stage === 'plan' ? 'btn-outline' : 'btn-primary'}" data-act="checkin" data-key="${key}">${S.matches[key].stage === 'plan' ? '바꾸기' : '만남 체크인'}</button></div>` : ''}
       <div class="chat-body" id="chat-body" aria-live="polite"></div>
       ${opt.quick ? `<div class="chat-quick">${opt.quick.map((q) => `<button data-act="chat-quick" data-text="${esc(q)}">${esc(q)}</button>`).join('')}</div>` : ''}
       <form class="chat-form" data-form="chat"><input class="input" name="msg" placeholder="메시지 보내기" aria-label="메시지 입력" autocomplete="off"><button class="btn btn-primary" type="submit" aria-label="보내기">${icon('send', 18)}</button></form>
@@ -1609,7 +1693,7 @@
     const box = $('#chat-body'); if (!box || !chat) return;
     const msgs = S.chats[chat.key];
     box.innerHTML = `<div class="msg sys">${icon('shield', 16)}<span>학교 인증 학생끼리의 대화예요. <b>직접 만나 확인하기 전에는 절대 송금하지 마세요.</b> 외부 메신저 유도·선입금 요구는 신고해 주세요.</span></div>`
-      + msgs.map((m) => `<div class="msg ${m.t}">${esc(m.text)}</div><span class="msg-time ${m.t === 'them' ? 'l' : ''}">${m.at}</span>`).join('')
+      + msgs.map((m) => (m.t === 'sys' ? `<div class="msg sys checkin">${icon('pin', 16)}<span>${esc(m.text)}</span></div>` : `<div class="msg ${m.t}">${esc(m.text)}</div><span class="msg-time ${m.t === 'them' ? 'l' : ''}">${m.at}</span>`)).join('')
       + (chat.typing ? '<span class="typing">상대가 입력 중…</span>' : '');
     box.scrollTop = box.scrollHeight;
   }
@@ -1649,6 +1733,10 @@
       case 'ob-go': S.onboarded = true; save(); closeModal(); if (location.hash === el.dataset.v) route(); else location.hash = el.dataset.v; break;
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
+      case 'checkin': openCheckin(el.dataset.key); break;
+      case 'm-accept': { const m = S.matches[el.dataset.key]; m.stage = 'acc'; if (m.kind === '룸메' && !S.interests.includes(m.id)) S.interests.push(m.id); save(); route(); toast(`${m.with}님이 연락 요청을 수락했어요. 이제 채팅할 수 있어요`, 'heart'); break; }
+      case 'm-met': { const m = S.matches[el.dataset.key]; m.stage = 'met'; m.metAt = nowTime(); save(); route(); openMatchReview(m.key); break; }
+      case 'm-review': openMatchReview(el.dataset.key); break;
       case 'close-go': slot.innerHTML = ''; document.body.style.overflow = ''; chat = null; break;
       case 'notif': openNotif(); break;
       case 'ext-app': openExt(id); break;
@@ -1694,7 +1782,10 @@
       case 'interest': {
         if (needVerify('룸메이트 연락 요청')) return;
         const c = D.mates.find((x) => x.id === id);
-        const added = toggleIn(S.interests, id); save(); route();
+        const added = toggleIn(S.interests, id);
+        if (added) ensureMatch('mate-' + id, { id, kind: '룸메', with: c.nick, trust: c.trust, title: `${c.dorm} 룸메이트`, href: `#roommate-${id}`, stage: c.likedMe ? 'acc' : 'req' });
+        else if (S.matches['mate-' + id] && ['req', 'acc'].includes(S.matches['mate-' + id].stage)) delete S.matches['mate-' + id];
+        save(); route();
         if (added && c.likedMe) {
           openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--mint-100);color:var(--mint-800)">${icon('heart', 30)}</div>
             <h2 id="mtitle">연결됐어요! 🎉</h2><p class="muted" style="margin-top:8px;font-size:14.5px"><b>${esc(c.nick)}</b>님도 회원님에게 연락을 요청했어요. 이제 전체 프로필을 보고 채팅할 수 있어요.</p>
@@ -1704,6 +1795,9 @@
       }
       case 'mate-chat': {
         const c = D.mates.find((x) => x.id === id); if (!c) return;
+        const mm = S.matches['mate-' + id];
+        if (mm && mm.stage === 'req') return toast('상대가 연락 요청을 수락하면 채팅할 수 있어요', 'clock');
+        ensureMatch('mate-' + id, { id, kind: '룸메', with: c.nick, trust: c.trust, title: `${c.dorm} 룸메이트`, href: `#roommate-${id}` });
         const m = match(c);
         openChat('mate-' + id, { name: c.nick, trust: c.trust, greeting: `안녕하세요! 호환도 ${m.score}% 떠서 반가웠어요 😊 혹시 ${c.dorm} 신청하시는 거 맞으세요?`,
           ctx: ctxBar(ring(m.score, 40), `룸메이트 매칭 · 호환도 ${m.score}%`, esc(m.reasons[0] || ''), '#fff'),
@@ -1714,6 +1808,7 @@
       case 'room-chat': {
         if (needVerify('매물 문의')) return;
         const r = findRoom(id);
+        ensureMatch('room-' + id, { id, kind: '방', with: r.author.nick, trust: r.author.trust, title: r.title, href: `#rooms-${id}` });
         openChat('room-' + id, { name: r.author.nick, trust: r.author.trust, greeting: '안녕하세요! 매물 보고 연락 주셨나요? 궁금한 점 편하게 물어보세요.',
           ctx: ctxBar(roomArt(r.seed), r.title, `월 ${r.rent}만 · 보증금 ${r.deposit}만`),
           quick: ['방 직접 보러 가도 될까요?', '집주인 양도 동의 받으셨나요?', '관리비에 뭐가 포함돼요?', '등기부등본 확인 가능할까요?'],
@@ -1723,6 +1818,7 @@
       case 'item-chat': {
         if (needVerify('채팅')) return;
         const i = findItem(id);
+        ensureMatch('item-' + id, { id, kind: '중고', with: i.seller.nick, trust: i.seller.trust, title: i.title, href: `#market-${id}` });
         openChat('item-' + id, { name: i.seller.nick, trust: i.seller.trust, greeting: `안녕하세요! ‘${i.title}’ 아직 ${i.price === 0 ? '나눔' : '판매'} 중이에요.`,
           ctx: ctxBar(i.emoji, i.title, won(i.price), CAT_BG[i.cat]),
           quick: D.safePlaces.map((p) => `${p.name}에서 만날까요?`).concat(['오늘 거래 가능하세요?']),
@@ -1823,6 +1919,27 @@
         S.reports.unshift({ target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
         closeModal(); toast('신고가 접수됐어요. 24시간 안에 검토할게요', 'flag'); break;
       }
+      case 'checkin': {
+        const m = S.matches[f.dataset.key], err = $('#ci-err');
+        const pl = fd.get('place'), date = fd.get('date'), time = String(fd.get('time') || '');
+        if (!pl) { err.textContent = '만날 장소를 골라 주세요.'; return; }
+        const p = place(pl);
+        if (p.off && lowTrust(m)) { err.textContent = `신뢰도 ${TRUST_OFF}점 미만이면 교내 장소만 고를 수 있어요.`; return; }
+        if (!date || dday(date) < 0) { err.textContent = '오늘 이후 날짜를 골라 주세요.'; return; }
+        if (!/^\d\d:\d\d$/.test(time) || time < '07:00' || time > '22:00') { err.textContent = '오전 7시 ~ 오후 10시 사이로 골라 주세요.'; return; }
+        const again = !!m.meet;
+        m.meet = { place: pl, date, time }; m.stage = 'plan'; m.checkedAt = nowTime();
+        (S.chats[m.key] = S.chats[m.key] || []).push({ t: 'sys', text: `만남 체크인${again ? ' (변경)' : ''}: ${p.name} · ${fmtDate(date)} ${time} · 운영팀에 기록됐어요`, at: nowTime() });
+        save(); closeModal(); route();
+        toast(`체크인을 기록했어요 · ${p.name} ${time}`, 'pin');
+        break;
+      }
+      case 'm-review': {
+        const m = S.matches[f.dataset.key];
+        m.stage = 'done'; m.review = { stars: +fd.get('stars'), tags: fd.getAll('tags'), text: String(fd.get('text') || '') };
+        S.trustBonus += 2; save(); closeModal(); route();
+        toast(`${m.with}님도 후기를 남겨 서로 공개됐어요. 신뢰도 +2`, 'star'); break;
+      }
       case 'review': {
         S.reviewed.push(f.dataset.id); S.trustBonus += 2; save(); closeModal(); route();
         toast('후기를 보냈어요. 상대도 후기를 남겨 신뢰도가 +2 올랐어요', 'star'); break;
@@ -1920,6 +2037,7 @@
   window.addEventListener('hashchange', onHash);
   if (!location.hash) history.replaceState(null, '', '#home');
   lastHash = location.hash;
+  syncMatches();
   route();
   if (!S.onboarded) openOnboard();
 })();
