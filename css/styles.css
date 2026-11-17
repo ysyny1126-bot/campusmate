@@ -1124,3 +1124,12 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .pv-row:first-child { border-top: 0; }
 .pv-row.head { background: var(--surface-2); font-weight: 800; }
 @media (max-width: 600px) { .pv-row { grid-template-columns: 1fr; gap: 2px; } .pv-row.head { display: none; } .pv-row span:first-child { font-weight: 800; } }
+
+/* ── 회원정보 입력 ── */
+.req { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 6px; background: var(--coral-100, #FFE8E3); color: var(--coral-800, #B23A22); font-size: 11px; font-weight: 700; vertical-align: 1px; }
+.agree-box { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line-strong); border-radius: 16px; background: #FAFAFE; }
+.agree-box > .check:first-child { padding-bottom: 10px; border-bottom: 1px solid var(--line, #eee); }
+.pv-mini { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #fff; color: var(--muted); }
+.pv-mini b { color: var(--ink, #12172E); margin-right: 6px; }
+.member-box { display: grid; gap: 8px; margin-top: 10px; padding: 12px; border-radius: 14px; background: #FAFAFE; border: 1px solid var(--line, #eee); }
+.member-box .btn { justify-self: start; }

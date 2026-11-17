@@ -73,9 +73,12 @@
     notifs: [{ text: '도서관지박령님이 회원님에게 연락을 요청했어요', ic: 'heart', href: '#roommate-m1', at: Date.now() - 600000 },
       { text: '찜한 ‘정문 도보 5분 풀옵션 원룸’ 월세가 2만 원 내렸어요', ic: 'door', href: '#rooms-r1', at: Date.now() - 3600000 },
       { text: '내 게시글에 새 댓글이 달렸어요', ic: 'chat', href: '#post-p1', at: Date.now() - 86400000 }],
-    reportActs: {}, hiddenG: [], restricted: {}, approvedContests: [], login: null, verifyReq: null, verifyMethod: '', verifyActs: {},
+    reportActs: {}, hiddenG: [], restricted: {}, approvedContests: [], login: null, verifyReq: null, verifyMethod: '', verifyActs: {}, member: null,
   });
   let S = load();
+  /* 회원정보(닉네임·학과)를 화면 곳곳의 '나'에 반영해요 */
+  function applyMember() { if (!S.member) return; D.me.nick = S.member.nick; D.me.dept = S.member.dept; S.survey.dept = S.member.dept; }
+  applyMember();
   function load() {
     try { const raw = localStorage.getItem(LS); if (raw) return Object.assign(defaults(), JSON.parse(raw)); } catch (e) { /* ignore */ }
     return defaults();
@@ -1344,14 +1347,15 @@
       <div class="card pad grid" style="gap:18px">
         ${sec(1, '받는 정보와 이유', `<div class="pv-table"><div class="pv-row head"><span>항목</span><span>언제</span><span>왜</span><span>어디에</span></div>
           <div class="pv-row"><span>카카오 닉네임, 카카오 회원번호</span><span>카카오 로그인할 때 (동의 후)</span><span>로그인 상태 유지, 화면에 이름 표시</span><span>이 기기 브라우저</span></div>
+          <div class="pv-row"><span>닉네임, 학과, 학번, 휴대폰 번호</span><span>회원정보 입력할 때 (동의 후)</span><span>학생 확인(학번↔인증 서류 대조), 프로필 표시, 사고·분쟁 시 연락</span><span>이 기기 브라우저</span></div>
           <div class="pv-row"><span>학생 인증 서류 (학생증·재학증명서·합격증)</span><span>학생 인증할 때</span><span>교통대 학생 확인</span><span><b>저장 안 함</b> (데모: 파일 이름만 기기에 기록)</span></div>
           <div class="pv-row"><span>생활 습관 설문, 관심 분야, 활동 시간</span><span>직접 입력할 때</span><span>룸메·팀·동아리 추천</span><span>이 기기 브라우저</span></div>
           <div class="pv-row"><span>글, 채팅, 신청·매칭·정산 기록, 만남 체크인 장소·시간</span><span>기능을 쓸 때</span><span>서비스 기능 제공, 안전 확인</span><span>이 기기 브라우저</span></div></div>
-          <p class="small muted">이메일, 전화번호, 학번, 위치(GPS)는 받지 않고 실명도 따로 묻지 않아요. 다만 카카오 닉네임을 실명으로 해 둔 경우 그 이름이 보일 수 있어요.</p>`)}
-        ${sec(2, '보관 기간과 지우는 방법', li(['데모 단계: 브라우저에 남아 있는 동안 보관돼요. <b>MY › 이 기기의 내 데이터 모두 지우기</b>를 누르면 바로 모두 지워져요.', '로그아웃하면 로그인 정보와 인증 상태가 지워져요.', '정식 운영 시(예정): 학생 인증 서류는 <b>확인 즉시 파기</b>, 만남 체크인 기록은 30일 뒤 자동 삭제, 탈퇴하면 지체 없이 삭제해요.']))}
+          <p class="small muted"><b>다른 학생에게 보이는 것:</b> 닉네임, 학과, 입학년도(예: 26학번), 인증 배지뿐이에요. <b>휴대폰 번호와 전체 학번은 절대 공개하지 않아요.</b> 이메일, 위치(GPS), 실명은 받지 않아요.</p>`)}
+        ${sec(2, '보관 기간과 지우는 방법', li(['데모 단계: 브라우저에 남아 있는 동안 보관돼요. <b>MY › 이 기기의 내 데이터 모두 지우기</b>를 누르면 바로 모두 지워져요.', '로그아웃하면 로그인 정보와 인증 상태가 지워져요. 회원정보는 MY › 회원정보 수정에서 고치거나, 모두 지우기로 지울 수 있어요.', '정식 운영 시(예정): 학생 인증 서류는 <b>확인 즉시 파기</b>, 만남 체크인 기록은 30일 뒤 자동 삭제, 탈퇴하면 지체 없이 삭제해요.']))}
         ${sec(3, '다른 곳에 주는지', li(['이음은 개인정보를 다른 사람이나 회사에 팔거나 제공하지 않아요.', '<b>카카오</b>: 카카오 로그인을 할 때 카카오가 로그인 정보를 처리해요. 이음은 그중 닉네임만 받아요.', '<b>GitHub Pages</b>: 웹사이트 파일을 전달하는 곳이에요. 일반적인 접속 기록(IP 등)이 남을 수 있어요.', '공공데이터(국토교통부 실거래가)와 공모전 정보는 공개된 정보를 요약한 것이라 개인정보와 관계없어요.']))}
         ${sec(4, '여러분의 권리', li(['언제든 내 정보를 보고, 고치고, 지울 수 있어요 (MY 화면).', '카카오 계정 설정 › 연결된 서비스 관리에서 이음 연결을 끊을 수 있어요.', '동의를 거부하면 로그인이 필요한 기능(글쓰기·채팅·신청)은 쓸 수 없지만, 둘러보기는 할 수 있어요.']))}
-        ${sec(5, '안전하게 지키는 방법', li(['꼭 필요한 정보만 받아요 (닉네임 외 카카오 정보는 받지 않음).', '계좌번호·외부 메신저 아이디 같은 문구는 글과 모집글에 올릴 수 없게 막아요.', '정식 운영 시(예정): 접근 권한을 사람별로 나누고, 운영자 접속 기록을 남기고, 서류는 비공개 저장소에 잠깐만 보관해요.']))}
+        ${sec(5, '안전하게 지키는 방법', li(['꼭 필요한 정보만 받아요 (카카오에서는 닉네임만, 회원정보는 4가지만).', '휴대폰 번호는 화면에 가려서(010-****-5678) 보여 주고, 다른 사용자에게는 보내지 않아요.', '계좌번호·외부 메신저 아이디 같은 문구는 글과 모집글에 올릴 수 없게 막아요.', '정식 운영 시(예정): 접근 권한을 사람별로 나누고, 운영자 접속 기록을 남기고, 서류는 비공개 저장소에 잠깐만 보관해요.']))}
         ${sec(6, '책임자와 문의', li(['개인정보 보호 책임: 이음 팀 (국립한국교통대학교 학생 팀 프로젝트)', '문의: 앱 안의 신고·문의 기능 또는 <a href="https://github.com/ysyny1126-bot/campusmate/issues" target="_blank" rel="noopener noreferrer">GitHub 저장소 문의(Issues)</a>', '개인정보 침해 신고: 개인정보침해신고센터(국번 없이 118) · 개인정보분쟁조정위원회(1833-6972)']))}
         ${sec(7, '바뀔 때', `<p class="small">이 방침이 바뀌면 시행 7일 전에 앱 첫 화면에서 알려 드려요. 이 문서는 개인정보 보호법을 참고한 <b>데모 단계 초안</b>이고, 정식 운영 전에 전문가 검토를 받을 예정이에요.</p>`)}
       </div>${footer()}</div>`;
@@ -1359,8 +1363,8 @@
 
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
-      <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
-      <a class="btn btn-primary btn-lg btn-block" href="#verify">${icon('mail', 18)}학교 이메일로 인증하기</a></div>`;
+      <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 학생 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
+      <a class="btn btn-primary btn-lg btn-block" href="#verify">${icon('shield', 18)}학생 인증하기</a></div>`;
   }
 
   function pageRoomNew() {
@@ -1610,9 +1614,10 @@
     <div class="my-grid">
       <div class="grid" style="gap:16px">
         <section class="card profile-card">
-          <div class="profile-top">${avatar(D.me.nick, 'lg')}<div><b style="font-size:18px">${D.me.nick}</b><div class="meta">${D.school.name} · ${s.dept} · ${q('grade').opts[s.grade]}</div><div class="meta">가입 ${D.me.joined}</div></div></div>
+          <div class="profile-top">${avatar(D.me.nick, 'lg')}<div><b style="font-size:18px">${esc(D.me.nick)}</b><div class="meta">${D.school.name} · ${esc(s.dept)} · ${S.member ? sidYear(S.member) : q('grade').opts[s.grade]}</div><div class="meta">${S.member ? `가입 ${new Date(S.member.at).getFullYear()}년 ${new Date(S.member.at).getMonth() + 1}월` : `가입 ${D.me.joined} (예시)`}</div></div></div>
           <div class="status-box ${S.verified ? 'on' : 'off'}">${icon(S.verified ? 'shield' : 'alert', 24)}<div><b>${S.verified ? (S.verifyMethod === 'pre' ? '예비 신입생 인증 완료' : '학생 인증 완료') : '학생 인증 전'}</b><span>${S.verified ? esc(methodName(S.verifyMethod) || '학교 인증') + '으로 확인' : S.verifyReq && S.verifyReq.status === '검토 중' ? '운영자가 확인하고 있어요' : '둘러보기만 가능해요'}</span></div>${S.verified ? '' : `<a class="btn btn-sm btn-primary" href="#verify">인증하기</a>`}</div>
           <div class="login-row">${S.login ? `<span class="kk-dot">${KAKAO_SYMBOL}</span><span><b>카카오 계정으로 로그인</b>${S.login.demo ? ' <span class="badge b-gray">데모</span>' : ''}</span><button class="btn btn-sm btn-ghost" data-act="logout">로그아웃</button>` : `<span class="muted small" style="flex:1">로그인하지 않았어요</span>${kakaoBtn('카카오 로그인', 'btn-sm')}`}</div>
+          ${S.member ? `<div class="member-box"><div class="pm-row"><small>휴대폰</small><span class="small"><b>${esc(maskPhone(S.member.phone))}</b> <span class="muted">· 나만 보여요</span></span></div><div class="pm-row"><small>학번</small><span class="small"><b>${S.member.pre ? '예비 신입생 (학번 없음)' : esc(S.member.sid.slice(0, 4)) + '******'}</b> <span class="muted">· 다른 학생에게는 ${sidYear(S.member)}만</span></span></div><a class="btn btn-outline btn-sm" href="#signup">${icon('edit', 15)}회원정보 수정</a></div>` : S.login ? `<a class="btn btn-primary btn-block" style="margin-top:10px" href="#signup">${icon('user', 18)}회원정보 입력하기</a>` : ''}
           ${S.verified && !S.idVerified ? `<button class="btn btn-outline btn-block" style="margin-top:10px" data-act="id-verify">${icon('id', 18)}신원 인증 추가하기 (휴대폰)</button>` : ''}
           <div class="profile-more"><div class="pm-row"><small>관심 분야</small><span>${S.profile.interests.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
             <div class="pm-row"><small>보유 역량</small><span>${S.profile.skills.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
@@ -1656,6 +1661,7 @@
     const steps = (n) => `<div class="steps" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${n >= i ? 'on' : ''}"></i>`).join('')}</div>`;
     if (!S.login) return wrap(`${steps(1)}<div class="verify-hero"><div class="vi" style="background:#FFF7C2;color:#3C1E1E">${icon('user', 30)}</div><h1>먼저 로그인해요</h1><p>카카오 계정으로 간편하게 시작하고,<br>다음 단계에서 교통대 학생인지 확인해요.</p></div>
       <div class="grid" style="gap:10px">${kakaoBtn('카카오로 시작하기', 'btn-lg btn-block')}<a class="btn btn-ghost" href="#home">로그인 없이 둘러보기</a></div>`);
+    if (!S.member) return pageSignup();
     if (S.verified) return wrap(`${steps(3)}<div class="verify-hero"><div class="vi" style="background:var(--navy-800);color:var(--mint-400)">${icon('shield', 32)}</div><h1>${S.verifyMethod === 'pre' ? '예비 신입생 인증 완료!' : '학생 인증 완료!'}</h1><p><b>${esc(S.login.nick)}</b> · ${esc(methodName(S.verifyMethod) || '학생 인증')}으로 확인했어요.<br>이제 글쓰기 · 채팅 · 신청 · 모집을 할 수 있어요.</p></div>
       <div class="grid" style="gap:10px">
         <div class="info-box mint">${icon('check', 18)}<span><b>학생 인증</b> 배지가 프로필에 표시되고 신뢰도가 +6 올랐어요.</span></div>
@@ -1677,6 +1683,42 @@
         <p class="error-text" id="vd-err" role="alert"></p>
         <button class="btn btn-primary btn-lg btn-block" type="submit">${icon('send', 18)}인증 요청하기</button>
       </form>`);
+  }
+
+  /* ── 회원정보 입력 (카카오 로그인 다음 단계) ──
+   * 받는 것: 닉네임(공개) · 학과(공개) · 학번(입학년도만 공개) · 휴대폰 번호(비공개)
+   * 데모라서 이 기기 브라우저에만 저장되고, 문자 본인확인은 정식 운영 때 붙여요. */
+  const DEPT_SUGGEST = ['기계공학과', '자동차공학과', '항공·기계설계학과', '전기공학과', '전자공학과', '컴퓨터공학과', '건축학과', '경영학과', '간호학과', '시각디자인과', '화학과', '수학과', '호텔조리과', '국어국문학과', '심리학과'];
+  const maskPhone = (p) => String(p || '').replace(/^(\d{3})-?(\d{3,4})-?(\d{4})$/, '$1-****-$3');
+  const sidYear = (m) => (m && m.sid ? `${String(m.sid).slice(2, 4)}학번` : '예비 신입생');
+  const takenNicks = () => new Set([...D.mates.map((x) => x.nick), ...D.posts.map((x) => x.author && x.author.nick).filter(Boolean)]);
+  function pageSignup() {
+    if (!S.login) return pageVerify();
+    const m = S.member || {}, edit = !!S.member;
+    const nick0 = m.nick || (S.login.nick && S.login.nick !== '카카오 사용자' ? S.login.nick : '');
+    return `<div class="verify-wrap"><a class="back-link" href="${edit ? '#my' : '#home'}">${icon('left', 18)}${edit ? 'MY' : '홈'}</a><div class="card pad" style="padding:28px 22px">
+      ${edit ? '' : `<div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>`}
+      <div class="verify-hero"><div class="vi">${icon('user', 30)}</div><h1>${edit ? '회원정보 수정' : '회원정보 입력'}</h1><p>${edit ? '바꾼 내용은 바로 프로필에 반영돼요.' : '이음에서 쓸 기본 정보를 알려 주세요.<br>다음 단계에서 학생 인증을 해요.'}</p></div>
+      <form data-form="signup" class="grid" style="gap:14px" novalidate>
+        <div class="field"><label for="su-nick">닉네임 <span class="req">필수</span></label><input class="input" id="su-nick" name="nick" maxlength="12" value="${esc(nick0)}" placeholder="예) 충주새내기" autocomplete="nickname" required>
+          <span class="hint">2~12자 · 한글, 영문, 숫자 · 다른 학생에게 보여요</span></div>
+        <div class="field"><label for="su-dept">학과 <span class="req">필수</span></label><input class="input" id="su-dept" name="dept" list="su-dept-list" value="${esc(m.dept || '')}" placeholder="학과를 고르거나 직접 입력" required>
+          <datalist id="su-dept-list">${DEPT_SUGGEST.map((x) => `<option value="${x}">`).join('')}</datalist><span class="hint">목록에 없으면 직접 입력해 주세요 · 다른 학생에게 보여요</span></div>
+        <div class="field"><label for="su-sid">학번 <span class="req">필수</span></label><input class="input" id="su-sid" name="sid" inputmode="numeric" maxlength="10" value="${esc(m.sid || '')}" placeholder="예) 2026123456" ${m.pre ? 'disabled' : ''}>
+          <label class="check small" style="margin-top:6px"><input type="checkbox" name="pre" data-su="pre" ${m.pre ? 'checked' : ''}><span>아직 학번이 없어요 (예비 신입생)</span></label>
+          <span class="hint">학생 인증 서류와 맞는지 확인하는 데만 써요 · 다른 학생에게는 <b>‘26학번’처럼 입학년도만</b> 보여요</span></div>
+        <div class="field"><label for="su-phone">휴대폰 번호 <span class="req">필수</span></label><input class="input" id="su-phone" name="phone" type="tel" inputmode="numeric" maxlength="13" value="${esc(m.phone || '')}" placeholder="010-0000-0000" autocomplete="tel">
+          <span class="hint">${icon('lock', 13)} <b>다른 학생에게 절대 보이지 않아요.</b> 본인 확인과 사고·분쟁 때 연락에만 써요 · 정식 운영 때는 문자 인증을 붙여요</span></div>
+        ${edit ? '' : `<div class="agree-box">
+          <label class="check"><input type="checkbox" data-su="all"><span><b>모두 동의해요</b></span></label>
+          <label class="check small"><input type="checkbox" name="a1"><span>[필수] 만 14세 이상이에요</span></label>
+          <label class="check small"><input type="checkbox" name="a2"><span>[필수] 이음 이용 규칙(안전 장소에서 만나기, 선입금 요구 금지 등)을 지킬게요</span></label>
+          <label class="check small"><input type="checkbox" name="a3"><span>[필수] 개인정보 수집·이용에 동의해요 <a href="#privacy">자세히</a></span></label>
+          <div class="pv-mini small"><span><b>받는 것</b> 닉네임, 학과, 학번, 휴대폰 번호</span><span><b>이유</b> 학생 확인, 프로필 표시, 안전 연락</span><span><b>보관</b> 탈퇴하면 바로 삭제 (지금은 이 기기에만 저장)</span></div></div>`}
+        <div class="info-box amber">${icon('alert', 18)}<span><b>데모 안내:</b> 지금은 서버로 보내지 않고 이 기기에만 저장해요. 발표·시험용이라면 <b>예시 번호</b>(010-0000-0000)를 써도 돼요.</span></div>
+        <p class="error-text" id="su-err" role="alert"></p>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">${edit ? `${icon('check', 18)}저장하기` : `다음: 학생 인증${icon('right', 18)}`}</button>
+      </form></div></div>`;
   }
 
   /* ── 동아리 · 행사 ── */
@@ -2206,6 +2248,7 @@
       case 'my': html = pageMy(a); break;
       case 'verify': html = pageVerify(); nav = 'my'; break;
       case 'privacy': html = pagePrivacy(); nav = 'my'; break;
+      case 'signup': html = pageSignup(); nav = 'my'; break;
       default: html = notFound();
     }
     if (!a && ['contests', 'teams', 'people', 'clubs', 'events'].includes(p)) html = actSwitch(['clubs', 'events'].includes(p) ? p : 'contests') + html;
@@ -2302,6 +2345,8 @@
   }
   function afterLogin() {
     renderChrome(lastNav);
+    if (S.member && S.member.kakaoId && S.login.kakaoId && S.member.kakaoId !== S.login.kakaoId) S.member = null; // 다른 카카오 계정이면 새로 입력
+    if (!S.member) { save(); if (location.hash === '#signup') route(); else location.hash = '#signup'; toast(`로그인했어요. 회원정보를 입력해 주세요`, 'check'); return; }
     if (!S.verified) { if (location.hash === '#verify') route(); else location.hash = '#verify'; toast(`${S.login.nick}님, 로그인했어요. 이제 학생 인증만 하면 돼요`, 'check'); }
     else { route(); toast('로그인했어요', 'check'); }
   }
@@ -2322,9 +2367,7 @@
       .then((me) => {
         const nick = (me.kakao_account && me.kakao_account.profile && me.kakao_account.profile.nickname) || (me.properties && me.properties.nickname);
         if (!nick) throw new Error('no nickname');
-        S.login = { provider: 'kakao', nick, kakaoId: me.id, at: Date.now() }; save(); renderChrome(lastNav);
-        if (!S.verified) { if (location.hash === '#verify') route(); else location.hash = '#verify'; } else route();
-        toast(`${nick}님, 카카오로 로그인했어요`, 'check');
+        S.login = { provider: 'kakao', nick, kakaoId: me.id, at: Date.now() }; save(); afterLogin();
       })
       .catch((e) => { console.warn('카카오 토큰·사용자 정보 받기 실패:', e.message); toast('카카오 인증은 마쳤어요. 닉네임을 받아오려면 서버 연결이 필요해요', 'check'); });
   })();
@@ -2337,6 +2380,7 @@
   function needVerify(what = '이 기능') {
     if (S.verified) return false;
     if (!S.login) { openLoginNeeded(what); return true; }
+    if (!S.member) { location.hash = '#signup'; toast('먼저 회원정보를 입력해 주세요', 'user'); return true; }
     openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--mint-100);color:var(--mint-800)">${icon('lock', 30)}</div>
       <h2 id="mtitle">학생 인증이 필요해요</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${what}은(는) 학생증으로 ${D.school.name} 학생 인증을 마친 뒤에 할 수 있어요.${S.verifyReq && S.verifyReq.status === '검토 중' ? ' 지금 운영자가 확인하고 있어요.' : ''}</p>
       <div class="modal-actions"><button class="btn btn-outline" data-act="close">나중에</button><a class="btn btn-primary" href="#verify" data-act="close-go">인증하기</a></div></div>`);
@@ -2672,7 +2716,7 @@
       case 'id-verify': S.idVerified = true; save(); route(); toast('신원 인증을 완료했어요 (데모) · 신뢰도 +4', 'id'); break;
       case 'v-back': V.step = 1; route(); break;
       case 'addr-search': { const inp = $('#rn-addr'); inp.value = '충청북도 충주시 대소원면 대학로 (예시)'; toast('주소 검색 결과를 넣었어요 (데모)', 'pin'); break; }
-      case 'reset': openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--amber-100);color:var(--amber-800)">${icon('refresh', 30)}</div><h2 id="mtitle">이 기기의 내 데이터를 모두 지울까요?</h2><p class="muted" style="margin-top:8px;font-size:14.5px">로그인 정보(카카오 닉네임), 인증 상태, 찜, 작성한 글, 채팅, 매칭 기록이 이 브라우저에서 모두 지워져요. 되돌릴 수 없어요.</p><div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" data-act="reset-confirm">초기화</button></div></div>`); break;
+      case 'reset': openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--amber-100);color:var(--amber-800)">${icon('refresh', 30)}</div><h2 id="mtitle">이 기기의 내 데이터를 모두 지울까요?</h2><p class="muted" style="margin-top:8px;font-size:14.5px">로그인 정보(카카오 닉네임), 회원정보(닉네임·학과·학번·휴대폰), 인증 상태, 찜, 작성한 글, 채팅, 매칭 기록이 이 브라우저에서 모두 지워져요. 되돌릴 수 없어요.</p><div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" data-act="reset-confirm">초기화</button></div></div>`); break;
       case 'reset-confirm': closeModal(); S = defaults(); save(); V.step = 1; location.hash = '#home'; route(); toast('이 기기의 내 데이터를 모두 지웠어요', 'refresh'); break;
     }
   });
@@ -2694,6 +2738,8 @@
   document.addEventListener('input', (e) => { if (e.target.id === 'g-search') { searchQ = e.target.value; const box = $('#search-results'); if (box) box.innerHTML = searchResults(searchQ); } });
   document.addEventListener('change', (e) => {
     onFilterInput(e);
+    if (e.target.dataset.su === 'pre') { const sid = $('#su-sid'); sid.disabled = e.target.checked; if (e.target.checked) sid.value = ''; }
+    if (e.target.dataset.su === 'all') e.target.closest('.agree-box').querySelectorAll('input[name^=a]').forEach((c) => { c.checked = e.target.checked; });
     if (e.target.id === 'k-sort') { KF.sort = e.target.value; route(); }
     const inp = e.target;
     if (inp.type === 'file' && inp.dataset.preview) {
@@ -2717,6 +2763,25 @@
           S.weights[q.k] = +fd.get('w_' + q.k);
         });
         S.survey = sv; save(); location.hash = '#roommate'; toast('생활 습관을 저장했어요. 호환도를 다시 계산했어요', 'sparkle');
+        break;
+      }
+      case 'signup': {
+        const err = $('#su-err'), edit = !!S.member;
+        const nick = String(fd.get('nick') || '').trim(), dept = String(fd.get('dept') || '').trim();
+        const pre = !!fd.get('pre'), sid = String(fd.get('sid') || '').replace(/\D/g, ''), phone = String(fd.get('phone') || '').replace(/\D/g, '');
+        const yr = +sid.slice(0, 4), thisYear = new Date().getFullYear();
+        if (!/^[가-힣a-zA-Z0-9]{2,12}$/.test(nick)) { err.textContent = '닉네임은 2~12자의 한글, 영문, 숫자로 써 주세요 (띄어쓰기·특수문자 없이).'; return; }
+        if (nick !== (S.member && S.member.nick) && takenNicks().has(nick)) { err.textContent = '이미 쓰고 있는 닉네임이에요. 다른 닉네임을 골라 주세요.'; return; }
+        if (FRAUD.test(nick)) { err.textContent = '닉네임에 연락처·계좌 관련 문구는 쓸 수 없어요.'; return; }
+        if (dept.length < 2) { err.textContent = '학과를 입력해 주세요.'; return; }
+        if (!pre && !(sid.length >= 8 && sid.length <= 10 && yr >= thisYear - 12 && yr <= thisYear + 1)) { err.textContent = '학번을 확인해 주세요. 입학년도로 시작하는 8~10자리 숫자예요 (예: 2026123456).'; return; }
+        if (!/^01[016789]\d{7,8}$/.test(phone)) { err.textContent = '휴대폰 번호를 확인해 주세요 (예: 010-1234-5678).'; return; }
+        if (!edit && !(fd.get('a1') && fd.get('a2') && fd.get('a3'))) { err.textContent = '필수 항목 3개에 모두 동의해 주세요.'; return; }
+        const ph = phone.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3');
+        S.member = { nick, dept, sid: pre ? '' : sid, pre, phone: ph, kakaoId: S.login && S.login.kakaoId, at: (S.member && S.member.at) || Date.now() };
+        applyMember(); save(); renderChrome(lastNav);
+        if (edit) { location.hash = '#my'; toast('회원정보를 저장했어요', 'check'); }
+        else { location.hash = '#verify'; toast(`${nick}님, 반가워요! 마지막으로 학생 인증만 하면 돼요`, 'check'); }
         break;
       }
       case 'v-doc': {
