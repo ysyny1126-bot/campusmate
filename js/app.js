@@ -1688,7 +1688,7 @@
   /* ── 회원정보 입력 (카카오 로그인 다음 단계) ──
    * 받는 것: 닉네임(공개) · 학과(공개) · 학번(입학년도만 공개) · 휴대폰 번호(비공개)
    * 데모라서 이 기기 브라우저에만 저장되고, 문자 본인확인은 정식 운영 때 붙여요. */
-  const DEPT_SUGGEST = ['기계공학과', '자동차공학과', '항공·기계설계학과', '전기공학과', '전자공학과', '컴퓨터공학과', '건축학과', '경영학과', '간호학과', '시각디자인과', '화학과', '수학과', '호텔조리과', '국어국문학과', '심리학과'];
+  const DEPT_SUGGEST = D.questions.find((x) => x.k === 'dept').opts; // 실제 충주캠퍼스 모집단위
   const maskPhone = (p) => String(p || '').replace(/^(\d{3})-?(\d{3,4})-?(\d{4})$/, '$1-****-$3');
   const sidYear = (m) => (m && m.sid ? `${String(m.sid).slice(2, 4)}학번` : '예비 신입생');
   const takenNicks = () => new Set([...D.mates.map((x) => x.nick), ...D.posts.map((x) => x.author && x.author.nick).filter(Boolean)]);
