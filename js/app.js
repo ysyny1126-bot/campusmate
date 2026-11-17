@@ -73,7 +73,7 @@
     notifs: [{ text: '도서관지박령님이 회원님에게 연락을 요청했어요', ic: 'heart', href: '#roommate-m1', at: Date.now() - 600000 },
       { text: '찜한 ‘정문 도보 5분 풀옵션 원룸’ 월세가 2만 원 내렸어요', ic: 'door', href: '#rooms-r1', at: Date.now() - 3600000 },
       { text: '내 게시글에 새 댓글이 달렸어요', ic: 'chat', href: '#post-p1', at: Date.now() - 86400000 }],
-    reportActs: {}, hiddenG: [], restricted: {}, approvedContests: [],
+    reportActs: {}, hiddenG: [], restricted: {}, approvedContests: [], login: null, verifyReq: null, verifyMethod: '', verifyActs: {},
   });
   let S = load();
   function load() {
@@ -296,7 +296,7 @@
     move: { name: '개강 전', cls: 's-move', img: 'cheer', alt: '응원하는 잇고', tag: (pv) => `${pv ? '개강 2주 전 미리보기' : `개강 D-${dday(nextTermStart())}`} · 방 구하는 시즌`, title: '같이 살 사람,<br>지금 제일 많아요',
       sub: () => `룸메 후보 ${ranked().length}명 · 넘기는 방 ${allRooms().length}개`, go: ['#rooms', '방·룸메 보러 가기'] },
     term: { name: '학기 중', cls: 's-term', img: 'team', alt: '응원 도구를 든 잇고', tag: (pv) => `${pv ? '미리보기 · ' : ''}학기 중 · 팀플 시즌`, title: '팀플 팀원,<br>여기서 구해요',
-      sub: () => `접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건`, go: ['#contests', '팀플·공모전 보기'] },
+      sub: () => `접수 중 공모전 ${D.contests.filter((k) => cday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건`, go: ['#contests', '팀플·공모전 보기'] },
     exam: { name: '시험 기간', cls: 's-exam', img: 'think', alt: '고민하는 잇고', tag: (pv) => `${pv ? '미리보기 · ' : ''}시험 기간`, title: '전공책은 싸게 사고,<br>끝나면 팔아요',
       sub: () => `중고 ${allItems().length}개 거래 중 · 교내 직거래`, go: ['#market', '중고거래 보기'] },
   };
@@ -359,7 +359,7 @@
           <a class="tile t-pink" href="#taxi"><span class="tile-tag">택시 · 배달 · 중고</span><b>생활 매칭</b><span class="tile-sub">지금 모집 ${allG().filter((g) => gStatus(g) === 'recruit').length}건</span><span class="tile-ic">${icon('car', 22)}</span></a>
           <a class="tile t-lav" href="#clubs"><span class="tile-tag">신입생 · 복학생</span><b>동아리·행사</b><span class="tile-sub">모집 중 ${D.clubs.filter((c) => c.recruit.status !== 'closed').length}곳</span><span class="tile-ic">${icon('calendar', 22)}</span></a>
           <a class="tile t-mint wide" href="#community"><span class="tile-ic">${icon('chats', 20)}</span><span style="flex:1;min-width:0"><b>커뮤니티</b><span class="tile-sub ellip">HOT · ${esc(posts[0] ? posts[0].title : '')}</span></span>${icon('right', 20)}</a>
-          <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>팀플 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => dday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
+          <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>팀플 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => cday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
         </div>
       </section>
     </div>
@@ -1264,8 +1264,8 @@
   const INTEREST_OPTS = [...new Set([...D.contestCats, ...D.clubCats])];
   function recos() {
     const P0 = S.profile, out = [];
-    const k = D.contests.filter((x) => P0.interests.includes(x.cat) && dday(x.deadline) >= 0).sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
-    if (k) out.push({ kind: '공모전', title: k.title, why: `관심 분야 ‘${k.cat}’ · 마감 D-${dday(k.deadline)}`, href: `#contests-${k.id}`, ic: 'trophy' });
+    const k = D.contests.filter((x) => P0.interests.includes(x.cat) && cday(x.deadline) >= 0).sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
+    if (k) out.push({ kind: '공모전', title: k.title, why: `관심 분야 ‘${k.cat}’ · 마감 D-${cday(k.deadline)}`, href: `#contests-${k.id}`, ic: 'trophy' });
     const t = allTeams().find((x) => !x.closed && openSlots(x) > 0 && !inTeam(x) && x.contest && findContest(x.contest) && P0.interests.includes(findContest(x.contest).cat));
     if (t) out.push({ kind: '팀원 모집', title: t.title, why: `관심 분야 공모전 · ${openSlots(t)}자리 남음`, href: `#teams-${t.id}`, ic: 'users' });
     const c = D.clubs.find((x) => P0.interests.includes(x.cat) && x.recruit.status !== 'closed' && !isMember(x));
@@ -1294,15 +1294,21 @@
   }
 
   /* ── 운영자 데모 화면: 실제 서비스에서는 운영자 계정으로만 열려요 ── */
-  function pageAdmin(tab = 'reports') {
+  function pageAdmin(tab = 'verify') {
     const reps = [...S.reports.map((r) => ({ ...r, key: r.id || r.target + r.date, who: '나 (이 기기)' })), ...D.adminReports.map((r) => ({ ...r, key: r.id }))];
     const pend = reps.filter((r) => !S.reportActs[r.key]).length;
     const gs = [...S.myGath, ...SAMPLE_G];
     const expired = gs.filter((g) => gStatus(g) === 'expired').length, live = gs.filter((g) => ['recruit', 'full'].includes(gStatus(g))).length;
     const crPend = S.contestReports.filter((r) => r.status === '운영자 검토 중').length;
-    const tabs = [['reports', `신고 처리 ${pend}`], ['posts', '모집글 관리'], ['contests', `공모전 제보 ${crPend}`], ['users', '사용자 관리']];
+    const vreqs = [...(S.verifyReq ? [{ key: 'me', who: S.login ? S.login.nick : '이 기기 사용자', method: S.verifyReq.method, file: S.verifyReq.file, status: S.verifyReq.status }] : []),
+      ...D.adminVerify.map((v) => ({ ...v, status: S.verifyActs[v.key] || '검토 중' }))];
+    const vPend = vreqs.filter((v) => v.status === '검토 중').length;
+    const tabs = [['verify', `학생 인증 ${vPend}`], ['reports', `신고 처리 ${pend}`], ['posts', '모집글 관리'], ['contests', `공모전 제보 ${crPend}`], ['users', '사용자 관리']];
     let body = '';
-    if (tab === 'posts') {
+    if (tab === 'verify') {
+      body = `<p class="small muted" style="margin-bottom:8px">학교 이름 · 이름 · 학번이 보이는지 확인하고 승인해요. 승인·반려 후 서류는 바로 지워요(데모에서는 파일을 저장하지 않아요).</p>` + vreqs.map((v) => `<div class="adm-item"><div><b>${esc(v.who)}</b><p class="small muted">${esc(methodName(v.method))} · ${esc(v.file)}</p></div>
+        ${v.status === '검토 중' ? `<div class="pd-btns"><button class="btn btn-sm btn-ghost" data-act="adm-verify" data-key="${v.key}" data-v="no">반려</button><button class="btn btn-sm btn-primary" data-act="adm-verify" data-key="${v.key}" data-v="ok">승인</button></div>` : `<span class="badge ${v.status === '승인' ? 'b-school' : 'b-gray'}">${v.status}</span>`}</div>`).join('');
+    } else if (tab === 'posts') {
       body = `<p class="small muted" style="margin-bottom:8px">마감 시간이 지나면 자동으로 ‘만료’ 또는 ‘진행 중’으로 바뀌어요. 지금 자동 종료된 글 ${expired}건.</p>` + gs.map((g) => `<div class="list-row"><span class="lr-art" style="background:${g.type === 'taxi' ? '#FFF1C2' : '#FFE9C9'}">${icon(g.type === 'taxi' ? 'car' : 'utensils', 20)}</span><span class="lr-body"><b>${esc(gTitle(g))}</b><span class="small muted">${esc(g.leader.nick)} · ${gCount(g)}/${g.cap}명 ${S.hiddenG.includes(g.id) ? '· <b style="color:var(--coral-800)">숨김</b>' : ''}</span></span>${stChip(g)}<button class="btn btn-sm ${S.hiddenG.includes(g.id) ? 'btn-outline' : 'btn-ghost-danger'}" data-act="adm-hide" data-id="${g.id}">${S.hiddenG.includes(g.id) ? '숨김 해제' : '숨기기'}</button></div>`).join('');
     } else if (tab === 'contests') {
       body = S.contestReports.length ? S.contestReports.map((r) => `<div class="adm-item"><div><b>${esc(r.title)}</b><p class="small muted">${esc(r.host)} · ${esc(r.cat)} · 마감 ${fmtDate(r.deadline)}</p><p class="small">공식 공지: <span class="url">${esc(r.url)}</span></p>${r.memo ? `<p class="small">“${esc(r.memo)}”</p>` : ''}</div>
@@ -1319,7 +1325,7 @@
         : '<p class="small muted">신고가 없어요.</p>';
     }
     return `<div class="page-head"><div><h1>운영자 화면 <span class="badge b-review">데모</span></h1><p>실제 서비스에서는 <b>운영자 계정으로만</b> 열려요. 발표용으로 누구나 볼 수 있게 열어 뒀어요.</p></div></div>
-      <div class="adm-stats"><div><small>처리 대기 신고</small><b>${pend}</b></div><div><small>공모전 제보 대기</small><b>${crPend}</b></div><div><small>모집 중 글</small><b>${live}</b></div><div><small>자동 만료</small><b>${expired}</b></div></div>
+      <div class="adm-stats"><div><small>학생 인증 대기</small><b>${vPend}</b></div><div><small>처리 대기 신고</small><b>${pend}</b></div><div><small>공모전 제보 대기</small><b>${crPend}</b></div><div><small>모집 중 글</small><b>${live}</b></div><div><small>자동 만료</small><b>${expired}</b></div></div>
       <div class="info-box" style="margin:12px 0">${icon('users', 18)}<span>신고가 들어오면 <b>담당자 전원</b>(${D.staff.map((x) => `${x.name}: ${x.area}`).join(' · ')})에게 동시에 알림이 가요.</span></div>
       <section class="card pad"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab ${tab === k ? 'active' : ''}" role="tab" aria-selected="${tab === k}" data-act="adm-tab" data-v="${k}">${l}</button>`).join('')}</div>${body}</section>`;
   }
@@ -1578,7 +1584,8 @@
       <div class="grid" style="gap:16px">
         <section class="card profile-card">
           <div class="profile-top">${avatar(D.me.nick, 'lg')}<div><b style="font-size:18px">${D.me.nick}</b><div class="meta">${D.school.name} · ${s.dept} · ${q('grade').opts[s.grade]}</div><div class="meta">가입 ${D.me.joined}</div></div></div>
-          <div class="status-box ${S.verified ? 'on' : 'off'}">${icon(S.verified ? 'shield' : 'alert', 24)}<div><b>${S.verified ? '학교 인증 완료' : '학교 인증 전'}</b><span>${S.verified ? esc(S.email) : '둘러보기만 가능해요'}</span></div>${S.verified ? '' : '<a class="btn btn-sm btn-primary" href="#verify">인증하기</a>'}</div>
+          <div class="status-box ${S.verified ? 'on' : 'off'}">${icon(S.verified ? 'shield' : 'alert', 24)}<div><b>${S.verified ? (S.verifyMethod === 'pre' ? '예비 신입생 인증 완료' : '학생 인증 완료') : '학생 인증 전'}</b><span>${S.verified ? esc(methodName(S.verifyMethod) || '학교 인증') + '으로 확인' : S.verifyReq && S.verifyReq.status === '검토 중' ? '운영자가 확인하고 있어요' : '둘러보기만 가능해요'}</span></div>${S.verified ? '' : `<a class="btn btn-sm btn-primary" href="#verify">인증하기</a>`}</div>
+          <div class="login-row">${S.login ? `<span class="kk-dot">${KAKAO_SYMBOL}</span><span><b>카카오 계정으로 로그인</b>${S.login.demo ? ' <span class="badge b-gray">데모</span>' : ''}</span><button class="btn btn-sm btn-ghost" data-act="logout">로그아웃</button>` : `<span class="muted small" style="flex:1">로그인하지 않았어요</span>${kakaoBtn('카카오 로그인', 'btn-sm')}`}</div>
           ${S.verified && !S.idVerified ? `<button class="btn btn-outline btn-block" style="margin-top:10px" data-act="id-verify">${icon('id', 18)}신원 인증 추가하기 (휴대폰)</button>` : ''}
           <div class="profile-more"><div class="pm-row"><small>관심 분야</small><span>${S.profile.interests.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
             <div class="pm-row"><small>보유 역량</small><span>${S.profile.skills.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
@@ -1609,40 +1616,47 @@
 
   /* ── 학교 인증 ── */
   const V = { step: 1, email: '', code: '' };
+  const VERIFY_METHODS = [
+    ['card', '학생증 사진', '실물 학생증 또는 모바일 학생증 화면', 'id', true],
+    ['cert', '재학증명서', '학교 포털·정부24에서 발급한 PDF·사진', 'file', true],
+    ['pre', '예비 신입생', '합격증 또는 등록금 납부 확인서 (입학 전 임시 인증)', 'sparkle', true],
+    ['mail', '학교 메일', '학생 메일 발급 여부를 확인한 뒤 열 예정이에요', 'mail', false],
+  ];
+  const methodName = (k) => (VERIFY_METHODS.find((m) => m[0] === k) || [k, k])[1];
   function pageVerify() {
-    if (S.verified) V.step = 3;
-    const steps = `<div class="steps" aria-hidden="true">${[1, 2, 3].map((n) => `<i class="${V.step >= n ? 'on' : ''}"></i>`).join('')}</div>`;
-    let inner = '';
-    if (V.step === 1) inner = `<div class="verify-hero"><div class="vi">${icon('mail', 30)}</div><h1>학교 이메일 인증</h1><p>${D.school.name} 재학생만 이용할 수 있어요.<br>학교 메일로 인증번호를 보내드릴게요.</p></div>
-      <form data-form="v-email" class="grid" style="gap:12px" novalidate>
-        <div class="field"><label for="v-email">학교 이메일</label><div class="input-group"><input class="input" id="v-email" name="id" placeholder="학번 또는 아이디" autocomplete="username" value="${esc(V.email.split('@')[0])}" required><span class="suffix">@${D.school.domain}</span></div>
-        <span class="demo-hint">${icon('sparkle', 13)}데모: 아무 아이디나 입력해도 돼요</span></div>
-        <p class="error-text" id="v-err" role="alert"></p>
-        <button class="btn btn-primary btn-lg btn-block" type="submit">인증번호 받기</button>
-      </form>`;
-    else if (V.step === 2) inner = `<div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>인증번호 입력</h1><p><b>${esc(V.email)}</b>(으)로 보낸<br>6자리 인증번호를 입력해 주세요.</p></div>
-      <form data-form="v-code" class="grid" style="gap:12px" novalidate>
-        <input class="input code-input" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" aria-label="인증번호 6자리" placeholder="······" required>
-        <span class="demo-hint" style="justify-self:center">${icon('sparkle', 13)}데모 인증번호: <b>${V.code}</b></span>
-        <p class="error-text" id="v-err" role="alert"></p>
-        <button class="btn btn-primary btn-lg btn-block" type="submit">인증 완료</button>
-        <button class="btn btn-ghost" type="button" data-act="v-back">이메일 다시 입력</button>
-      </form>`;
-    else inner = `<div class="verify-hero"><div class="vi" style="background:var(--navy-800);color:var(--mint-400)">${icon('shield', 32)}</div><h1>학교 인증 완료!</h1><p><b>${esc(S.email)}</b><br>이제 글쓰기 · 채팅 · 매물 등록 · 룸메이트 관심 보내기를 할 수 있어요.</p></div>
+    const wrap = (inner) => `<div class="verify-wrap"><a class="back-link" href="#home">${icon('left', 18)}홈</a><div class="card pad" style="padding:28px 22px">${inner}</div>
+      <p class="small muted" style="text-align:center;margin-top:14px">올린 서류는 운영자 확인에만 쓰이고, 확인이 끝나면 바로 지워요. 다른 사용자에게는 ‘학생 인증’ 배지만 보여요.</p></div>`;
+    const steps = (n) => `<div class="steps" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${n >= i ? 'on' : ''}"></i>`).join('')}</div>`;
+    if (!S.login) return wrap(`${steps(1)}<div class="verify-hero"><div class="vi" style="background:#FFF7C2;color:#3C1E1E">${icon('user', 30)}</div><h1>먼저 로그인해요</h1><p>카카오 계정으로 간편하게 시작하고,<br>다음 단계에서 교통대 학생인지 확인해요.</p></div>
+      <div class="grid" style="gap:10px">${kakaoBtn('카카오로 시작하기', 'btn-lg btn-block')}<a class="btn btn-ghost" href="#home">로그인 없이 둘러보기</a></div>`);
+    if (S.verified) return wrap(`${steps(3)}<div class="verify-hero"><div class="vi" style="background:var(--navy-800);color:var(--mint-400)">${icon('shield', 32)}</div><h1>${S.verifyMethod === 'pre' ? '예비 신입생 인증 완료!' : '학생 인증 완료!'}</h1><p><b>${esc(S.login.nick)}</b> · ${esc(methodName(S.verifyMethod) || '학생 인증')}으로 확인했어요.<br>이제 글쓰기 · 채팅 · 신청 · 모집을 할 수 있어요.</p></div>
       <div class="grid" style="gap:10px">
-        <div class="info-box mint">${icon('check', 18)}<span><b>학교 인증</b> 배지가 프로필에 표시되고 신뢰도가 +6 올랐어요.</span></div>
+        <div class="info-box mint">${icon('check', 18)}<span><b>학생 인증</b> 배지가 프로필에 표시되고 신뢰도가 +6 올랐어요.</span></div>
+        ${S.verifyMethod === 'pre' ? `<div class="info-box amber">${icon('alert', 18)}<span>예비 신입생 인증은 임시 인증이에요. 입학 후 학생증이 나오면 한 번 더 인증해 주세요.</span></div>` : ''}
         ${S.idVerified ? `<div class="info-box mint">${icon('check', 18)}<span><b>신원 인증</b>도 완료했어요.</span></div>` : `<button class="btn btn-outline btn-lg btn-block" data-act="id-verify">${icon('id', 18)}신원 인증도 하기 (휴대폰 본인확인 · 데모)</button>`}
-        <a class="btn btn-primary btn-lg btn-block" href="#roommate">${icon('users', 18)}룸메이트 찾으러 가기</a>
-        <a class="btn btn-ghost" href="#home">홈으로</a>
-      </div>`;
-    return `<div class="verify-wrap"><a class="back-link" href="#home">${icon('left', 18)}홈</a><div class="card pad" style="padding:28px 22px">${steps}${inner}</div>
-      <p class="small muted" style="text-align:center;margin-top:14px">학교 이메일은 재학 여부 확인에만 쓰이며 다른 사용자에게 공개되지 않아요.</p></div>`;
+        <a class="btn btn-primary btn-lg btn-block" href="#home">${icon('home', 18)}시작하기</a></div>`);
+    if (S.verifyReq && S.verifyReq.status === '검토 중') return wrap(`${steps(2)}<div class="verify-hero"><div class="vi">${icon('clock', 30)}</div><h1>운영자가 확인하고 있어요</h1><p><b>${esc(methodName(S.verifyReq.method))}</b>을(를) 받았어요.<br>보통 하루 안에 확인해요. 끝나면 알림으로 알려 드릴게요.</p></div>
+      <div class="info-box">${icon('sparkle', 18)}<span>데모에서는 몇 초 뒤 자동으로 승인돼요. 운영자 화면 › 학생 인증에서도 볼 수 있어요.</span></div>`);
+    const rej = S.verifyReq && S.verifyReq.status === '반려';
+    return wrap(`${steps(2)}<div class="verify-hero"><div class="vi">${icon('id', 30)}</div><h1>학생 인증</h1><p>${D.school.name} 학생인지 확인해요.<br>방법을 하나 고르고 사진이나 파일을 올려 주세요.</p></div>
+      ${rej ? `<div class="info-box amber" style="margin-bottom:10px">${icon('alert', 18)}<span>지난 서류가 반려됐어요: ${esc(S.verifyReq.reason || '정보가 잘 보이지 않아요')}. 다시 올려 주세요.</span></div>` : ''}
+      <form data-form="v-doc" class="grid" style="gap:12px" novalidate>
+        <fieldset class="vm-list"><legend class="field-label">인증 방법</legend>${VERIFY_METHODS.map(([k, t, sub, ic, on], i) => `<label class="vm ${on ? '' : 'dis'}"><input type="radio" name="method" value="${k}" ${i === 0 ? 'checked' : ''} ${on ? '' : 'disabled'}><span class="vm-ic">${icon(ic, 20)}</span><span class="vm-body"><b>${t}${i === 0 ? ' <span class="badge b-school">추천</span>' : ''}${on ? '' : ' <span class="badge b-gray">준비 중</span>'}</b><small>${sub}</small></span></label>`).join('')}</fieldset>
+        <label class="upload"><span class="ui">${icon('camera', 22)}</span><span><b>사진 또는 파일 올리기</b><br><span class="small muted">JPG, PNG, PDF · 1개</span></span><input type="file" name="doc" accept="image/*,.pdf" data-preview="pv-doc"></label>
+        <div class="previews" id="pv-doc"></div>
+        <ul class="rules small"><li>${icon('check')}<b>학교 이름 · 이름 · 학번(또는 수험번호)</b>만 보이면 돼요</li><li>${icon('lock')}주민등록번호 뒷자리, 주소, 계좌번호는 가리고 올려 주세요</li><li>${icon('check')}확인이 끝나면 서류는 바로 지워요</li></ul>
+        <label class="check"><input type="checkbox" name="agree"><span>학생 확인을 위해 서류를 운영자가 확인하고, 확인 후 즉시 파기하는 데 동의해요.</span></label>
+        <p class="error-text" id="vd-err" role="alert"></p>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">${icon('send', 18)}인증 요청하기</button>
+      </form>`);
   }
 
   /* ── 동아리 · 행사 ── */
   const TODAY = '2026-11-10';
   const WD = ['일', '월', '화', '수', '목', '금', '토'];
   const dday = (s) => Math.round((new Date(s + 'T00:00:00') - new Date(TODAY + 'T00:00:00')) / 86400000);
+  /* 실제 공모전은 오늘 실제 날짜로 D-day를 세요 (행사·캘린더는 데모 날짜 TODAY 기준) */
+  const cday = (s) => { const n = new Date(); return Math.round((new Date(s + 'T00:00:00') - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 86400000); };
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const dayInfo = (s) => { const d = new Date(s + 'T00:00:00'); return { m: d.getMonth() + 1, d: d.getDate(), w: WD[d.getDay()] }; };
   const findClub = (id) => D.clubs.find((c) => c.id === id);
@@ -1822,7 +1836,7 @@
   const inTeam = (t) => !!t && (t.mine || !!joinedRole(t));
   const KF = { cat: '전체', sort: 'deadline', campus: false }, TF = { role: '전체', kind: '전체' }, PF = { role: '전체' };
   let newTeamContest = '';
-  const ddayPill = (date, closed) => { const n = dday(date); if (closed || n < 0) return '<span class="dpill closed">마감</span>'; return `<span class="dpill ${n <= 7 ? 'hot' : ''}">${n === 0 ? 'D-Day' : `D-${n}`}</span>`; };
+  const ddayPill = (date, closed) => { const n = cday(date); if (closed || n < 0) return '<span class="dpill closed">마감</span>'; return `<span class="dpill ${n <= 7 ? 'hot' : ''}">${n === 0 ? 'D-Day' : `D-${n}`}</span>`; };
   const posPill = (p) => `<span class="pos ${p.need > p.got ? 'open' : 'full'}">${esc(p.role)} <b>${p.got}/${p.need}</b></span>`;
   const teamTabs = (active) => `<nav class="seg nav" aria-label="프로젝트·공모전 메뉴">${[['contests', '공모전'], ['teams', '팀원 모집'], ['people', '팀 구해요']].map(([k, l]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${l}</a>`).join('')}</nav>`;
   const headTeams = (active, sub) => `<div class="page-head"><div><h1>프로젝트 · 공모전</h1><p>${sub}</p></div>${teamTabs(active)}</div>`;
@@ -1850,41 +1864,42 @@
 
   function pageContests() {
     const sorters = { deadline: (a, b) => a.deadline.localeCompare(b.deadline), popular: (a, b) => b.scraps - a.scraps, teams: (a, b) => teamsFor(b.id).length - teamsFor(a.id).length };
-    const list = D.contests.filter((k) => (KF.cat === '전체' || k.cat === KF.cat) && (!KF.campus || k.campus) && dday(k.deadline) >= 0).sort(sorters[KF.sort]);
+    const list = D.contests.filter((k) => (KF.cat === '전체' || k.cat === KF.cat) && (!KF.campus || k.campus) && cday(k.deadline) >= 0).sort(sorters[KF.sort]);
     return headTeams('contests', '공모전·대외활동을 찾고, 같은 학교 학생과 바로 팀을 꾸려요') + `
     <div class="tabs" aria-label="분야">${chipBtns('k-cat', ['전체', ...D.contestCats], KF.cat)}</div>
     <div class="list-head" style="margin-bottom:12px"><span class="count">접수 중 <b>${list.length}</b>개</span>
       <div style="display:flex;gap:6px;align-items:center"><button class="tab ${KF.campus ? 'active' : ''}" data-act="k-campus" aria-pressed="${KF.campus}">교내만</button>
       <select class="sort-select" id="k-sort" aria-label="정렬">${[['deadline', '마감 임박순'], ['popular', '스크랩 많은 순'], ['teams', '팀원 모집 많은 순']].map(([v, l]) => `<option value="${v}" ${KF.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
-    ${list.length ? `<div class="contest-grid">${list.map(contestCard).join('')}</div>` : `<div class="empty">${icon('trophy', 36)}<b>조건에 맞는 공모전이 없어요</b>분야를 바꿔 보세요.</div>`}
+    ${list.length ? `<div class="contest-grid">${list.map(contestCard).join('')}</div>` : `<div class="empty">${icon('trophy', 36)}<b>지금 접수 중인 공모전이 없어요</b>분야를 바꾸거나 아래 ‘최근 마감’을 참고하세요.</div>`}
+    ${(() => { const past = D.contests.filter((k) => cday(k.deadline) < 0 && cday(k.deadline) >= -45 && (KF.cat === '전체' || k.cat === KF.cat)).sort((a, b) => b.deadline.localeCompare(a.deadline)); return past.length ? `<div class="section-head" style="margin-top:24px"><h2>최근 마감 ${past.length}</h2><span class="small muted">다음 회차 준비용</span></div><div class="contest-grid past">${past.map(contestCard).join('')}</div>` : ''; })()}
     <div class="report-cta"><span>${charImg('think', 'rc-char')}<span><b>찾는 공모전이 없나요?</b><br><span class="small muted">공식 공지 링크와 함께 제보하면 운영자가 확인한 뒤 올려요.</span></span></span><a class="btn btn-outline btn-sm" href="#contests-new">${icon('send', 16)}공모전 제보하기</a></div>
-    <div class="info-box" style="margin-top:12px">${icon('alert', 18)}<span>지금 보이는 공모전은 <b>예시 데이터</b>예요. 실제 서비스에서는 운영자 등록 · 사용자 제보 · 주최기관 제휴로만 모으고, 무단으로 긁어 오지 않아요. 지원 전에 공식 요강을 꼭 확인하세요.</span></div>
+    <div class="info-box" style="margin-top:12px">${icon('alert', 18)}<span>지금 보이는 공모전은 <b>실제 공모전</b>이에요. 2026년 11월 17일에 주최 측 공고와 공모전 사이트를 확인해 요약과 원문 링크만 정리했어요(자동 수집 아님). 지원 전에 공식 공고를 꼭 확인하세요.</span></div>
     ${footer()}`;
   }
 
   function pageContest(id) {
     const k = findContest(id);
     if (!k) return notFound();
-    const sc = S.scrapContests.includes(k.id), ts = allTeams().filter((t) => t.contest === k.id), n = dday(k.deadline);
+    const sc = S.scrapContests.includes(k.id), ts = allTeams().filter((t) => t.contest === k.id), n = cday(k.deadline);
     return `<a class="back-link" href="#contests">${icon('left', 18)}공모전 목록</a>
     <div class="detail-grid">
       <div class="grid" style="gap:16px">
         <section class="contest-hero" style="background:${k.color}"><span class="ch-emoji" aria-hidden="true">${k.emoji}</span>
           <div><span class="hc-kicker">${k.cat}${k.campus ? ' · 교내' : ''}</span><h1>${esc(k.title)}</h1><p>주최 ${esc(k.host)} · 주관 ${esc(k.org)}</p></div></section>
-        <div class="kv"><div><small>접수 기간</small><b>${fmtDate(k.start)} ~ ${fmtDate(k.deadline)}</b></div><div><small>참가 대상</small><b>${esc(k.target)}</b></div><div><small>참가 형태</small><b>${esc(k.team)}</b></div><div><small>시상</small><b>${esc(k.prize)}</b></div></div>
+        <div class="kv"><div><small>접수 기간</small><b>${k.start ? fmtDate(k.start) + ' ~ ' : '~ '}${fmtDate(k.deadline)}</b></div><div><small>참가 대상</small><b>${esc(k.target)}</b></div><div><small>참가 형태</small><b>${esc(k.team)}</b></div><div><small>시상</small><b>${esc(k.prize)}</b></div></div>
         <section class="card pad"><h2 class="block-title">공모 내용</h2><p class="prose">${esc(k.desc)}</p>
           <h3 class="block-title" style="font-size:15px;margin-top:16px">혜택</h3><ul class="rules">${[k.top, ...k.benefits].map((b) => `<li>${icon('trophy', 16)}${esc(b)}</li>`).join('')}</ul></section>
         <section aria-labelledby="h-kt"><div class="section-head"><h2 id="h-kt">이 공모전 팀원 모집 ${ts.length}</h2><button class="more" data-act="new-team" data-contest="${k.id}">모집글 쓰기${icon('right', 16)}</button></div>
           ${ts.length ? `<div class="grid" style="gap:10px">${ts.map(teamCard).join('')}</div>` : `<div class="empty">${icon('users', 36)}<b>아직 팀원 모집 글이 없어요</b>먼저 팀을 만들어 보세요.</div>`}</section>
       </div>
       <aside class="detail-aside grid" style="gap:16px">
-        <section class="card pad"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">${ddayPill(k.deadline)}<span class="small muted">스크랩 ${k.scraps + (sc ? 1 : 0)} · 조회 ${k.views.toLocaleString()}</span></div>
-          <p style="font-size:14.5px;margin-top:12px">${n === 0 ? '오늘 접수가 마감돼요.' : `접수 마감까지 <b>${n}일</b> 남았어요.`}</p>
+        <section class="card pad"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">${ddayPill(k.deadline)}<span class="small muted">${k.real ? '실제 공모전' : `스크랩 ${k.scraps + (sc ? 1 : 0)} · 조회 ${k.views.toLocaleString()}`}</span></div>
+          <p style="font-size:14.5px;margin-top:12px">${n < 0 ? '접수가 마감됐어요.' : n === 0 ? '오늘 접수가 마감돼요.' : `접수 마감까지 <b>${n}일</b> 남았어요.`}</p>
           <div style="display:grid;gap:8px;margin-top:14px">
             <button class="btn btn-primary btn-lg btn-block" data-act="new-team" data-contest="${k.id}">${icon('users', 18)}이 공모전으로 팀 만들기</button>
             <a class="btn btn-outline btn-block" href="#people">${icon('search', 18)}팀을 찾는 학생 보기</a>
             <button class="btn btn-ghost btn-block fav-btn ${sc ? 'on' : ''}" data-act="fav-contest" data-id="${k.id}" aria-pressed="${sc}">${icon('heart', 18)}${sc ? '스크랩함 · 마감 3일 전에 알려드려요' : '스크랩하고 마감 알림 받기'}</button></div>
-          <p class="small muted" style="margin-top:12px">데모에서는 공식 홈페이지 링크를 제공하지 않아요.</p></section>
+          ${k.url ? `<a class="btn btn-outline btn-block" style="margin-top:8px" href="${esc(k.url)}" target="_blank" rel="noopener noreferrer">${icon('right', 18)}공식 공고 보기</a><p class="small muted" style="margin-top:10px">2026년 11월 17일에 공식 공고를 보고 정리했어요. 지원 전에 공고 원문을 꼭 확인하세요.</p>` : '<p class="small muted" style="margin-top:12px">공식 공지 링크는 운영자 확인 후 연결돼요.</p>'}</section>
       </aside>
     </div>
     <div class="mobile-cta"><button class="fav-btn ${sc ? 'on' : ''}" data-act="fav-contest" data-id="${k.id}" aria-pressed="${sc}" aria-label="${sc ? '스크랩 해제' : '스크랩'}">${icon('heart', 22)}</button>
@@ -1940,7 +1955,7 @@
           <div class="report-row"><button class="btn btn-sm btn-ghost-danger" data-act="report" data-label="팀원 모집 · ${esc(t.title)}">${icon('flag', 15)}신고</button>${t.mine ? '' : `<button class="btn btn-sm btn-ghost" data-act="block" data-key="${esc(t.leader.nick)}">${icon('ban', 15)}차단</button>`}</div></section>
       </aside>
     </div>
-    <div class="mobile-cta"><div class="mc-price"><b>${open > 0 && !t.closed ? `${open}자리 남음` : '모집 마감'}</b><span>${t.closed ? '' : `마감 D-${Math.max(0, dday(t.deadline))} · `}지원 ${t.applicants}명</span></div>${applyBtn('')}</div>`;
+    <div class="mobile-cta"><div class="mc-price"><b>${open > 0 && !t.closed ? `${open}자리 남음` : '모집 마감'}</b><span>${t.closed ? '' : `마감 D-${Math.max(0, cday(t.deadline))} · `}지원 ${t.applicants}명</span></div>${applyBtn('')}</div>`;
   }
 
   function personCard(p) {
@@ -1974,7 +1989,7 @@
       <form data-form="team" class="grid" style="gap:14px" novalidate>
         <section class="form-section"><h2><span class="num">1</span>어떤 프로젝트인가요?</h2>
           <div class="field"><span class="field-label">유형</span>${radioChips('kind', [['공모전', '공모전'], ['캡스톤', '캡스톤·수업'], ['사이드 프로젝트', '사이드 프로젝트']], '공모전')}</div>
-          <div class="field"><label for="tn-contest">참가 공모전 (선택)</label><select class="select" id="tn-contest" name="contest"><option value="">선택 안 함</option>${D.contests.filter((k) => dday(k.deadline) >= 0).map((k) => `<option value="${k.id}" ${newTeamContest === k.id ? 'selected' : ''}>${esc(k.title)} · D-${dday(k.deadline)}</option>`).join('')}</select></div>
+          <div class="field"><label for="tn-contest">참가 공모전 (선택)</label><select class="select" id="tn-contest" name="contest"><option value="">선택 안 함</option>${D.contests.filter((k) => cday(k.deadline) >= 0).map((k) => `<option value="${k.id}" ${newTeamContest === k.id ? 'selected' : ''}>${esc(k.title)} · D-${cday(k.deadline)}</option>`).join('')}</select></div>
           <div class="field"><label for="tn-title">제목</label><input class="input" id="tn-title" name="title" maxlength="50" placeholder="예) 공공데이터 앱 공모전, 디자이너 1명 구해요" required></div></section>
         <section class="form-section"><h2><span class="num">2</span>모집 포지션</h2>
           <p class="small muted" style="margin-top:-8px">0명인 포지션은 모집하지 않아요.</p>
@@ -2198,7 +2213,7 @@
       <button class="icon-btn mobile-only" data-act="menu" aria-label="전체 메뉴">${icon('grid', 22)}</button>
       <a class="icon-btn" href="#search" aria-label="통합 검색">${icon('search', 22)}</a>
       ${(() => { const n = S.notifs.filter((x) => !x.read).length; return `<button class="icon-btn" data-act="notif" aria-label="알림${n ? ` · 읽지 않은 알림 ${n}개` : ''}">${icon('bell', 22)}${n ? `<span class="nbadge">${n > 9 ? '9+' : n}</span>` : ''}</button>`; })()}
-      ${S.verified ? `<a class="verify-pill on" href="#my">${icon('shield', 16)}<span class="vp-txt">인증 완료</span></a>` : `<a class="verify-pill off" href="#verify">${icon('shield', 16)}<span class="vp-txt">학교 인증</span></a>`}`;
+      ${!S.login ? `<button class="verify-pill off" data-act="kakao-login">${icon('user', 16)}<span class="vp-txt">로그인</span></button>` : S.verified ? `<a class="verify-pill on" href="#my">${icon('shield', 16)}<span class="vp-txt">인증 완료</span></a>` : `<a class="verify-pill off" href="#verify">${icon('shield', 16)}<span class="vp-txt">${S.verifyReq && S.verifyReq.status === '검토 중' ? '인증 검토 중' : '학생 인증'}</span></a>`}`;
   }
 
   /* ───────── Modal / toast / chat ───────── */
@@ -2224,7 +2239,7 @@
     ];
     const inner = `<div class="ob-dots" aria-label="${obStep + 1} / 3단계">${steps.map((_, i) => `<i class="${i === obStep ? 'on' : ''}"></i>`).join('')}</div>
       <div class="ob-body">${steps[obStep]}</div>
-      <div class="ob-actions">${obStep < 2 ? `<button class="btn btn-ghost" data-act="ob-go" data-v="#home">건너뛰기</button><button class="btn btn-primary" data-act="ob-next" autofocus>다음${icon('right', 16)}</button>` : `<button class="btn btn-ghost" data-act="ob-go" data-v="#home">홈에서 시작하기</button>`}</div>`;
+      <div class="ob-actions">${obStep < 2 ? `<button class="btn btn-ghost" data-act="ob-go" data-v="#home">건너뛰기</button><button class="btn btn-primary" data-act="ob-next" autofocus>다음${icon('right', 16)}</button>` : `${S.login ? '' : kakaoBtn('카카오로 시작하기', 'grow')}<button class="btn btn-ghost" data-act="ob-go" data-v="#home">${S.login ? '홈에서 시작하기' : '둘러보기'}</button>`}</div>`;
     const cur = slot.querySelector('.modal.onboard');
     if (cur) { cur.innerHTML = inner; const f = cur.querySelector('[autofocus], .ob-opt.on, .ob-go button'); if (f) f.focus(); return; }
     openModal(`<div class="modal onboard" role="dialog" aria-modal="true" aria-labelledby="mtitle">${inner}</div>`, 'ob-root');
@@ -2234,10 +2249,53 @@
     const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = `${icon(ic, 18)}<span>${msg}</span>`;
     $('#toasts').appendChild(el); setTimeout(() => el.remove(), 2600);
   }
+  /* ── 카카오 로그인: config.js에 JavaScript 키가 있으면 실제 카카오로, 없으면 데모로 동작해요 ── */
+  const KAKAO_SYMBOL = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#000" d="M12 3.5c-5.2 0-9.4 3.3-9.4 7.4 0 2.6 1.7 4.9 4.3 6.2l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.4 0 .7.1 1.1.1 5.2 0 9.4-3.3 9.4-7.5S17.2 3.5 12 3.5z"/></svg>';
+  const kakaoBtn = (label = '카카오 로그인', cls = '') => `<button class="btn kakao-btn ${cls}" data-act="kakao-login">${KAKAO_SYMBOL}<span>${label}</span></button>`;
+  const KAKAO_KEY = (window.CM_CONFIG && window.CM_CONFIG.kakaoJsKey) || '';
+  function loadKakao() {
+    return new Promise((ok, no) => {
+      if (window.Kakao) return ok(window.Kakao);
+      const sc = document.createElement('script'); sc.src = window.CM_CONFIG.kakaoSdk; sc.onload = () => ok(window.Kakao); sc.onerror = no; document.head.appendChild(sc);
+    });
+  }
+  function kakaoLogin() {
+    const webPage = /^https?:$/.test(location.protocol);
+    if (KAKAO_KEY && webPage) {
+      loadKakao().then((K) => { if (!K.isInitialized()) K.init(KAKAO_KEY); K.Auth.authorize({ redirectUri: location.origin + location.pathname }); })
+        .catch(() => toast('카카오 SDK를 불러오지 못했어요. 인터넷 연결을 확인해 주세요', 'alert'));
+      return;
+    }
+    openModal(modalBox('카카오 로그인', `<div class="kakao-demo">${KAKAO_SYMBOL.replace('width="18" height="18"', 'width="40" height="40"')}
+      <p style="font-size:14.5px"><b>지금은 데모예요.</b> 카카오 개발자 사이트에 앱을 등록하고 키를 넣으면 실제 카카오 로그인 화면으로 넘어가요.</p>
+      <ul class="rules small" style="text-align:left"><li>${icon('check')}받는 정보: 카카오 닉네임 (선택: 프로필 사진)</li><li>${icon('check')}카카오 계정은 <b>로그인</b>에만 쓰여요. 교통대 학생인지는 다음 단계 <b>학생 인증</b>에서 확인해요</li></ul></div>
+      <div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button>${kakaoBtn('예시 계정으로 계속 (데모)', 'grow').replace('data-act="kakao-login"', 'data-act="kakao-demo"')}</div>`));
+  }
+  function afterLogin() {
+    renderChrome(lastNav);
+    if (!S.verified) { if (location.hash === '#verify') route(); else location.hash = '#verify'; toast(`${S.login.nick}님, 로그인했어요. 이제 학생 인증만 하면 돼요`, 'check'); }
+    else { route(); toast('로그인했어요', 'check'); }
+  }
+  /* 카카오에서 돌아왔을 때 (?code=…): 사용자 정보는 서버가 토큰으로 바꿔야 받을 수 있어요 */
+  (function kakaoReturn() {
+    const q = new URLSearchParams(location.search), code = q.get('code');
+    if (!code && !q.get('error')) return;
+    history.replaceState(null, '', location.pathname + (location.hash || '#home'));
+    if (q.get('error')) { setTimeout(() => toast('카카오 로그인을 취소했어요', 'x'), 300); return; }
+    S.login = { provider: 'kakao', nick: '카카오 사용자', at: Date.now(), codeOnly: true }; save();
+    setTimeout(() => toast('카카오 인증을 마쳤어요. 닉네임을 받아오려면 서버 연결이 필요해요', 'check'), 400);
+  })();
+
+  function openLoginNeeded(what) {
+    openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:#FFF7C2;color:#3C1E1E">${icon('user', 30)}</div>
+      <h2 id="mtitle">로그인이 필요해요</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${what}은(는) 로그인하고 <b>학생 인증</b>을 마친 교통대 학생만 할 수 있어요. 둘러보기는 로그인 없이도 돼요.</p>
+      <div class="modal-actions"><button class="btn btn-outline" data-act="close">나중에</button>${kakaoBtn('카카오로 시작하기', 'grow')}</div></div>`);
+  }
   function needVerify(what = '이 기능') {
     if (S.verified) return false;
+    if (!S.login) { openLoginNeeded(what); return true; }
     openModal(`<div class="modal modal-center" role="dialog" aria-modal="true" aria-labelledby="mtitle"><div class="mi" style="background:var(--mint-100);color:var(--mint-800)">${icon('lock', 30)}</div>
-      <h2 id="mtitle">학교 인증이 필요해요</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 이용할 수 있어요. 1분이면 끝나요!</p>
+      <h2 id="mtitle">학생 인증이 필요해요</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${what}은(는) 학생증으로 ${D.school.name} 학생 인증을 마친 뒤에 할 수 있어요.${S.verifyReq && S.verifyReq.status === '검토 중' ? ' 지금 운영자가 확인하고 있어요.' : ''}</p>
       <div class="modal-actions"><button class="btn btn-outline" data-act="close">나중에</button><a class="btn btn-primary" href="#verify" data-act="close-go">인증하기</a></div></div>`);
     return true;
   }
@@ -2344,6 +2402,15 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 'kakao-login': S.onboarded = true; save(); closeModal(); kakaoLogin(); break;
+      case 'kakao-demo': S.login = { provider: 'kakao', nick: D.me.nick, at: Date.now(), demo: true }; save(); closeModal(); afterLogin(); break;
+      case 'logout': S.login = null; S.verified = false; S.verifyReq = null; S.verifyMethod = ''; save(); route(); renderChrome(lastNav); toast('로그아웃했어요', 'x'); break;
+      case 'adm-verify': {
+        const key = el.dataset.key, ok = el.dataset.v === 'ok';
+        if (key === 'me' && S.verifyReq) { if (ok) { S.verified = true; S.verifyMethod = S.verifyReq.method; S.verifyReq.status = '승인'; notify('학생 인증이 승인됐어요 · 이제 모든 기능을 쓸 수 있어요', 'shield', '#verify'); } else { S.verifyReq.status = '반려'; S.verifyReq.reason = '학교 이름이나 이름이 잘 보이지 않아요'; notify('학생 인증 서류가 반려됐어요 · 다시 올려 주세요', 'alert', '#verify'); } }
+        else S.verifyActs[key] = ok ? '승인' : '반려';
+        save(); route(); renderChrome(lastNav); toast(ok ? '승인했어요' : '반려했어요', ok ? 'check' : 'x'); break;
+      }
       case 'sq': { searchQ = el.dataset.v; const i = $('#g-search'); if (i) i.value = searchQ; $('#search-results').innerHTML = searchResults(searchQ); break; }
       case 'profile-edit': openProfileEdit(); break;
       case 'adm-tab': location.hash = '#admin-' + el.dataset.v; break;
@@ -2608,6 +2675,18 @@
         S.survey = sv; save(); location.hash = '#roommate'; toast('생활 습관을 저장했어요. 호환도를 다시 계산했어요', 'sparkle');
         break;
       }
+      case 'v-doc': {
+        const err = $('#vd-err'), file = f.querySelector('[name=doc]').files[0];
+        if (!file) { err.textContent = '학생증 사진이나 서류 파일을 올려 주세요.'; return; }
+        if (!fd.get('agree')) { err.textContent = '서류 확인·파기 안내에 동의해 주세요.'; return; }
+        S.verifyReq = { method: fd.get('method'), file: file.name, at: Date.now(), status: '검토 중' }; save(); route(); renderChrome(lastNav);
+        toast('인증 요청을 보냈어요. 운영자가 확인하면 알려 드릴게요', 'send');
+        setTimeout(() => { if (!S.verifyReq || S.verifyReq.status !== '검토 중') return;
+          S.verified = true; S.verifyMethod = S.verifyReq.method; S.verifyReq.status = '승인'; save();
+          notify(`${methodName(S.verifyMethod)} 확인 완료 · 학생 인증이 승인됐어요`, 'shield', '#verify'); toast('학생 인증이 승인됐어요!', 'shield');
+          if (!slot.innerHTML) route(); }, 3000);
+        break;
+      }
       case 'v-email': {
         const idv = String(fd.get('id') || '').trim().replace(/@.*/, '');
         if (!/^[A-Za-z0-9._-]{2,}$/.test(idv)) { $('#v-err').textContent = '영문·숫자로 된 학교 메일 아이디를 2자 이상 입력해 주세요.'; return; }
@@ -2666,7 +2745,7 @@
       case 'contest-report': {
         const err = $('#cr-err'), title = String(fd.get('title') || '').trim(), host = String(fd.get('host') || '').trim(), url = String(fd.get('url') || '').trim();
         if (!title || !host) { err.textContent = '공모전 이름과 주최 기관을 적어 주세요.'; return; }
-        if (!fd.get('deadline') || dday(fd.get('deadline')) < 0) { err.textContent = '접수 마감일을 오늘 이후로 골라 주세요.'; return; }
+        if (!fd.get('deadline') || cday(fd.get('deadline')) < 0) { err.textContent = '접수 마감일을 오늘 이후로 골라 주세요.'; return; }
         if (!/^https:\/\/[^\s]+\.[^\s]+$/.test(url)) { err.textContent = '공식 공지 주소를 https://로 시작하게 적어 주세요.'; return; }
         if (!fd.get('src')) { err.textContent = '공식 공지에서 확인했는지 체크해 주세요.'; return; }
         S.contestReports.unshift({ id: 'cr' + Date.now(), title, host, cat: fd.get('cat'), deadline: fd.get('deadline'), url, memo: String(fd.get('memo') || ''), status: '운영자 검토 중' });

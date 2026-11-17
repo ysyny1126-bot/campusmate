@@ -1087,3 +1087,24 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .pd-btns.wrap { flex-wrap: wrap; }
 .url { word-break: break-all; color: var(--blue-600); }
 .ob-root .modal.onboard { border-radius: 28px; margin: 0 16px; padding-bottom: 20px; }
+.contest-grid.past { opacity: .72; }
+
+/* ───────── 카카오 로그인 · 학생 인증 ───────── */
+/* 카카오 로그인 버튼 디자인 가이드: 배경 #FEE500, 글자 검정 85%, 말풍선 심볼 */
+.kakao-btn { background: #FEE500; color: rgba(0, 0, 0, .85); border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.kakao-btn:hover { background: #F5DC00; }
+.kakao-btn.grow, .btn.grow { flex: 1; }
+.kakao-demo { display: grid; gap: 12px; justify-items: center; text-align: center; }
+.kakao-demo > svg { background: #FEE500; border-radius: 16px; padding: 10px; box-sizing: content-box; }
+.login-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 12px; border-radius: 16px; background: var(--surface-2); font-size: 13.5px; }
+.login-row > span:nth-child(2) { flex: 1; }
+.kk-dot { width: 28px; height: 28px; border-radius: 9px; background: #FEE500; display: grid; place-items: center; flex-shrink: 0; }
+.vm-list { border: 0; display: grid; gap: 6px; }
+.vm { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; }
+.vm:has(input:checked) { border-color: #6C5CE7; background: #F4F1FF; }
+.vm input { accent-color: #6C5CE7; }
+.vm.dis { opacity: .55; cursor: not-allowed; background: var(--surface-2); }
+.vm-ic { width: 36px; height: 36px; border-radius: 12px; background: #EFEBFF; color: #4B3DB8; display: grid; place-items: center; flex-shrink: 0; }
+.vm-body { flex: 1; min-width: 0; display: grid; font-size: 14px; }
+.vm-body small { font-size: 12px; color: var(--muted); }
+.ob-actions { flex-wrap: wrap; }
