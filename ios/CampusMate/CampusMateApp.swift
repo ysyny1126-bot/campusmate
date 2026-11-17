@@ -64,6 +64,10 @@ struct SplashView: View {
     }
 }
 
+/// 실제 사이트 주소와, 앱 안에서 열어도 되는 주소(이음 사이트 + 카카오 로그인 화면)
+private let liveURL = URL(string: "https://ysyny1126-bot.github.io/campusmate/")!
+private let inAppHosts: Set<String> = ["ysyny1126-bot.github.io", "kauth.kakao.com", "accounts.kakao.com", "logins.daum.net"]
+
 struct CampusWebView: UIViewRepresentable {
     var onLoaded: () -> Void
 
@@ -104,12 +108,19 @@ struct CampusWebView: UIViewRepresentable {
         if #available(iOS 16.4, *) { web.isInspectable = true }  // Safari 웹 속성으로 디버깅
         #endif
 
+        // 인터넷이 되면 실제 사이트를 열어요 → 웹과 같은 '진짜 카카오 로그인'이 돼요.
+        // 인터넷이 안 되면(또는 사이트가 안 열리면) 앱에 담긴 웹 파일로 바꿔 열어요 (카카오 로그인은 데모).
+        context.coordinator.web = web
+        web.load(URLRequest(url: liveURL, cachePolicy: .reloadRevalidatingCacheData, timeoutInterval: 8))
+        return web
+    }
+
+    static func loadBundled(_ web: WKWebView) {
         if let index = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Web") {
             web.loadFileURL(index, allowingReadAccessTo: index.deletingLastPathComponent())
         } else {
             web.loadHTMLString("<p style='font:17px -apple-system;padding:40px'>웹 파일을 찾을 수 없어요. 빌드 단계 ‘Copy Web Files’를 확인하세요.</p>", baseURL: nil)
         }
-        return web
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
@@ -117,6 +128,8 @@ struct CampusWebView: UIViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
         private let onLoaded: () -> Void
         private var didReport = false
+        private var fellBack = false
+        weak var web: WKWebView?
         init(onLoaded: @escaping () -> Void) { self.onLoaded = onLoaded }
 
         /// 첫 화면이 다 그려지면 시작 화면을 닫아요.
@@ -126,7 +139,14 @@ struct CampusWebView: UIViewRepresentable {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { self.onLoaded() }
         }
 
-        /// 앱 안의 페이지(file://)는 웹뷰에서 열고, 사용자가 누른 외부 링크(App Store 등)는 시스템에 넘겨요.
+        /// 실제 사이트를 못 열면(오프라인 등) 앱에 담긴 파일로 바꿔요.
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            guard !fellBack, webView.url == nil || webView.url?.host == liveURL.host else { return }
+            fellBack = true
+            CampusWebView.loadBundled(webView)
+        }
+
+        /// 앱 안의 페이지(file://, 이음 사이트, 카카오 로그인 화면)는 웹뷰에서 열고, 그 밖에 사용자가 누른 외부 링크(App Store 등)는 시스템에 넘겨요.
         /// App Store 링크는 App Store 앱으로, 그 밖의 웹 주소는 Safari로 열려요.
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -134,7 +154,8 @@ struct CampusWebView: UIViewRepresentable {
                 decisionHandler(.allow); return
             }
             let userTapped = action.navigationType == .linkActivated || action.targetFrame == nil
-            let isExternal = !["file", "about", "data", "blob"].contains(scheme)
+            let inApp = ["file", "about", "data", "blob"].contains(scheme) || (scheme.hasPrefix("http") && inAppHosts.contains(url.host ?? ""))
+            let isExternal = !inApp
             if isExternal && (userTapped || !scheme.hasPrefix("http")) {
                 UIApplication.shared.open(url)
                 decisionHandler(.cancel)
