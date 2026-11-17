@@ -68,7 +68,7 @@
     verified: false, email: '', idVerified: false,
     survey: JSON.parse(JSON.stringify(D.mySurvey)), weights: { ...D.myWeights },
     interests: [], favRooms: [], favItems: [], blocked: [], reports: [],
-    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0, teamTasks: {}, teamPosts: {}, teamDone: {}, contestReports: [],
+    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0, teamTasks: {}, teamPosts: {}, teamDone: {}, contestReports: [], clubPosts: {}, emj: {}, myMates: [], evReviews: {},
   });
   let S = load();
   function load() {
@@ -1114,6 +1114,116 @@
       </form></div>`;
   }
 
+  /* ── 동아리 공간: 가입이 승인된 부원만 ── */
+  const isMember = (c) => !!c && S.applied[c.id] === '가입 승인';
+  const clubPosts = (c) => S.clubPosts[c.id] || [
+    { who: `${c.name} 운영진`, text: `가입을 환영해요! 첫 정기 모임은 ${c.day}, ${c.room}에서 해요. ${c.welcome.join('·')} 모두 부담 없이 오세요.`, when: '공지', pin: true },
+    { who: `${c.name} 운영진`, text: `회비(${c.fee})는 첫 모임에서 직접 안내해요. 모임 전에 송금을 요구하는 연락은 신고해 주세요.`, when: '공지', pin: true },
+  ];
+  function pageClubRoom(id) {
+    const c = findClub(id); if (!c) return notFound();
+    if (!isMember(c)) return `<a class="back-link" href="#clubs-${id}">${icon('left', 18)}동아리 소개</a><div class="card empty" style="margin-top:16px">${icon('lock', 36)}<b>부원만 들어올 수 있어요</b>운영진이 가입을 승인하면 동아리 공간이 열려요.</div>`;
+    const evs = D.events.filter((e) => e.club === c.id && e.date >= TODAY), posts = clubPosts(c);
+    return `<a class="back-link" href="#clubs-${id}">${icon('left', 18)}동아리 소개</a>
+    <section class="club-hero sm" style="background:${c.color}">${clubArt(c, 'lg')}<div><span class="hc-kicker">${icon('lock', 12)} 부원 전용</span><h1>${esc(c.name)}</h1><p>부원 ${c.members + 1}명 · ${esc(c.day)} · ${esc(c.room)}</p></div></section>
+    <div class="troom-actions" style="margin:12px 0 4px"><button class="btn btn-primary" data-act="croom-chat" data-id="${c.id}">${icon('chats', 18)}동아리 채팅방</button><button class="btn btn-ghost btn-sm" data-act="club-leave" data-id="${c.id}">동아리 나가기</button></div>
+    <div class="troom-grid">
+      <section class="card pad"><h2 class="block-title">${icon('calendar', 18)}활동 일정</h2>
+        <div class="list-row"><span class="lr-art" style="background:${c.color}">${icon('clock', 20)}</span><span class="lr-body"><b>정기 모임</b><span class="small muted">${esc(c.day)} · ${esc(c.room)}</span></span><span class="badge b-proof">매주</span></div>
+        ${evs.map((e) => { const d = dayInfo(e.date), on = S.going.includes(e.id); return `<div class="list-row"><span class="lr-art" style="background:var(--lav);font-size:14px;font-weight:800">${d.m}/${d.d}</span><span class="lr-body"><a href="#event-${e.id}"><b>${esc(e.title)}</b></a><span class="small muted">${e.time} · ${esc(e.place)}</span></span><button class="btn btn-sm ${on ? 'btn-done' : 'btn-outline'}" data-act="event-join" data-id="${e.id}" aria-pressed="${on}">${on ? '참석' : '참석하기'}</button></div>`; }).join('') || '<p class="small muted" style="margin-top:6px">예정된 동아리 행사가 없어요.</p>'}</section>
+      <section class="card pad"><h2 class="block-title">${icon('users', 18)}부원</h2>
+        <p style="font-size:14px">부원 <b>${c.members + 1}명</b> · ${c.welcome.join('·')} 함께해요</p>
+        <p class="small muted" style="margin-top:6px">개인정보 보호를 위해 전체 부원 명단은 운영진만 볼 수 있어요. 채팅방에서는 닉네임으로 대화해요.</p>
+        <div class="info-box amber" style="margin-top:10px">${icon('alert', 18)}<span>뒤풀이·음주 참석은 강요할 수 없어요. 불편한 일은 바로 신고해 주세요.</span></div></section>
+      <section class="card pad troom-board"><h2 class="block-title">${icon('edit', 18)}공지 · 게시판</h2>
+        <form data-form="cpost" data-id="${c.id}" class="comment-form"><input class="input" name="text" maxlength="200" placeholder="자기소개, 질문, 활동 사진 이야기를 남겨요" aria-label="동아리 게시판 글"><button class="btn btn-primary" type="submit">올리기</button></form>
+        <div class="tposts">${posts.map((x) => `<div class="tpost ${x.pin ? 'pin' : ''}">${avatar(x.who, 'sm')}<div><b class="small">${esc(x.who)}</b> <span class="small muted">${x.when}</span><p>${esc(x.text)}</p></div></div>`).join('')}</div></section>
+    </div>`;
+  }
+  function openClubChat(c) {
+    const key = 'croom-' + c.id;
+    if (!S.chats[key]) S.chats[key] = [{ t: 'sys', text: `${c.name} 부원만 있는 채팅방이에요. 닉네임으로 대화해요.`, at: nowTime() }];
+    openChat(key, { name: `${c.name} 부원 채팅`, trust: 90, greeting: `운영진: 새로 오신 분 환영해요! 첫 모임은 ${c.day}이에요 😊`,
+      ctx: ctxBar(c.emoji, c.name, `부원 ${c.members + 1}명 · ${esc(c.day)}`, c.color),
+      quick: ['안녕하세요! 새로 들어왔어요', '첫 모임 때 준비물 있나요?', '이번 주 모임 참석할게요'],
+      replies: ['운영진: 반가워요! 첫 모임엔 편한 복장이면 충분해요.', '선배 부원: 환영해요 👋 모르는 건 편하게 물어보세요!', '운영진: 출석은 채팅으로 남겨 주시면 돼요.'] });
+  }
+
+  /* ── 행사 상세 · 함께 갈 사람(행사 메이트) · 행사 후기 ── */
+  const findEvent = (id) => D.events.find((e) => e.id === id);
+  const evReviews = (id) => [...(D.eventReviews[id] || []), ...(S.evReviews[id] || [])];
+  const allMates = (eid) => [...S.myMates, ...D.eventMates].filter((m) => (!eid || m.event === eid) && !S.blocked.includes(m.leader.nick) && findEvent(m.event));
+  const findMate = (id) => [...S.myMates, ...D.eventMates].find((m) => m.id === id);
+  const emM = (m) => (m.mine ? null : S.emj[m.id] || null);
+  const emIn = (m) => m.mine || (emM(m) && emM(m).status === 'approved');
+  const emPeople = (m) => [m.leader, ...m.members, ...(!m.mine && emIn(m) ? [{ nick: D.me.nick, trust: myTrust(), dept: S.survey.dept, me: true }] : [])];
+  function emStatus(m) { if (m.canceled) return 'cancel'; if (findEvent(m.event).date < TODAY) return 'done'; return emPeople(m).length >= m.cap ? 'full' : 'recruit'; }
+  const emChip = (m) => { const [t, c] = G_STATUS[emStatus(m)]; return `<span class="st-chip ${c}">${t}</span>`; };
+  const EM_ST = { applied: '수락 대기', approved: '함께 가요', rejected: '정원 마감', left: '취소함' };
+  function emActions(m) {
+    const st = emStatus(m), j = emM(m), chat = `<button class="btn btn-sm btn-outline" data-act="em-chat" data-id="${m.id}">${icon('chats', 15)}채팅방</button>`;
+    if (st === 'cancel') return '<span class="small muted">모집이 취소됐어요</span>';
+    if (m.mine) return `${emPeople(m).length >= 2 ? chat : ''}${st === 'done' ? '' : `<button class="btn btn-sm btn-ghost-danger" data-act="em-cancel" data-id="${m.id}">모집 취소</button>`}`;
+    if (!j || j.status === 'left') return st === 'recruit' ? `<button class="btn btn-sm btn-primary" data-act="em-apply" data-id="${m.id}">같이 가기 신청</button>` : `<span class="small muted">${G_STATUS[st][0]}</span>`;
+    if (j.status === 'applied') return `<span class="small muted">${icon('clock', 13, 'style="display:inline;vertical-align:-2px"')} 수락 대기</span><button class="btn btn-sm btn-ghost" data-act="em-leave" data-id="${m.id}">취소</button>`;
+    if (j.status === 'approved') return `${chat}${st === 'done' ? '' : `<button class="btn btn-sm btn-ghost" data-act="em-leave" data-id="${m.id}">취소</button>`}`;
+    return '<span class="small muted">정원이 먼저 찼어요</span>';
+  }
+  function emCard(m) {
+    const n = emPeople(m).length;
+    return `<article class="em-card"><div class="lc-top">${emChip(m)}${sampleTag(m)}<span class="small muted" style="margin-left:auto">${n}/${m.cap}명</span><span class="seats">${Array.from({ length: m.cap }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span></div>
+      <div class="em-who">${avatar(m.leader.nick, 'sm')}<span><b>${esc(m.leader.nick)}</b>${m.mine ? ' <span class="badge b-school">나</span>' : ''}<small class="muted"> · ${esc(m.leader.dept)} · 신뢰도 ${m.leader.trust}</small></span></div>
+      <p class="em-note">${esc(m.note)}</p>
+      <div class="small muted">${icon('pin', 13, 'style="display:inline;vertical-align:-2px"')} ${esc(m.meet)}에서 만나요 · ${esc(m.when)}</div>
+      ${m.mine && m.pending && m.pending.length ? `<div class="pending">${m.pending.map((p) => `<div class="ppl-row">${avatar(p.nick, 'sm')}<span><b>${esc(p.nick)}</b><small class="muted">${esc(p.dept)} · 신뢰도 ${p.trust} (데모 신청자)</small></span><span class="pd-btns"><button class="btn btn-sm btn-ghost" data-act="em-reject" data-id="${m.id}" data-nick="${esc(p.nick)}">거절</button><button class="btn btn-sm btn-primary" data-act="em-approve" data-id="${m.id}" data-nick="${esc(p.nick)}">수락</button></span></div>`).join('')}</div>` : ''}
+      <div class="em-act">${emActions(m)}</div></article>`;
+  }
+  function pageEvent(id) {
+    const e = findEvent(id); if (!e) return notFound();
+    const di = dayInfo(e.date), going = S.going.includes(e.id), past = e.date < TODAY, mates = allMates(e.id), revs = evReviews(e.id);
+    const avg = revs.length ? (revs.reduce((a, r) => a + r.stars, 0) / revs.length).toFixed(1) : null;
+    const canReview = going && e.date <= TODAY && !revs.some((r) => r.mine);
+    return `<a class="back-link" href="#events">${icon('left', 18)}행사 캘린더</a>
+    <div class="detail-grid"><div class="grid" style="gap:16px">
+      <section class="card pad ev-hero"><div class="ev-date big" aria-label="${di.m}월 ${di.d}일 ${di.w}요일"><small>${di.m}월</small><b>${di.d}</b><small>${di.w}</small></div>
+        <div><span class="ev-type">${e.type}${past ? ' · 끝난 행사' : ''}</span><h1 class="detail-title">${esc(e.title)}</h1>
+          <div class="meta">${icon('clock')}<span>${e.time} · ${esc(e.place)}</span></div>
+          <div class="meta">${icon('users')}<span>${e.club ? `<a class="ev-host" href="#clubs-${e.club}">${esc(e.host)}</a>` : esc(e.host)} · ${e.going + (going ? 1 : 0)}명 ${past ? '참여함' : '참여 예정'}</span></div>
+          <div class="chip-row" style="margin-top:8px">${e.for.map((f) => `<span class="chip">${f} 추천</span>`).join('')}</div></div></section>
+      <section aria-labelledby="h-mates"><div class="section-head"><h2 id="h-mates">함께 갈 사람 ${mates.length}</h2>${past ? '' : `<button class="more" data-act="em-new" data-id="${e.id}">같이 갈 사람 모집${icon('right', 16)}</button>`}</div>
+        <p class="small muted" style="margin:-4px 0 10px">혼자 가기 어색할 때 같이 갈 학생을 찾아요. 처음 만나는 사람과는 <b>교내 안전 장소</b>에서 만나요.</p>
+        ${mates.length ? `<div class="grid" style="gap:10px">${mates.map(emCard).join('')}</div>` : `<div class="empty">${charImg('think', 'empty-char')}<b>아직 함께 갈 사람 모집이 없어요</b>${past ? '' : '먼저 모집해 보세요.'}</div>`}</section>
+      <section class="card pad" aria-labelledby="h-rev"><h2 class="block-title" id="h-rev">${icon('star', 18)}행사 후기 ${revs.length}${avg ? ` · <span class="stars" aria-label="평균 ${avg}점">★</span> ${avg}` : ''}</h2>
+        ${revs.map((r) => `<div class="review"><div style="display:flex;justify-content:space-between"><b class="small">${esc(r.from)}</b><span class="stars" aria-label="별점 ${r.stars}점">${'★'.repeat(r.stars)}</span></div><p style="font-size:14px;margin:4px 0">${esc(r.text)}</p>${r.tags.length ? `<div class="chip-row">${r.tags.map((x) => `<span class="chip" style="height:24px">${esc(x)}</span>`).join('')}</div>` : ''}</div>`).join('') || '<p class="small muted">아직 후기가 없어요.</p>'}
+        ${canReview ? `<form data-form="ev-review" data-id="${e.id}" class="grid" style="gap:10px;margin-top:12px"><b class="small">다녀온 행사 후기 남기기</b>
+          <div class="star-input">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="er${n}" name="stars" value="${n}" ${n === 5 ? 'checked' : ''}><label for="er${n}" aria-label="${n}점">★</label>`).join('')}</div>
+          <div class="opts">${['신입생에게 추천', '복학생에게 추천', '알찼어요', '사람 많아요', '다시 갈래요'].map((t) => `<label class="opt sm"><input type="checkbox" name="tags" value="${t}"><span>${t}</span></label>`).join('')}</div>
+          <textarea class="textarea" name="text" style="min-height:70px" placeholder="다음에 갈 학생에게 도움이 되는 이야기를 남겨 주세요" aria-label="후기 내용"></textarea>
+          <button class="btn btn-primary" type="submit">후기 남기기</button></form>`
+        : `<p class="small muted" style="margin-top:10px">${revs.some((r) => r.mine) ? '후기를 남겼어요. 고마워요!' : '참여 예정에 넣은 행사가 시작되면 후기를 쓸 수 있어요.'}</p>`}</section>
+    </div>
+    <aside class="detail-aside"><section class="card pad g-actions">${past ? `<span class="muted">끝난 행사예요 · 후기 ${revs.length}개</span>` : `<button class="btn btn-lg ${going ? 'btn-done' : 'btn-primary'}" data-act="event-join" data-id="${e.id}" aria-pressed="${going}">${going ? `${icon('check', 18)}참여 예정` : `${icon('calendar', 18)}참여하기`}</button>`}
+      ${past ? '' : `<button class="btn btn-outline" data-act="em-new" data-id="${e.id}">${icon('users', 18)}같이 갈 사람 모집</button>`}</section></aside></div>`;
+  }
+  function openEmNew(e) {
+    openModal(modalBox('같이 갈 사람 모집', `<p class="small muted" style="margin-bottom:12px">${esc(e.title)} · ${dayInfo(e.date).m}월 ${dayInfo(e.date).d}일 ${e.time}</p>
+      <form data-form="em-new" data-id="${e.id}" class="grid" style="gap:12px">
+        <div class="form-grid two"><div class="field"><label for="emn-cap">최대 인원 (나 포함)</label><select class="select" id="emn-cap" name="cap">${[2, 3, 4, 5].map((x) => `<option ${x === 3 ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+          <div class="field"><label for="emn-when">만나는 시간</label><input class="input" id="emn-when" name="when" maxlength="20" value="행사 30분 전"></div></div>
+        <div class="field"><label for="emn-meet">만나는 곳 · 교내 안전 장소</label><select class="select" id="emn-meet" name="meet">${D.safePlaces.filter((p) => !p.off).map((p) => `<option>${p.name}</option>`).join('')}</select></div>
+        <div class="field"><label for="emn-note">한 줄 소개</label><input class="input" id="emn-note" name="note" maxlength="80" placeholder="예) 혼자 가기 어색해서요! 끝나고 학식 먹어요"></div>
+        <p class="error-text" id="emn-err" role="alert"></p>
+        <div class="modal-actions"><button type="button" class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" type="submit">모집하기</button></div></form>`));
+  }
+  function openEmChat(m) {
+    const e = findEvent(m.event), key = 'em-' + m.id, others = emPeople(m).filter((p) => !p.me && !(m.mine && p === m.leader));
+    if (!S.chats[key]) S.chats[key] = [{ t: 'sys', text: `함께 가기로 한 ${emPeople(m).length}명만 있는 채팅방이에요. 만나는 곳: ${m.meet} · ${m.when}`, at: nowTime() }];
+    const sp = (i, t) => `${(others[i % Math.max(others.length, 1)] || { nick: '참여자' }).nick}: ${t}`;
+    openChat(key, { name: `함께 가기 · ${e.title}`, trust: m.leader.trust, greeting: sp(0, `반가워요! ${m.when}에 ${m.meet}에서 봬요.`),
+      ctx: ctxBar(icon('calendar', 22), e.title, `${emPeople(m).length}명 · ${m.meet}`),
+      quick: ['도착했어요!', '조금 늦을 것 같아요', '끝나고 밥 먹어요'], replies: [sp(0, '좋아요!'), sp(1, '저도 가는 중이에요.'), sp(0, '입구 앞에서 기다릴게요.')] });
+  }
+
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
       <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
@@ -1464,10 +1574,11 @@
     const di = dayInfo(e.date), going = S.going.includes(e.id);
     return `<article class="event-card">
       <div class="ev-date" aria-label="${di.m}월 ${di.d}일 ${di.w}요일"><small>${di.m}월</small><b>${di.d}</b><small>${di.w}</small></div>
-      <div class="ev-body"><span class="ev-type">${e.type}${e.for.length === 1 ? ` · ${e.for[0]} 추천` : ''}</span><h3>${esc(e.title)}</h3>
+      <div class="ev-body"><span class="ev-type">${e.type}${e.for.length === 1 ? ` · ${e.for[0]} 추천` : ''}</span><h3><a href="#event-${e.id}">${esc(e.title)}</a></h3>
         <div class="meta">${e.time} · ${esc(e.place)}</div>
         ${compact ? '' : `<div class="meta">${e.club ? `<a class="ev-host" href="#clubs-${e.club}">${esc(e.host)}</a>` : esc(e.host)}</div>`}</div>
-      <div class="ev-act"><button class="btn btn-sm ${going ? 'btn-done' : 'btn-outline'}" data-act="event-join" data-id="${e.id}" aria-pressed="${going}">${going ? `${icon('check', 15)}참여 예정` : '참여하기'}</button><span class="small muted">${e.going + (going ? 1 : 0)}명 참여</span></div>
+      <div class="ev-act">${e.date < TODAY ? `<a class="btn btn-sm btn-outline" href="#event-${e.id}">${icon('star', 15)}후기 ${evReviews(e.id).length}</a>` : `<button class="btn btn-sm ${going ? 'btn-done' : 'btn-outline'}" data-act="event-join" data-id="${e.id}" aria-pressed="${going}">${going ? `${icon('check', 15)}참여 예정` : '참여하기'}</button>`}<span class="small muted">${e.going + (going ? 1 : 0)}명 ${e.date < TODAY ? '참여함' : '참여'}</span>
+        ${e.date >= TODAY && allMates(e.id).length ? `<a class="ev-mates" href="#event-${e.id}">${icon('users', 13)}함께 갈 사람 ${allMates(e.id).length}</a>` : ''}</div>
     </article>`;
   }
 
@@ -1508,7 +1619,8 @@
     const fol = S.followClubs.includes(c.id), ap = S.applied[c.id], r = c.recruit;
     const evs = D.events.filter((e) => e.club === c.id);
     const qna = [...c.qna, ...(S.clubQ[c.id] || [])];
-    const applyBtn = (cls) => (r.status === 'closed' ? `<button class="btn ${cls}" disabled>모집 마감</button>`
+    const applyBtn = (cls) => (isMember(c) ? `<a class="btn btn-mint ${cls}" href="#clubroom-${c.id}">${icon('users', 18)}동아리 공간 들어가기</a>`
+      : r.status === 'closed' ? `<button class="btn ${cls}" disabled>모집 마감</button>`
       : ap ? `<button class="btn btn-done ${cls}" disabled>${icon('check', 18)}지원 완료 · ${ap}</button>`
         : `<button class="btn btn-primary ${cls}" data-act="club-apply" data-id="${c.id}">${icon('send', 18)}지원하기</button>`);
     return `<a class="back-link" href="#clubs">${icon('left', 18)}동아리 목록</a>
@@ -1553,6 +1665,7 @@
       ${dayList.length ? `<div class="grid" style="gap:10px">${dayList.map((e) => eventCard(e)).join('')}</div>` : `<div class="empty">${icon('calendar', 36)}<b>이날은 예정된 행사가 없어요</b>점이 찍힌 날짜를 눌러 보세요.</div>`}</section>
     <section class="section" aria-labelledby="h-up"><div class="section-head"><h2 id="h-up">다가오는 행사 ${upcoming.length}</h2></div>
       <div class="grid" style="gap:10px">${upcoming.map((e) => eventCard(e)).join('')}</div></section>
+    ${D.events.some((e) => e.date < TODAY) ? `<section class="section" aria-labelledby="h-past"><div class="section-head"><h2 id="h-past">지난 행사 · 후기</h2></div><div class="grid" style="gap:10px">${D.events.filter((e) => e.date < TODAY).map((e) => eventCard(e)).join('')}</div></section>` : ''}
     ${footer()}`;
   }
 
@@ -1581,10 +1694,12 @@
     const fol = S.followClubs.map(findClub).filter(Boolean);
     const ev = S.going.map((id) => D.events.find((e) => e.id === id)).filter(Boolean);
     const row = (c, right) => `<a class="list-row" href="#clubs-${c.id}"><span class="lr-art" style="background:${c.color}">${c.emoji}</span><span class="lr-body"><b>${esc(c.name)}</b><span class="small muted">${c.cat} · ${esc(c.day)}</span></span>${right}</a>`;
-    if (!ap.length && !fol.length && !ev.length) return `<div class="empty">${icon('users', 36)}<b>아직 관심 동아리가 없어요</b>신입생·복학생 추천 동아리부터 둘러보세요.<div style="margin-top:12px"><a class="btn btn-primary" href="#clubs">동아리 둘러보기</a></div></div>`;
+    if (!ap.length && !fol.length && !ev.length && !allMates().some((m) => m.mine || emM(m))) return `<div class="empty">${icon('users', 36)}<b>아직 관심 동아리가 없어요</b>신입생·복학생 추천 동아리부터 둘러보세요.<div style="margin-top:12px"><a class="btn btn-primary" href="#clubs">동아리 둘러보기</a></div></div>`;
     const h = (t) => `<h3 class="block-title" style="font-size:15px;margin-top:6px">${t}</h3>`;
     return [
-      ap.length ? h('지원한 동아리') + ap.map(([id, st]) => row(findClub(id), `<span class="badge b-review">${st}</span>`)).join('') : '',
+      ap.filter(([id]) => isMember(findClub(id))).length ? h('내 동아리') + ap.filter(([id]) => isMember(findClub(id))).map(([id]) => { const c = findClub(id); return `<a class="list-row" href="#clubroom-${c.id}"><span class="lr-art" style="background:${c.color}">${c.emoji}</span><span class="lr-body"><b>${esc(c.name)}</b><span class="small muted">부원 · ${esc(c.day)}</span></span><span class="badge b-school">동아리 공간</span></a>`; }).join('') : '',
+      ap.filter(([id]) => !isMember(findClub(id))).length ? h('지원한 동아리') + ap.filter(([id]) => !isMember(findClub(id))).map(([id, st]) => row(findClub(id), `<span class="badge b-review">${st}</span>`)).join('') : '',
+      allMates().filter((m) => m.mine || (emM(m) && emM(m).status !== 'left')).length ? h('함께 가는 행사') + allMates().filter((m) => m.mine || (emM(m) && emM(m).status !== 'left')).map((m) => { const e = findEvent(m.event), d = dayInfo(e.date); return `<a class="list-row" href="#event-${e.id}"><span class="lr-art" style="background:var(--lav);font-size:14px;font-weight:800">${d.m}/${d.d}</span><span class="lr-body"><b>${esc(e.title)}</b><span class="small muted">${m.mine ? '내가 모집' : EM_ST[emM(m).status]} · ${emPeople(m).length}/${m.cap}명 · ${esc(m.meet)}</span></span>${emChip(m)}</a>`; }).join('') : '',
       fol.length ? h('관심 동아리') + fol.map((c) => row(c, recruitPill(c))).join('') : '',
       ev.length ? h('참여 예정 행사') + ev.map((e) => { const d = dayInfo(e.date); return `<div class="list-row"><span class="lr-art" style="background:var(--lav);font-size:14px;font-weight:800">${d.m}/${d.d}</span><span class="lr-body"><b>${esc(e.title)}</b><span class="small muted">${e.time} · ${esc(e.place)}</span></span></div>`; }).join('') : '',
     ].filter(Boolean).join('<div class="divider"></div>');
@@ -1933,6 +2048,8 @@
       case 'write': html = pageWrite(a); nav = 'community'; break;
       case 'clubs': html = a ? (cta = true, pageClub(a)) : pageClubs(); break;
       case 'events': html = pageEvents(); nav = 'clubs'; break;
+      case 'event': html = pageEvent(a); nav = 'clubs'; break;
+      case 'clubroom': html = pageClubRoom(a); nav = 'clubs'; break;
       case 'contests': html = a === 'new' ? pageContestNew() : a ? (cta = true, pageContest(a)) : pageContests(); nav = 'teams'; break;
       case 'teamroom': html = pageTeamRoom(a); nav = 'teams'; break;
       case 'teams': html = a === 'new' ? pageTeamNew() : a ? (cta = true, pageTeam(a)) : pageTeams(); break;
@@ -2111,6 +2228,27 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 'croom-chat': openClubChat(findClub(id)); break;
+      case 'club-leave': { const c = findClub(id); delete S.applied[c.id]; save(); location.hash = '#clubs-' + c.id; toast(`${c.name}에서 나왔어요`, 'x'); break; }
+      case 'em-new': if (needVerify('함께 갈 사람 모집')) return; openEmNew(findEvent(id)); break;
+      case 'em-apply': {
+        if (needVerify('함께 가기 신청')) return;
+        const m = findMate(id); if (!m || emStatus(m) !== 'recruit') return toast('지금은 신청할 수 없어요', 'x');
+        if (emM(m) && emM(m).status !== 'left') return toast('이미 신청했어요', 'check');
+        S.emj[m.id] = { status: 'applied' }; save(); route(); toast('함께 가기를 신청했어요. 모집자가 수락하면 알려 드릴게요', 'send');
+        setTimeout(() => { const j = S.emj[m.id]; if (!j || j.status !== 'applied') return; j.status = emPeople(m).length < m.cap ? 'approved' : 'rejected'; save();
+          toast(j.status === 'approved' ? `${m.leader.nick}님이 수락했어요 · ${m.meet}에서 만나요` : '아쉽게도 자리가 먼저 찼어요', j.status === 'approved' ? 'users' : 'x'); if (!slot.innerHTML) route(); }, 1800);
+        break;
+      }
+      case 'em-leave': { S.emj[id].status = 'left'; save(); route(); toast('함께 가기를 취소했어요', 'x'); break; }
+      case 'em-chat': openEmChat(findMate(id)); break;
+      case 'em-approve': case 'em-reject': {
+        const m = findMate(id), i = m.pending.findIndex((x) => x.nick === el.dataset.nick); if (i < 0) return;
+        if (act === 'em-approve' && emPeople(m).length >= m.cap) return toast('정원이 다 찼어요', 'x');
+        const [pp] = m.pending.splice(i, 1); if (act === 'em-approve') m.members.push(pp); save(); route();
+        toast(act === 'em-approve' ? `${pp.nick}님과 함께 가요` : `${pp.nick}님의 신청을 거절했어요`, act === 'em-approve' ? 'users' : 'x'); break;
+      }
+      case 'em-cancel': { const m = findMate(id); m.canceled = true; m.pending = []; save(); route(); toast('모집을 취소했어요', 'x'); break; }
       case 't-approve': case 't-reject': {
         const t = findTeam(id), i = (t.pending || []).findIndex((x) => x.nick === el.dataset.nick); if (i < 0) return;
         const a = t.pending[i], pos = t.positions.find((p) => p.role === a.role);
@@ -2204,7 +2342,7 @@
       case 'ev-week': { evWeek = Math.max(0, Math.min(2, evWeek + +el.dataset.dir)); const days = weekDays(); evDay = (days.find((d) => d.s === TODAY) || days.find((d) => d.has) || days[0]).s; route(); break; }
       case 'ev-day': evDay = el.dataset.day; route(); break;
       case 'ev-filter': evFilter = el.dataset.k; route(); break;
-      case 'event-join': { if (needVerify('행사 참여')) return; const on = toggleIn(S.going, id); save(); route(); toast(on ? '참여 예정에 추가했어요. 하루 전에 알려드릴게요' : '참여를 취소했어요', on ? 'calendar' : 'x'); break; }
+      case 'event-join': { if (needVerify('행사 참여')) return; if (findEvent(id).date < TODAY) return toast('이미 끝난 행사예요', 'x'); const on = toggleIn(S.going, id); save(); route(); toast(on ? '참여 예정에 추가했어요. 하루 전에 알려드릴게요' : '참여를 취소했어요', on ? 'calendar' : 'x'); break; }
       case 'interest': {
         if (needVerify('룸메이트 연락 요청')) return;
         const c = D.mates.find((x) => x.id === id);
@@ -2344,6 +2482,26 @@
       case 'report': {
         S.reports.unshift({ target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
         closeModal(); toast('신고가 접수됐어요. 24시간 안에 검토할게요', 'flag'); break;
+      }
+      case 'cpost': {
+        const text = String(fd.get('text') || '').trim(); if (!text) return;
+        if (FRAUD.test(text)) { toast('계좌·외부 연락처 관련 문구는 올릴 수 없어요', 'alert'); return; }
+        (S.clubPosts[f.dataset.id] = clubPosts(findClub(f.dataset.id))).unshift({ who: D.me.nick, text, when: '방금' }); save(); route(); toast('동아리 게시판에 올렸어요', 'edit'); break;
+      }
+      case 'em-new': {
+        const e = findEvent(f.dataset.id), note = String(fd.get('note') || '').trim();
+        if (!note) { $('#emn-err').textContent = '한 줄 소개를 적어 주세요.'; return; }
+        if (FRAUD.test(note)) { $('#emn-err').textContent = '계좌·외부 연락처 관련 문구는 올릴 수 없어요.'; return; }
+        const pick = D.mates.filter((x) => !S.blocked.includes(x.nick))[4];
+        S.myMates.unshift({ id: 'uem' + Date.now(), event: e.id, mine: true, cap: +fd.get('cap'), leader: { nick: D.me.nick, trust: myTrust(), dept: S.survey.dept }, members: [],
+          pending: pick ? [{ nick: pick.nick, trust: pick.trust, dept: pick.dept }] : [], meet: fd.get('meet'), when: String(fd.get('when') || '').trim() || '행사 30분 전', note });
+        save(); closeModal(); route(); toast('함께 갈 사람을 모집했어요. 데모 신청자 1명이 왔어요', 'users'); break;
+      }
+      case 'ev-review': {
+        const id2 = f.dataset.id, text = String(fd.get('text') || '').trim();
+        if (FRAUD.test(text)) { toast('계좌·외부 연락처 관련 문구는 올릴 수 없어요', 'alert'); return; }
+        (S.evReviews[id2] = S.evReviews[id2] || []).push({ from: D.me.nick, stars: +fd.get('stars'), text: text || '좋았어요!', tags: fd.getAll('tags'), mine: true });
+        save(); route(); toast('행사 후기를 남겼어요. 다음 참가자에게 큰 도움이 돼요', 'star'); break;
       }
       case 'task': {
         const text = String(fd.get('text') || '').trim(); if (!text) return;
@@ -2531,7 +2689,10 @@
         const c = findClub(f.dataset.id);
         if (!fd.getAll('days').length) { $('#ap-err').textContent = '활동 가능한 요일을 하나 이상 골라 주세요.'; return; }
         S.stype = fd.get('stype') || S.stype; S.applied[c.id] = '서류 검토 중'; save(); closeModal(); route();
-        toast(`${c.name}에 지원했어요. 결과는 알림으로 알려드릴게요`, 'send'); break;
+        toast(`${c.name}에 지원했어요. 운영진이 확인하면 알려 드릴게요 (데모: 잠시 뒤 결과)`, 'send');
+        setTimeout(() => { if (S.applied[c.id] !== '서류 검토 중') return; S.applied[c.id] = '가입 승인'; save();
+          toast(`${c.name} 운영진이 가입을 승인했어요! 동아리 공간이 열렸어요`, 'users'); if (!slot.innerHTML) route(); }, 2400);
+        break;
       }
       case 'club-q': {
         if (needVerify('동아리에 질문하기')) return;

@@ -1043,3 +1043,18 @@ nav.hub-switch, .hub-switch .housing-tabs { max-width: 460px; }
 .tpost p { font-size: 14px; margin-top: 2px; }
 .tpost.pin { background: var(--amber-100); padding: 10px 12px; border-radius: 14px; }
 .rate-row { display: grid; grid-template-columns: 1fr 160px; gap: 8px; align-items: center; font-size: 14px; }
+
+/* ───────── 동아리 공간 · 행사 상세 · 함께 갈 사람 ───────── */
+.club-hero.sm { padding: 18px; }
+.club-hero.sm h1 { font-size: 22px; }
+.ev-hero { display: flex; gap: 16px; align-items: flex-start; }
+.ev-hero > div:last-child { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.ev-date.big { min-width: 64px; padding: 10px 8px; }
+.ev-date.big b { font-size: 28px; }
+.ev-mates { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #4B3DB8; background: #EFEBFF; padding: 3px 9px; border-radius: 999px; }
+.ev-act { flex-wrap: wrap; }
+.em-card { background: #fff; border-radius: 20px; padding: 14px 16px; display: grid; gap: 8px; }
+.em-who { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.em-note { font-size: 14px; }
+.em-act { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.hc-kicker .ic { display: inline-block; vertical-align: -1px; }

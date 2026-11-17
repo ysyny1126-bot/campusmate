@@ -288,6 +288,7 @@ window.CM_DATA = (() => {
   ];
 
   const events = [
+    { id: 'e0', date: '2026-11-05', time: '12:00–17:00', title: '가을 플리마켓 · 자취템 나눔 장터', type: '장터', place: '학생회관 앞 광장', host: '총학생회', club: null, for: ['신입생', '복학생'], going: 340 },
     { id: 'e1', date: '2026-11-10', time: '17:00–20:00', title: '겨울 동아리 박람회', type: '박람회', place: '학생회관 앞 광장', host: '총동아리연합회', club: null, for: ['신입생', '복학생'], going: 212 },
     { id: 'e2', date: '2026-11-11', time: '18:30–20:00', title: '복학생 학교 적응 세미나 · 바뀐 졸업요건 한눈에', type: '설명회', place: '중앙도서관 세미나실', host: '리턴즈 × 학생지원팀', club: 'c10', for: ['복학생'], going: 87 },
     { id: 'e3', date: '2026-11-12', time: '19:00–21:00', title: '소리울 겨울 정기 공연', type: '공연', place: '대강당', host: '소리울', club: 'c4', for: ['신입생', '복학생'], going: 156 },
@@ -411,5 +412,18 @@ window.CM_DATA = (() => {
       leader: LP('도서관지박령', 91, '컴퓨터공학과', [{ n: '떡볶이 1인분', p: 4500, q: 1 }, { n: '김밥', p: 3000, q: 1 }]), members: [], note: '시험 기간 야식! 정류장 옆 벤치에서 받아요.' },
   ];
 
-  return { lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  /* ── 행사 메이트 (함께 갈 사람) · 행사 후기 — 예시 ── */
+  const MP = (nick, trust, dept) => ({ nick, trust, dept });
+  const eventMates = [
+    { id: 'em1', event: 'e3', cap: 3, leader: MP('주말엔본가', 84, '경영학과'), members: [MP('아침형고양이', 88, '간호학과')], meet: '학생회관 1층', when: '공연 30분 전', note: '공연 혼자 보기 아쉬워서요! 끝나고 학식 같이 먹어요.' },
+    { id: 'em2', event: 'e1', cap: 4, leader: MP('도서관지박령', 91, '컴퓨터공학과'), members: [MP('깔끔한두부', 78, '건축학과'), MP('새벽감성러', 63, '시각디자인학과')], meet: '학생회관 1층', when: '17:00', note: '신입생끼리 박람회 같이 돌아요. 부스 다 돌면 해산!' },
+    { id: 'em3', event: 'e2', cap: 3, leader: MP('러닝하는경영인', 95, '경영학과'), members: [], meet: '중앙도서관 1층 로비', when: '세미나 10분 전', note: '복학생이에요. 같이 듣고 졸업요건 정리해요.' },
+    { id: 'em4', event: 'e9', cap: 4, leader: MP('조용한밤샘러', 80, '기계공학과'), members: [MP('요리하는자취생', 75, '식품공학과')], meet: '정문 버스정류장', when: '09:40', note: '봉사 처음이라 같이 가실 분! 장갑은 주최 측에서 줘요.' },
+  ];
+  const eventReviews = {
+    e0: [{ from: '자취3년차', stars: 5, text: '전기포트랑 수납함을 거의 공짜로 구했어요. 다음엔 오전에 일찍 가세요!', tags: ['신입생에게 추천', '알찼어요'] },
+      { from: '익명', stars: 4, text: '사람이 많아서 줄이 길었지만 분위기는 좋았어요.', tags: ['사람 많아요'] }],
+  };
+
+  return { eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();
