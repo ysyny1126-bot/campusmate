@@ -69,6 +69,11 @@
     survey: JSON.parse(JSON.stringify(D.mySurvey)), weights: { ...D.myWeights },
     interests: [], favRooms: [], favItems: [], blocked: [], reports: [],
     myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0, teamTasks: {}, teamPosts: {}, teamDone: {}, contestReports: [], clubPosts: {}, emj: {}, myMates: [], evReviews: {},
+    profile: { interests: ['IT·SW', '운동'], skills: ['엑셀', 'PPT'], time: '평일 저녁', area: '교내' },
+    notifs: [{ text: '도서관지박령님이 회원님에게 연락을 요청했어요', ic: 'heart', href: '#roommate-m1', at: Date.now() - 600000 },
+      { text: '찜한 ‘정문 도보 5분 풀옵션 원룸’ 월세가 2만 원 내렸어요', ic: 'door', href: '#rooms-r1', at: Date.now() - 3600000 },
+      { text: '내 게시글에 새 댓글이 달렸어요', ic: 'chat', href: '#post-p1', at: Date.now() - 86400000 }],
+    reportActs: {}, hiddenG: [], restricted: {}, approvedContests: [],
   });
   let S = load();
   function load() {
@@ -326,7 +331,7 @@
     <section class="greet">
       ${charImg('icon', 'greet-char')}
       <div class="greet-txt"><b>안녕하세요, ${D.me.nick}님</b><span>${esc(S.stype)} · ${D.school.name}</span></div>
-      <a class="icon-btn round" href="#rooms" aria-label="방 검색하기">${icon('search', 20)}</a>
+      <a class="icon-btn round" href="#search" aria-label="통합 검색">${icon('search', 20)}</a>
     </section>
 
     <div class="home-top">
@@ -359,6 +364,7 @@
       </section>
     </div>
 
+    ${recoSection()}
     ${(() => { const lv = (t) => allG(t).filter((g) => gStatus(g) === 'recruit').sort((x, y) => x.closeAt - y.closeAt).slice(0, 2); const cards = [...lv('taxi').map(taxiCard), ...lv('delivery').map(deliveryCard)];
       return cards.length ? `<section class="section" aria-labelledby="h-life"><div class="section-head"><h2 id="h-life">지금 모집 중 · 택시·배달</h2><a class="more" href="#taxi">전체 보기${icon('right', 16)}</a></div><div class="hscroll life-h">${cards.join('')}</div></section>` : ''; })()}
     <section class="section" aria-labelledby="h-ev">
@@ -766,7 +772,7 @@
     .map((g) => ({ ...g, closeAt: T0 + g.closeIn * 60000, departAt: g.departIn != null ? T0 + g.departIn * 60000 : null }));
   const G_STATUS = { recruit: ['모집 중', 'st-recruit'], full: ['모집 완료', 'st-full'], progress: ['진행 중', 'st-progress'], done: ['완료', 'st-done'], cancel: ['취소', 'st-cancel'], expired: ['만료', 'st-expired'] };
   const CANCEL_LIMIT = 3;   // 운영 정책 초안: 확정 후 취소가 이 횟수 이상이면 7일간 참여 제한
-  const allG = (type) => [...S.myGath, ...SAMPLE_G].filter((g) => !type || g.type === type).filter((g) => !S.blocked.includes(g.leader.nick));
+  const allG = (type) => [...S.myGath, ...SAMPLE_G].filter((g) => !type || g.type === type).filter((g) => !S.hiddenG.includes(g.id)).filter((g) => !S.blocked.includes(g.leader.nick));
   const findG = (id) => [...S.myGath, ...SAMPLE_G].find((g) => g.id === id);
   const myM = (g) => (g.mine ? null : S.gm[g.id] || null);
   const isIn = (g) => g.mine || (myM(g) && ['approved', 'final', 'done'].includes(myM(g).status));
@@ -1224,6 +1230,100 @@
       quick: ['도착했어요!', '조금 늦을 것 같아요', '끝나고 밥 먹어요'], replies: [sp(0, '좋아요!'), sp(1, '저도 가는 중이에요.'), sp(0, '입구 앞에서 기다릴게요.')] });
   }
 
+  /* ── 통합 검색: 방·택시·배달·공모전·팀·동아리·행사·커뮤니티·중고를 한 번에 ── */
+  let searchQ = '';
+  const hl = (t, q) => { const s0 = esc(t); if (!q) return s0; const i = s0.toLowerCase().indexOf(esc(q).toLowerCase()); return i < 0 ? s0 : `${s0.slice(0, i)}<mark>${s0.slice(i, i + esc(q).length)}</mark>${s0.slice(i + esc(q).length)}`; };
+  function searchResults(q) {
+    q = String(q || '').trim();
+    if (!q) return `<p class="small muted" style="margin-top:12px">찾고 싶은 것을 입력하거나 추천 검색어를 눌러 보세요.</p>`;
+    const has = (...xs) => xs.some((x) => String(x || '').toLowerCase().includes(q.toLowerCase()));
+    const groups = [
+      ['주거 · 방', 'door', allRooms().filter((r) => has(r.title, r.area, r.type, r.deal)).map((r) => [r.title, `${r.area} · 월세 ${r.deposit}/${r.rent}`, `#rooms-${r.id}`])],
+      ['택시 같이 타기', 'car', allG('taxi').filter((g) => has(g.from, g.to, g.note)).map((g) => [taxiTitle(g), `${G_STATUS[gStatus(g)][0]} · 출발 ${clock(g.departAt)}`, `#taxi-${g.id}`])],
+      ['배달 같이 시키기', 'utensils', allG('delivery').filter((g) => has(g.shop, g.cat, g.pickup)).map((g) => [g.shop, `${g.cat} · ${G_STATUS[gStatus(g)][0]} · ${g.pickup}`, `#delivery-${g.id}`])],
+      ['공모전', 'trophy', D.contests.filter((k) => has(k.title, k.host, k.cat)).map((k) => [k.title, `${k.cat} · ${k.host} · 마감 ${fmtDate(k.deadline)}`, `#contests-${k.id}`])],
+      ['팀원 모집', 'users', allTeams().filter((t) => has(t.title, t.kind, ...t.positions.map((p) => p.role))).map((t) => [t.title, `${t.kind} · ${openSlots(t)}자리 남음`, `#teams-${t.id}`])],
+      ['동아리', 'users', D.clubs.filter((c) => has(c.name, c.cat, c.intro)).map((c) => [c.name, `${c.cat} · ${c.intro}`, `#clubs-${c.id}`])],
+      ['행사', 'calendar', D.events.filter((e) => has(e.title, e.place, e.type, e.host)).map((e) => [e.title, `${dayInfo(e.date).m}/${dayInfo(e.date).d} · ${e.place}`, `#event-${e.id}`])],
+      ['커뮤니티', 'chats', allPosts().filter((x) => has(x.title, x.body)).map((x) => [x.title, D.boards[x.board], `#post-${x.id}`])],
+      ['중고거래', 'bag', allItems().filter((i) => has(i.title, i.cat)).map((i) => [i.title, `${i.cat} · ${won(i.price)}`, `#market-${i.id}`])],
+    ].filter((g) => g[2].length);
+    const total = groups.reduce((a, g) => a + g[2].length, 0);
+    if (!total) return `<div class="empty">${charImg('think', 'empty-char')}<b>‘${esc(q)}’에 맞는 결과가 없어요</b>다른 단어로 찾아보세요.</div>`;
+    return `<p class="small muted" style="margin:12px 0">‘${esc(q)}’ 검색 결과 ${total}건</p>` + groups.map(([name, ic, rows]) => `<section class="card pad search-group"><h2 class="block-title">${icon(ic, 18)}${name} <span class="muted small">${rows.length}</span></h2>
+      ${rows.slice(0, 5).map(([t, sub, h]) => `<a class="list-row" href="${h}"><span class="lr-body"><b>${hl(t, q)}</b><span class="small muted">${hl(sub, q)}</span></span>${icon('right', 16)}</a>`).join('')}${rows.length > 5 ? `<p class="small muted">외 ${rows.length - 5}건</p>` : ''}</section>`).join('');
+  }
+  function pageSearch() {
+    return `<div class="page-head"><div><h1>통합 검색</h1><p>방, 택시, 배달, 공모전, 동아리, 행사, 커뮤니티 글을 한 번에 찾아요</p></div></div>
+      <label class="search-box big">${icon('search', 20)}<input id="g-search" type="search" value="${esc(searchQ)}" placeholder="예) 터미널, 치킨, 디자인, 러닝, 원룸" aria-label="통합 검색" autocomplete="off"></label>
+      <div class="chip-row" style="margin-top:10px">${['터미널', '치킨', '디자인', '러닝', '본리', '복학생'].map((x) => `<button class="chip" data-act="sq" data-v="${x}">${x}</button>`).join('')}</div>
+      <div id="search-results">${searchResults(searchQ)}</div>${footer()}`;
+  }
+
+  /* ── 통합 프로필 + 나에게 맞는 추천 (조건 기반: 관심 분야 · 학생 유형 · 마감 임박) ── */
+  const INTEREST_OPTS = [...new Set([...D.contestCats, ...D.clubCats])];
+  function recos() {
+    const P0 = S.profile, out = [];
+    const k = D.contests.filter((x) => P0.interests.includes(x.cat) && dday(x.deadline) >= 0).sort((a, b) => a.deadline.localeCompare(b.deadline))[0];
+    if (k) out.push({ kind: '공모전', title: k.title, why: `관심 분야 ‘${k.cat}’ · 마감 D-${dday(k.deadline)}`, href: `#contests-${k.id}`, ic: 'trophy' });
+    const t = allTeams().find((x) => !x.closed && openSlots(x) > 0 && !inTeam(x) && x.contest && findContest(x.contest) && P0.interests.includes(findContest(x.contest).cat));
+    if (t) out.push({ kind: '팀원 모집', title: t.title, why: `관심 분야 공모전 · ${openSlots(t)}자리 남음`, href: `#teams-${t.id}`, ic: 'users' });
+    const c = D.clubs.find((x) => P0.interests.includes(x.cat) && x.recruit.status !== 'closed' && !isMember(x));
+    if (c) out.push({ kind: '동아리', title: c.name, why: `관심 분야 ‘${c.cat}’ · ${esc(c.day)}${c.welcome.includes(S.stype) ? ` · ${S.stype} 환영` : ''}`, href: `#clubs-${c.id}`, ic: 'users' });
+    const e = D.events.filter((x) => x.date >= TODAY && x.for.includes(S.stype)).sort((a, b) => a.date.localeCompare(b.date))[0];
+    if (e) out.push({ kind: '행사', title: e.title, why: `${S.stype} 추천 · ${dayInfo(e.date).m}/${dayInfo(e.date).d} ${e.time.split('–')[0]}`, href: `#event-${e.id}`, ic: 'calendar' });
+    const g = allG().filter((x) => gStatus(x) === 'recruit' && !x.mine && !myM(x)).sort((a, b) => a.closeAt - b.closeAt)[0];
+    if (g) out.push({ kind: g.type === 'taxi' ? '택시' : '배달', title: gTitle(g), why: `곧 마감 · ${until(g.closeAt)} 남음`, href: `#${g.type}-${g.id}`, ic: g.type === 'taxi' ? 'car' : 'utensils' });
+    return out;
+  }
+  function recoSection() {
+    const list = recos(); if (!list.length) return '';
+    return `<section class="section" aria-labelledby="h-reco"><div class="section-head"><h2 id="h-reco">나에게 맞는 추천</h2><button class="more" data-act="profile-edit">관심 분야 바꾸기${icon('right', 16)}</button></div>
+      <div class="hscroll reco-h">${list.map((r) => `<a class="reco-card" href="${r.href}"><span class="reco-kind">${icon(r.ic, 14)}${r.kind}</span><b>${esc(r.title)}</b><span class="small muted">${r.why}</span></a>`).join('')}</div></section>`;
+  }
+  function openProfileEdit() {
+    const P0 = S.profile;
+    openModal(modalBox('프로필 수정', `<form data-form="profile" class="grid" style="gap:14px">
+      <div class="field"><span class="field-label">관심 분야 (추천에 쓰여요)</span><div class="opts">${INTEREST_OPTS.map((x) => `<label class="opt sm"><input type="checkbox" name="interests" value="${x}" ${P0.interests.includes(x) ? 'checked' : ''}><span>${x}</span></label>`).join('')}</div></div>
+      <div class="field"><label for="pf-skills">보유 역량 (쉼표로 구분)</label><input class="input" id="pf-skills" name="skills" value="${esc(P0.skills.join(', '))}" placeholder="예) Figma, 엑셀, 영상 편집"></div>
+      <div class="form-grid two"><div class="field"><label for="pf-time">활동 가능 시간</label><select class="select" id="pf-time" name="time">${['평일 낮', '평일 저녁', '주말', '언제든'].map((x) => `<option ${x === P0.time ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label for="pf-area">활동 지역</label><select class="select" id="pf-area" name="area">${['교내', '대소원면', '충주 시내'].map((x) => `<option ${x === P0.area ? 'selected' : ''}>${x}</option>`).join('')}</select></div></div>
+      <p class="small muted">학교·학과·학년·학생 유형(${esc(S.stype)})은 인증 정보와 첫 실행 소개에서 가져와요.</p>
+      <p class="error-text" id="pf-err" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" type="submit">저장</button></div></form>`));
+  }
+
+  /* ── 운영자 데모 화면: 실제 서비스에서는 운영자 계정으로만 열려요 ── */
+  function pageAdmin(tab = 'reports') {
+    const reps = [...S.reports.map((r) => ({ ...r, key: r.id || r.target + r.date, who: '나 (이 기기)' })), ...D.adminReports.map((r) => ({ ...r, key: r.id }))];
+    const pend = reps.filter((r) => !S.reportActs[r.key]).length;
+    const gs = [...S.myGath, ...SAMPLE_G];
+    const expired = gs.filter((g) => gStatus(g) === 'expired').length, live = gs.filter((g) => ['recruit', 'full'].includes(gStatus(g))).length;
+    const crPend = S.contestReports.filter((r) => r.status === '운영자 검토 중').length;
+    const tabs = [['reports', `신고 처리 ${pend}`], ['posts', '모집글 관리'], ['contests', `공모전 제보 ${crPend}`], ['users', '사용자 관리']];
+    let body = '';
+    if (tab === 'posts') {
+      body = `<p class="small muted" style="margin-bottom:8px">마감 시간이 지나면 자동으로 ‘만료’ 또는 ‘진행 중’으로 바뀌어요. 지금 자동 종료된 글 ${expired}건.</p>` + gs.map((g) => `<div class="list-row"><span class="lr-art" style="background:${g.type === 'taxi' ? '#FFF1C2' : '#FFE9C9'}">${icon(g.type === 'taxi' ? 'car' : 'utensils', 20)}</span><span class="lr-body"><b>${esc(gTitle(g))}</b><span class="small muted">${esc(g.leader.nick)} · ${gCount(g)}/${g.cap}명 ${S.hiddenG.includes(g.id) ? '· <b style="color:var(--coral-800)">숨김</b>' : ''}</span></span>${stChip(g)}<button class="btn btn-sm ${S.hiddenG.includes(g.id) ? 'btn-outline' : 'btn-ghost-danger'}" data-act="adm-hide" data-id="${g.id}">${S.hiddenG.includes(g.id) ? '숨김 해제' : '숨기기'}</button></div>`).join('');
+    } else if (tab === 'contests') {
+      body = S.contestReports.length ? S.contestReports.map((r) => `<div class="adm-item"><div><b>${esc(r.title)}</b><p class="small muted">${esc(r.host)} · ${esc(r.cat)} · 마감 ${fmtDate(r.deadline)}</p><p class="small">공식 공지: <span class="url">${esc(r.url)}</span></p>${r.memo ? `<p class="small">“${esc(r.memo)}”</p>` : ''}</div>
+        ${r.status === '운영자 검토 중' ? `<div class="pd-btns"><button class="btn btn-sm btn-ghost" data-act="adm-contest" data-id="${r.id}" data-v="no">반려</button><button class="btn btn-sm btn-primary" data-act="adm-contest" data-id="${r.id}" data-v="ok">확인 · 공개</button></div>` : `<span class="badge ${r.status === '공개됨' ? 'b-school' : 'b-gray'}">${r.status}</span>`}</div>`).join('')
+        : `<div class="empty">${icon('send', 32)}<b>들어온 제보가 없어요</b>공모전 목록 아래 ‘공모전 제보하기’로 먼저 보내 보세요.</div>`;
+      body = `<p class="small muted" style="margin-bottom:8px">공식 공지 주소를 열어 주최·기간이 맞는지 확인한 뒤 공개해요. 다른 사이트 글을 그대로 옮긴 제보는 반려해요.</p>` + body;
+    } else if (tab === 'users') {
+      const users = [...D.adminUsers, { nick: D.me.nick, cancels: S.cancels, reports: 0, trust: myTrust(), note: `확정 후 취소 ${S.cancels}회 (이 기기 사용자)` }];
+      body = `<p class="small muted" style="margin-bottom:8px">운영 정책 초안: 확정 후 취소 ${CANCEL_LIMIT}회 이상이거나 신고가 확인되면 7일간 생활 매칭 참여를 제한해요.</p>` + users.map((u) => `<div class="list-row">${avatar(u.nick)}<span class="lr-body"><b>${esc(u.nick)}</b><span class="small muted">${esc(u.note)} · 신뢰도 ${u.trust}</span></span>${u.cancels >= CANCEL_LIMIT || u.reports >= 3 ? '<span class="badge b-coral">주의</span>' : ''}<button class="btn btn-sm ${S.restricted[u.nick] ? 'btn-outline' : 'btn-ghost-danger'}" data-act="adm-restrict" data-nick="${esc(u.nick)}">${S.restricted[u.nick] ? '제한 해제' : '7일 제한'}</button></div>`).join('');
+    } else {
+      body = reps.length ? reps.map((r) => { const done = S.reportActs[r.key]; return `<div class="adm-item"><div><b>${esc(r.target)}</b><p class="small muted">${esc(r.reason)} · ${r.date} · 신고자 ${esc(r.who)}</p>
+        <p class="small">전달됨: ${D.staff.map((x) => `<span class="chip sm-chip">${x.name}</span>`).join(' ')}</p></div>
+        ${done ? `<span class="badge b-school">${esc(done)}</span>` : `<div class="pd-btns wrap">${['글 숨김', '경고', '7일 이용 제한', '반려'].map((v) => `<button class="btn btn-sm ${v === '반려' ? 'btn-ghost' : 'btn-outline'}" data-act="adm-report" data-key="${esc(r.key)}" data-v="${v}">${v}</button>`).join('')}</div>`}</div>`; }).join('')
+        : '<p class="small muted">신고가 없어요.</p>';
+    }
+    return `<div class="page-head"><div><h1>운영자 화면 <span class="badge b-review">데모</span></h1><p>실제 서비스에서는 <b>운영자 계정으로만</b> 열려요. 발표용으로 누구나 볼 수 있게 열어 뒀어요.</p></div></div>
+      <div class="adm-stats"><div><small>처리 대기 신고</small><b>${pend}</b></div><div><small>공모전 제보 대기</small><b>${crPend}</b></div><div><small>모집 중 글</small><b>${live}</b></div><div><small>자동 만료</small><b>${expired}</b></div></div>
+      <div class="info-box" style="margin:12px 0">${icon('users', 18)}<span>신고가 들어오면 <b>담당자 전원</b>(${D.staff.map((x) => `${x.name}: ${x.area}`).join(' · ')})에게 동시에 알림이 가요.</span></div>
+      <section class="card pad"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="tab ${tab === k ? 'active' : ''}" role="tab" aria-selected="${tab === k}" data-act="adm-tab" data-v="${k}">${l}</button>`).join('')}</div>${body}</section>`;
+  }
+
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
       <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
@@ -1480,6 +1580,10 @@
           <div class="profile-top">${avatar(D.me.nick, 'lg')}<div><b style="font-size:18px">${D.me.nick}</b><div class="meta">${D.school.name} · ${s.dept} · ${q('grade').opts[s.grade]}</div><div class="meta">가입 ${D.me.joined}</div></div></div>
           <div class="status-box ${S.verified ? 'on' : 'off'}">${icon(S.verified ? 'shield' : 'alert', 24)}<div><b>${S.verified ? '학교 인증 완료' : '학교 인증 전'}</b><span>${S.verified ? esc(S.email) : '둘러보기만 가능해요'}</span></div>${S.verified ? '' : '<a class="btn btn-sm btn-primary" href="#verify">인증하기</a>'}</div>
           ${S.verified && !S.idVerified ? `<button class="btn btn-outline btn-block" style="margin-top:10px" data-act="id-verify">${icon('id', 18)}신원 인증 추가하기 (휴대폰)</button>` : ''}
+          <div class="profile-more"><div class="pm-row"><small>관심 분야</small><span>${S.profile.interests.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
+            <div class="pm-row"><small>보유 역량</small><span>${S.profile.skills.map((x) => `<span class="chip sm-chip">${esc(x)}</span>`).join('') || '<span class="muted small">없음</span>'}</span></div>
+            <div class="pm-row"><small>활동 시간 · 지역</small><span class="small"><b>${esc(S.profile.time)}</b> · ${esc(S.profile.area)}</span></div>
+            <button class="btn btn-outline btn-sm" data-act="profile-edit">${icon('edit', 15)}프로필 수정 · 추천에 반영돼요</button></div>
         </section>
         <section class="card pad">
           <h2 class="block-title">신뢰도 점수</h2>
@@ -1498,7 +1602,7 @@
         <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<a class="tab ${tab === k ? 'active' : ''}" role="tab" aria-selected="${tab === k}" href="#my-${k}">${l}</a>`).join('')}</div>
         ${body}
         <div class="divider"></div>
-        <button class="btn btn-sm btn-ghost" data-act="reset">${icon('refresh', 15)}데모 데이터 초기화</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-ghost" data-act="reset">${icon('refresh', 15)}데모 데이터 초기화</button><a class="btn btn-sm btn-ghost" href="#admin">${icon('shield', 15)}운영자 데모 화면</a></div>
       </section>
     </div>`;
   }
@@ -1921,7 +2025,7 @@
       <button class="btn btn-primary btn-lg btn-block" type="submit">제안 보내기</button></form>`));
   }
   function openMenu() {
-    const items = [['#clubs', 't-lav', 'calendar', '동아리·행사', '모집 · 행사 캘린더'], ['#contests', 't-yellow', 'trophy', '프로젝트·공모전', '공모전 · 팀원 모집'], ['#community', 't-mint', 'chats', '커뮤니티', '팁 · 질문 · 분실물'], ['#my', 't-sky', 'user', '마이페이지', '인증 · 활동 내역']];
+    const items = [['#clubs', 't-lav', 'calendar', '동아리·행사', '모집 · 행사 캘린더'], ['#contests', 't-yellow', 'trophy', '프로젝트·공모전', '공모전 · 팀원 모집'], ['#taxi', 't-pink', 'car', '생활 매칭', '택시 · 배달 · 중고'], ['#rooms', 't-peach', 'door', '주거', '방 · 룸메'], ['#community', 't-mint', 'chats', '커뮤니티', '팁 · 질문 · 후기'], ['#search', 't-sky', 'search', '통합 검색', '한 번에 찾기'], ['#my', 't-sky', 'user', '마이페이지', '인증 · 활동 내역'], ['#admin', 't-lav', 'shield', '운영자 화면', '데모']];
     openModal(modalBox('전체 메뉴', `<nav class="menu-grid" aria-label="전체 메뉴">${items.map(([h, c, ic, t, s]) => `<a class="${c}" href="${h}" data-act="close-go"><span class="tile-ic" style="position:static">${icon(ic, 20)}</span><b>${t}</b><span>${s}</span></a>`).join('')}</nav>`));
   }
   function teamsMyBody() {
@@ -2048,6 +2152,8 @@
       case 'write': html = pageWrite(a); nav = 'community'; break;
       case 'clubs': html = a ? (cta = true, pageClub(a)) : pageClubs(); break;
       case 'events': html = pageEvents(); nav = 'clubs'; break;
+      case 'search': html = pageSearch(); nav = 'home'; break;
+      case 'admin': html = pageAdmin(a); nav = 'my'; break;
       case 'event': html = pageEvent(a); nav = 'clubs'; break;
       case 'clubroom': html = pageClubRoom(a); nav = 'clubs'; break;
       case 'contests': html = a === 'new' ? pageContestNew() : a ? (cta = true, pageContest(a)) : pageContests(); nav = 'teams'; break;
@@ -2083,13 +2189,15 @@
 
   const actSwitch = (active) => `<nav class="seg nav housing-tabs hub-switch" aria-label="활동 메뉴">${[['contests', '공모전·팀', 'trophy'], ['clubs', '동아리', 'users'], ['events', '행사', 'calendar']].map(([k, l, ic]) => `<a href="#${k}" class="${active === k ? 'active' : ''}" ${active === k ? 'aria-current="page"' : ''}>${icon(ic, 16)}${l}</a>`).join('')}</nav>`;
   function renderChrome(nav) {
+    lastNav = nav;
     $$('.desk-nav a').forEach((a) => { const on = a.dataset.nav === nav; a.classList.toggle('active', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
     const tabs = [['home', 'home', '홈', 'home'], ['rooms', 'door', '주거', 'rooms'], ['contests', 'trophy', '활동', 'act'], ['taxi', 'car', '생활', 'life'], ['my', 'user', 'MY', 'my']];
     const tabNav = nav === 'community' ? 'home' : ['teams', 'clubs'].includes(nav) ? 'act' : nav;
     $('#tabbar').innerHTML = `<div class="tabbar-pill">${tabs.map(([k, ic, l, n]) => `<a href="#${k}" class="${tabNav === n ? 'active' : ''}" aria-label="${l}" ${tabNav === n ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span class="tl" aria-hidden="true">${l}</span></a>`).join('')}</div>`;
     $('#top-actions').innerHTML = `
       <button class="icon-btn mobile-only" data-act="menu" aria-label="전체 메뉴">${icon('grid', 22)}</button>
-      <button class="icon-btn" data-act="notif" aria-label="알림 3개">${icon('bell', 22)}<span class="dot"></span></button>
+      <a class="icon-btn" href="#search" aria-label="통합 검색">${icon('search', 22)}</a>
+      ${(() => { const n = S.notifs.filter((x) => !x.read).length; return `<button class="icon-btn" data-act="notif" aria-label="알림${n ? ` · 읽지 않은 알림 ${n}개` : ''}">${icon('bell', 22)}${n ? `<span class="nbadge">${n > 9 ? '9+' : n}</span>` : ''}</button>`; })()}
       ${S.verified ? `<a class="verify-pill on" href="#my">${icon('shield', 16)}<span class="vp-txt">인증 완료</span></a>` : `<a class="verify-pill off" href="#verify">${icon('shield', 16)}<span class="vp-txt">학교 인증</span></a>`}`;
   }
 
@@ -2157,9 +2265,17 @@
       <p class="small muted" style="margin-top:8px">후기는 상대방도 후기를 남긴 뒤 동시에 공개돼요 (상호 후기).</p>
       <div class="modal-actions"><button class="btn btn-primary btn-lg" type="submit">후기 보내기</button></div></form>`));
   }
+  /* ── 알림 센터: 승인·수락·처리 결과처럼 실제로 일어난 일을 쌓아요 ── */
+  const relTime = (at) => { const m = Math.round((Date.now() - at) / 60000); return m < 1 ? '방금' : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m / 60)}시간 전` : `${Math.floor(m / 1440)}일 전`; };
+  let lastNav = 'home';
+  function notify(text, ic = 'bell', href = '#my') {
+    S.notifs.unshift({ text, ic, href, at: Date.now() }); S.notifs = S.notifs.slice(0, 30); save(); renderChrome(lastNav);
+  }
   function openNotif() {
-    const list = [['heart', '도서관지박령님이 회원님에게 관심을 보냈어요', '10분 전', '#roommate-m1'], ['door', '찜한 ‘정문 도보 5분 풀옵션 원룸’ 월세가 2만 원 내렸어요', '1시간 전', '#rooms-r1'], ['chat', '내 게시글에 새 댓글이 달렸어요', '어제', '#post-p1']];
-    openModal(modalBox('알림', `<div>${list.map(([ic, t, w, h]) => `<a class="list-row" href="${h}" data-act="close-go"><span class="lr-art" style="width:42px;height:42px;background:var(--blue-50);color:var(--navy-800)">${icon(ic, 20)}</span><span class="lr-body"><span style="font-size:14px;font-weight:600">${t}</span><br><span class="small muted">${w}</span></span></a>`).join('')}</div>`));
+    const list = S.notifs;
+    list.forEach((n) => { n.read = true; }); save(); renderChrome(lastNav);
+    openModal(modalBox('알림', list.length ? `<div>${list.map((n) => `<a class="list-row" href="${n.href}" data-act="close-go"><span class="lr-art" style="width:42px;height:42px;background:var(--blue-50);color:var(--navy-800)">${icon(n.ic, 20)}</span><span class="lr-body"><span style="font-size:14px;font-weight:600">${esc(n.text)}</span><br><span class="small muted">${relTime(n.at)}</span></span></a>`).join('')}</div>`
+      : `<div class="empty">${icon('bell', 36)}<b>새 알림이 없어요</b></div>`));
   }
 
   /* chat */
@@ -2228,6 +2344,27 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 'sq': { searchQ = el.dataset.v; const i = $('#g-search'); if (i) i.value = searchQ; $('#search-results').innerHTML = searchResults(searchQ); break; }
+      case 'profile-edit': openProfileEdit(); break;
+      case 'adm-tab': location.hash = '#admin-' + el.dataset.v; break;
+      case 'adm-report': {
+        const key = el.dataset.key, res = el.dataset.v; S.reportActs[key] = res; save();
+        const mine = S.reports.find((r) => (r.id || r.target + r.date) === key);
+        if (mine) notify(`신고하신 ‘${mine.target}’를 처리했어요: ${res}`, 'flag', '#my-reports');
+        route(); toast(`처리했어요: ${res}`, 'check'); break;
+      }
+      case 'adm-hide': { const on = toggleIn(S.hiddenG, id); save(); route(); toast(on ? '모집글을 숨겼어요. 참여자에게 안내가 가요' : '숨김을 풀었어요', on ? 'ban' : 'check'); break; }
+      case 'adm-restrict': { const nk = el.dataset.nick; S.restricted[nk] = !S.restricted[nk]; save(); route(); toast(S.restricted[nk] ? `${nk}님의 참여를 7일간 제한했어요` : `${nk}님의 제한을 풀었어요`, S.restricted[nk] ? 'ban' : 'check'); break; }
+      case 'adm-contest': {
+        const r = S.contestReports.find((x) => x.id === id); if (!r) return;
+        if (el.dataset.v === 'ok') {
+          const k = { id: 'kr' + Date.now(), title: r.title, host: r.host, org: r.host, cat: r.cat, emoji: '📣', color: '#E4DEFF', start: TODAY, deadline: r.deadline, prize: '공식 공지 참고', top: '공식 공지 참고', team: '공식 공지 참고', target: '대학생',
+            scraps: 0, views: 1, campus: false, benefits: ['자세한 내용은 공식 공지에서 확인하세요'], desc: `${r.memo || '학생이 제보한 공모전이에요.'}\n공식 공지: ${r.url}`, reported: true };
+          S.approvedContests.unshift(k); D.contests.unshift(k); r.status = '공개됨'; r.kid = k.id;
+          notify(`제보하신 ‘${r.title}’가 공모전 목록에 올라갔어요`, 'trophy', `#contests-${k.id}`);
+        } else { r.status = '반려 · 공식 공지 확인 불가'; notify(`제보하신 ‘${r.title}’는 공식 공지를 확인하지 못해 반려됐어요`, 'x', '#my-teams'); }
+        save(); route(); toast(el.dataset.v === 'ok' ? '공모전을 공개했어요' : '제보를 반려했어요', 'check'); break;
+      }
       case 'croom-chat': openClubChat(findClub(id)); break;
       case 'club-leave': { const c = findClub(id); delete S.applied[c.id]; save(); location.hash = '#clubs-' + c.id; toast(`${c.name}에서 나왔어요`, 'x'); break; }
       case 'em-new': if (needVerify('함께 갈 사람 모집')) return; openEmNew(findEvent(id)); break;
@@ -2236,7 +2373,7 @@
         const m = findMate(id); if (!m || emStatus(m) !== 'recruit') return toast('지금은 신청할 수 없어요', 'x');
         if (emM(m) && emM(m).status !== 'left') return toast('이미 신청했어요', 'check');
         S.emj[m.id] = { status: 'applied' }; save(); route(); toast('함께 가기를 신청했어요. 모집자가 수락하면 알려 드릴게요', 'send');
-        setTimeout(() => { const j = S.emj[m.id]; if (!j || j.status !== 'applied') return; j.status = emPeople(m).length < m.cap ? 'approved' : 'rejected'; save();
+        setTimeout(() => { const j = S.emj[m.id]; if (!j || j.status !== 'applied') return; j.status = emPeople(m).length < m.cap ? 'approved' : 'rejected'; save(); if (j.status === 'approved') notify(`${m.leader.nick}님과 ‘${findEvent(m.event).title}’에 함께 가요`, 'calendar', `#event-${m.event}`);
           toast(j.status === 'approved' ? `${m.leader.nick}님이 수락했어요 · ${m.meet}에서 만나요` : '아쉽게도 자리가 먼저 찼어요', j.status === 'approved' ? 'users' : 'x'); if (!slot.innerHTML) route(); }, 1800);
         break;
       }
@@ -2265,6 +2402,7 @@
       case 'g-apply': {
         if (needVerify('생활 매칭 참여')) return;
         const g = findG(id); if (!g) return;
+        if (S.restricted[D.me.nick]) return toast('운영자가 7일간 생활 매칭 참여를 제한했어요', 'ban');
         if (S.cancels >= CANCEL_LIMIT) return toast(`확정 후 취소가 ${CANCEL_LIMIT}회 이상이라 7일간 참여할 수 없어요 (운영 정책 초안)`, 'ban');
         if (gStatus(g) !== 'recruit') return toast('지금은 참여할 수 없는 모집글이에요', 'x');
         if (myM(g) && myM(g).status !== 'left') return toast('이미 신청한 모집글이에요', 'check');
@@ -2272,7 +2410,7 @@
         S.gm[g.id] = { status: 'applied', items: [], at: Date.now() }; save(); route();
         toast('참여를 신청했어요. 모집자가 승인하면 알려 드릴게요', 'send');
         setTimeout(() => { const m = S.gm[g.id]; if (!m || m.status !== 'applied') return;
-          if (gCount(g) < g.cap && Date.now() < g.closeAt) { m.status = 'approved'; toast(`${g.leader.nick}님이 참여를 승인했어요${g.type === 'delivery' ? ' · 메뉴를 담아 주세요' : ''}`, 'check'); }
+          if (gCount(g) < g.cap && Date.now() < g.closeAt) { m.status = 'approved'; notify(`${g.leader.nick}님이 ‘${gTitle(g)}’ 참여를 승인했어요`, g.type === 'taxi' ? 'car' : 'utensils', `#${g.type}-${g.id}`); toast(`${g.leader.nick}님이 참여를 승인했어요${g.type === 'delivery' ? ' · 메뉴를 담아 주세요' : ''}`, 'check'); }
           else { m.status = 'rejected'; toast('아쉽게도 정원이 먼저 찼어요', 'x'); }
           save(); if (!slot.innerHTML) route(); }, 1800);
         break;
@@ -2298,7 +2436,7 @@
       case 'g-close': { const g = findG(id); g.closeAt = Date.now(); g.closed = true; g.pending = []; save(); route(); toast(gCount(g) >= 2 ? '주문을 마감했어요. 배달앱에서 주문해 주세요' : '참여자가 없어 모집이 종료됐어요', 'clock'); break; }
       case 'g-ordered': { const g = findG(id); g.ordered = true; save(); route(); toast('참여자들에게 주문 완료를 알렸어요', 'send'); break; }
       case 'g-delist': { const g = findG(id); g.canceled = true; g.pending = []; save(); route(); toast('모집을 취소했어요. 참여자에게 알림이 가요', 'x'); break; }
-      case 'm-accept': { const m = S.matches[el.dataset.key]; m.stage = 'acc'; if (m.kind === '룸메' && !S.interests.includes(m.id)) S.interests.push(m.id); save(); route(); toast(`${m.with}님이 연락 요청을 수락했어요. 이제 채팅할 수 있어요`, 'heart'); break; }
+      case 'm-accept': { const m = S.matches[el.dataset.key]; m.stage = 'acc'; notify(`${m.with}님이 연락 요청을 수락했어요`, 'heart', '#my-matches'); if (m.kind === '룸메' && !S.interests.includes(m.id)) S.interests.push(m.id); save(); route(); toast(`${m.with}님이 연락 요청을 수락했어요. 이제 채팅할 수 있어요`, 'heart'); break; }
       case 'm-met': { const m = S.matches[el.dataset.key]; m.stage = 'met'; m.metAt = nowTime(); save(); route(); openMatchReview(m.key); break; }
       case 'm-review': openMatchReview(el.dataset.key); break;
       case 'close-go': slot.innerHTML = ''; document.body.style.overflow = ''; chat = null; break;
@@ -2442,6 +2580,7 @@
     if (e.target.id === 'room-sort') { RF.sort = e.target.value; updateRooms(); }
   };
   document.addEventListener('input', onFilterInput);
+  document.addEventListener('input', (e) => { if (e.target.id === 'g-search') { searchQ = e.target.value; const box = $('#search-results'); if (box) box.innerHTML = searchResults(searchQ); } });
   document.addEventListener('change', (e) => {
     onFilterInput(e);
     if (e.target.id === 'k-sort') { KF.sort = e.target.value; route(); }
@@ -2480,8 +2619,8 @@
         S.verified = true; S.email = V.email; V.step = 3; save(); route(); toast('학교 인증을 완료했어요!', 'shield'); break;
       }
       case 'report': {
-        S.reports.unshift({ target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
-        closeModal(); toast('신고가 접수됐어요. 24시간 안에 검토할게요', 'flag'); break;
+        S.reports.unshift({ id: 'ur' + Date.now(), target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
+        closeModal(); toast(`신고가 접수됐어요. 담당자 ${D.staff.length}명 모두에게 전달했어요`, 'flag'); break;
       }
       case 'cpost': {
         const text = String(fd.get('text') || '').trim(); if (!text) return;
@@ -2502,6 +2641,12 @@
         if (FRAUD.test(text)) { toast('계좌·외부 연락처 관련 문구는 올릴 수 없어요', 'alert'); return; }
         (S.evReviews[id2] = S.evReviews[id2] || []).push({ from: D.me.nick, stars: +fd.get('stars'), text: text || '좋았어요!', tags: fd.getAll('tags'), mine: true });
         save(); route(); toast('행사 후기를 남겼어요. 다음 참가자에게 큰 도움이 돼요', 'star'); break;
+      }
+      case 'profile': {
+        const interests = fd.getAll('interests');
+        if (!interests.length) { $('#pf-err').textContent = '관심 분야를 하나 이상 골라 주세요.'; return; }
+        S.profile = { interests, skills: String(fd.get('skills') || '').split(',').map((x) => x.trim()).filter(Boolean).slice(0, 8), time: fd.get('time'), area: fd.get('area') };
+        save(); closeModal(); route(); toast('프로필을 저장했어요. 홈 추천이 바뀌었어요', 'sparkle'); break;
       }
       case 'task': {
         const text = String(fd.get('text') || '').trim(); if (!text) return;
@@ -2671,6 +2816,7 @@
         toast('지원서를 보냈어요. 팀장이 검토하면 알려 드릴게요 (데모: 잠시 뒤 결과)', 'send');
         setTimeout(() => { const a = S.teamApplied[tid], t = findTeam(tid); if (!a || a.status !== '검토 중' || !t) return;
           const left = t.positions.find((p) => p.role === role); a.status = left && left.need > left.got ? '합류' : '거절'; save();
+          notify(a.status === '합류' ? `‘${t.title}’ 팀에 ${role}(으)로 합류했어요 · 팀 공간이 열렸어요` : `‘${t.title}’ 팀 지원 결과: 자리가 먼저 찼어요`, 'users', a.status === '합류' ? `#teamroom-${t.id}` : `#teams-${t.id}`);
           toast(a.status === '합류' ? `${t.leader.nick}님이 승인했어요! 팀 공간이 열렸어요` : '아쉽게도 자리가 먼저 찼어요', a.status === '합류' ? 'users' : 'x');
           if (!slot.innerHTML) route(); }, 2200);
         break;
@@ -2690,7 +2836,7 @@
         if (!fd.getAll('days').length) { $('#ap-err').textContent = '활동 가능한 요일을 하나 이상 골라 주세요.'; return; }
         S.stype = fd.get('stype') || S.stype; S.applied[c.id] = '서류 검토 중'; save(); closeModal(); route();
         toast(`${c.name}에 지원했어요. 운영진이 확인하면 알려 드릴게요 (데모: 잠시 뒤 결과)`, 'send');
-        setTimeout(() => { if (S.applied[c.id] !== '서류 검토 중') return; S.applied[c.id] = '가입 승인'; save();
+        setTimeout(() => { if (S.applied[c.id] !== '서류 검토 중') return; S.applied[c.id] = '가입 승인'; save(); notify(`${c.name} 가입이 승인됐어요 · 동아리 공간이 열렸어요`, 'users', `#clubroom-${c.id}`);
           toast(`${c.name} 운영진이 가입을 승인했어요! 동아리 공간이 열렸어요`, 'users'); if (!slot.innerHTML) route(); }, 2400);
         break;
       }
@@ -2718,6 +2864,7 @@
   window.addEventListener('hashchange', onHash);
   if (!location.hash) history.replaceState(null, '', '#home');
   lastHash = location.hash;
+  S.approvedContests.forEach((k) => { if (!D.contests.some((x) => x.id === k.id)) D.contests.unshift(k); });
   syncMatches();
   route();
   if (!S.onboarded) openOnboard();

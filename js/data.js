@@ -174,8 +174,18 @@ window.CM_DATA = (() => {
   ];
 
   /* ── 커뮤니티 ── */
-  const boards = { free: '자유게시판', tips: '자취·기숙사 팁', qna: '질문답변', study: '스터디 모집', lost: '분실물' };
+  const boards = { free: '자유게시판', school: '교통대 게시판', tips: '자취·기숙사 팁', qna: '질문답변', study: '스터디 모집', lost: '분실물', rvHouse: '주거 후기', rvContest: '공모전 후기', rvClub: '동아리·행사 후기', rvLife: '택시·배달 후기' };
   const posts = [
+    { id: 'p20', board: 'rvHouse', anon: true, author: 'anon-p20', title: '본리 원룸 양도받은 후기 · 계약 전에 이것만은 꼭', time: '3시간 전', likes: 41, views: 612, comments: [],
+      body: '이음에서 양도 글 보고 직접 방 보러 갔어요. 집주인 동의 배지가 있어서 안심했는데, 그래도 등기부등본은 따로 떼어 봤어요.\n보증금은 집주인 계좌로 계약서 쓴 뒤에 보냈고요. 실거래 시세보다 2만 원 싸게 들어갔어요!' },
+    { id: 'p21', board: 'rvLife', anon: true, author: 'anon-p21', title: '금요일 터미널 택시 동행 3번째 후기', time: '어제', likes: 28, views: 330, comments: [],
+      body: '정문에서 터미널까지 셋이 타면 커피 한 잔 값이에요. 미터기 금액 사진 찍어서 채팅방에 올리고 나누니까 깔끔했어요.' },
+    { id: 'p22', board: 'rvContest', anon: false, author: '데이터분석하자', title: '공공데이터 공모전 팀 꾸려서 본선까지 간 이야기', time: '2일 전', likes: 56, views: 801, comments: [],
+      body: '팀원 모집 글에 역할을 자세히 적은 게 컸어요. 첫 회의에서 할 일 목록을 같이 만들고 매주 체크했더니 아무도 빠지지 않았어요.' },
+    { id: 'p23', board: 'rvClub', anon: true, author: 'anon-p23', title: '복학생인데 동아리 들어가도 될까 고민했던 사람', time: '3일 전', likes: 73, views: 1102, comments: [],
+      body: '박람회 때 함께 갈 사람 모집으로 만난 분이랑 같이 부스 돌았는데, 생각보다 복학생 많아요. 걱정 말고 지원해 보세요.' },
+    { id: 'p24', board: 'school', anon: true, author: 'anon-p24', title: '기말 기간 중앙도서관 열람실 몇 시까지 여나요?', time: '5시간 전', likes: 12, views: 240, comments: [],
+      body: '작년엔 시험 기간에 연장 운영했던 것 같은데 올해도 그런지 아시는 분?' },
     { id: 'p1', board: 'tips', anon: true, author: 'anon-p1', title: '생활관 2인실 소음 줄이는 꿀템 정리 (실사용 후기)', time: '25분 전', likes: 87, views: 1204,
       body: '1년 동안 써보고 효과 있었던 것만 정리했어요.\n\n1. 문풍지 + 도어 스토퍼 — 복도 소리 확 줄어요\n2. 무소음 키보드/마우스 — 룸메가 고마워함\n3. 진동 알람 손목밴드 — 아침 알람 분쟁 종결\n4. 침대 커튼 — 조명 분리돼서 늦게 자도 덜 미안해요\n\n다들 쓰는 템 있으면 댓글로 공유해 주세요!',
       comments: [{ id: 'c1', anon: true, author: 'anon-c1', text: '진동 알람 진짜 인정합니다… 룸메랑 싸울 일이 사라졌어요', time: '20분 전', likes: 12 }, { id: 'c2', anon: false, author: '백록관3년차', text: '침대 커튼 어디서 사셨어요?', time: '15분 전', likes: 3 }, { id: 'c3', anon: true, author: 'anon-p1', text: '글쓴이) 온라인에서 기숙사 침대 커튼 검색하면 2만원대에 있어요!', time: '10분 전', likes: 5 }] },
@@ -425,5 +435,18 @@ window.CM_DATA = (() => {
       { from: '익명', stars: 4, text: '사람이 많아서 줄이 길었지만 분위기는 좋았어요.', tags: ['사람 많아요'] }],
   };
 
-  return { eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  /* ── 운영자 데모 화면용 예시 ── */
+  const staff = [{ name: '주거 담당', area: '방·룸메' }, { name: '생활 담당', area: '택시·배달·중고' }, { name: '활동 담당', area: '공모전·동아리·행사' }, { name: '커뮤니티 담당', area: '게시판·채팅' }];
+  const adminReports = [
+    { id: 'ar1', target: '택시 동행 · 정문 → 충주역', reason: '모집자가 출발 전 선입금을 요구했어요', date: '2026.11.10', who: '익명 학생' },
+    { id: 'ar2', target: '공동 주문 · 정문 치킨', reason: '음식을 받고 정산 금액을 보내지 않았어요 (미입금)', date: '2026.11.09', who: '익명 학생' },
+    { id: 'ar3', target: '커뮤니티 · “족보 팝니다 오픈채팅 문의”', reason: '스팸·광고 · 외부 메신저 유도', date: '2026.11.09', who: '익명 학생' },
+  ];
+  const adminUsers = [
+    { nick: '번개취소러', cancels: 4, reports: 1, trust: 58, note: '확정 후 취소 4회 (택시 3 · 배달 1)' },
+    { nick: '선입금주세요', cancels: 0, reports: 3, trust: 41, note: '신고 3회 · 선입금 요구 의심' },
+    { nick: '새벽감성러', cancels: 1, reports: 0, trust: 63, note: '신뢰도 70점 미만 · 교내 만남만 가능' },
+  ];
+
+  return { staff, adminReports, adminUsers, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();
