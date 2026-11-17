@@ -68,7 +68,7 @@
     verified: false, email: '', idVerified: false,
     survey: JSON.parse(JSON.stringify(D.mySurvey)), weights: { ...D.myWeights },
     interests: [], favRooms: [], favItems: [], blocked: [], reports: [],
-    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0,
+    myRooms: [], myItems: [], myPosts: [], comments: {}, likedPosts: [], reviewed: [], trustBonus: 0, chats: {}, followClubs: [], applied: {}, going: [], clubQ: {}, stype: '신입생', scrapContests: [], teamApplied: {}, myTeams: [], myCard: null, proposals: [], matches: {}, gm: {}, myGath: [], settle: {}, cancels: 0, teamTasks: {}, teamPosts: {}, teamDone: {}, contestReports: [],
   });
   let S = load();
   function load() {
@@ -1039,6 +1039,81 @@
       <p class="small muted">출처: ${esc(R.source)} · ${R.period.slice(0, 4)}.${R.period.slice(4, 6)}~${R.period.slice(7, 11)}.${R.period.slice(11)}</p>${warn}</section>`;
   }
 
+  /* ── 팀 전용 공간: 합류한 팀원과 팀장만 들어올 수 있어요 ── */
+  function teamMembers(t) {
+    const base = [{ nick: t.leader.nick, role: '팀장', dept: t.leader.dept, me: !!t.mine }];
+    /* 예시 팀: 이미 찬 자리(팀장 제외 최대 2명)를 역할이 맞는 예시 학생으로 채워 보여 줘요 */
+    const used = new Set();
+    const others = t.mine ? (t.members || []) : t.positions.filter((p) => p.got > 0).slice(1, 3).map((p) => {
+      const pp = D.people.find((x) => !used.has(x.id) && x.roles.includes(p.role)) || D.people.find((x) => !used.has(x.id)); used.add(pp.id);
+      return { nick: pp.nick, role: p.role, dept: pp.dept }; });
+    return [...base, ...others, ...(joinedRole(t) ? [{ nick: D.me.nick, role: joinedRole(t), dept: S.survey.dept, me: true }] : [])];
+  }
+  const teamTasks = (t) => S.teamTasks[t.id] || [
+    { id: 'k1', text: '역할·마감일 정리 문서 만들기', who: t.leader.nick, due: '', done: true },
+    { id: 'k2', text: '공모전 요강 다시 읽고 필수 제출물 체크', who: '모두', due: t.contest && findContest(t.contest) ? findContest(t.contest).deadline : '', done: false },
+    { id: 'k3', text: '1차 기획안 초안 공유', who: t.leader.nick, due: '', done: false },
+  ];
+  const teamPosts = (t) => S.teamPosts[t.id] || [{ who: t.leader.nick, text: `합류 환영해요! 정기 회의는 ${t.meet}이에요. 첫 회의 전까지 자기소개와 가능한 시간을 남겨 주세요.`, when: '공지', pin: true }];
+  const taskStat = (t) => { const ts = teamTasks(t); return { all: ts.length, done: ts.filter((x) => x.done).length }; };
+  function pageTeamRoom(id) {
+    const t = findTeam(id); if (!t) return notFound();
+    if (!inTeam(t)) return `<a class="back-link" href="#teams-${id}">${icon('left', 18)}모집글</a><div class="card empty" style="margin-top:16px">${icon('lock', 36)}<b>팀원만 들어올 수 있어요</b>팀장이 지원을 승인하면 팀 공간이 열려요.</div>`;
+    const k = t.contest && findContest(t.contest), mem = teamMembers(t), ts = teamTasks(t), st = taskStat(t), posts = teamPosts(t), done = S.teamDone[t.id];
+    return `<a class="back-link" href="#teams-${id}">${icon('left', 18)}모집글 보기</a>
+    <section class="troom-head card pad"><div class="lc-top"><span class="st-chip ${done ? 'st-done' : 'st-progress'}">${done ? '완주' : '진행 중'}</span><span class="badge b-gray">${icon('lock', 12)}팀원 전용</span>${k ? ddayPill(k.deadline) : ''}</div>
+      <h1 class="detail-title">${esc(t.title)}</h1>
+      ${k ? `<a class="contest-link" href="#contests-${k.id}"><span class="cl-emoji" style="background:${k.color}" aria-hidden="true">${k.emoji}</span><span class="cl-txt"><small>참가 공모전 · 마감 ${fmtDate(k.deadline)}</small><b>${esc(k.title)}</b></span>${icon('right', 18)}</a>` : ''}
+      <div class="troom-meta">${icon('calendar', 16)}<span>정기 회의 ${esc(t.meet)} · ${esc(t.mode)}</span></div>
+      <div class="troom-actions"><button class="btn btn-primary" data-act="troom-chat" data-id="${t.id}">${icon('chats', 18)}팀 채팅방</button>${done ? '' : `<button class="btn btn-outline" data-act="team-finish" data-id="${t.id}">${icon('trophy', 18)}프로젝트 마무리 · 팀원 평가</button>`}</div></section>
+    <div class="troom-grid">
+      <section class="card pad"><div class="troom-sh"><h2 class="block-title" style="margin:0">${icon('check', 18)}할 일 ${st.done}/${st.all}</h2><span class="small muted">${st.all ? Math.round((st.done / st.all) * 100) : 0}% 완료</span></div>
+        <div class="min-bar" style="margin:10px 0"><i class="ok" style="width:${st.all ? (st.done / st.all) * 100 : 0}%"></i></div>
+        <ul class="task-list">${ts.map((x) => `<li class="${x.done ? 'done' : ''}"><button class="task-check" data-act="task-toggle" data-id="${t.id}" data-task="${x.id}" aria-pressed="${x.done}" aria-label="${esc(x.text)} ${x.done ? '완료 취소' : '완료'}">${x.done ? icon('check', 14) : ''}</button><span class="tk-body"><b>${esc(x.text)}</b><small class="muted">${esc(x.who)}${x.due ? ` · ~${fmtDate(x.due)}` : ''}</small></span></li>`).join('')}</ul>
+        <form data-form="task" data-id="${t.id}" class="task-form"><input class="input" name="text" maxlength="60" placeholder="할 일 추가" aria-label="할 일"><select class="select" name="who" aria-label="담당">${['모두', ...mem.map((m) => m.nick)].map((n) => `<option>${esc(n)}</option>`).join('')}</select><input class="input" type="date" name="due" min="${TODAY}" aria-label="마감일"><button class="btn btn-primary" type="submit">추가</button></form></section>
+      <section class="card pad"><h2 class="block-title">${icon('users', 18)}팀원 ${mem.length}명</h2>
+        ${mem.map((m) => `<div class="ppl-row">${avatar(m.nick)}<span><b>${esc(m.nick)}${m.me ? ' <span class="badge b-school">나</span>' : ''}</b><small class="muted">${esc(m.role)} · ${esc(m.dept)}</small></span></div>`).join('')}
+        <p class="small muted" style="margin-top:8px">팀 공간의 글·할 일·채팅은 팀원에게만 보여요.</p></section>
+      <section class="card pad troom-board"><h2 class="block-title">${icon('edit', 18)}팀 게시판</h2>
+        <form data-form="tpost" data-id="${t.id}" class="comment-form"><input class="input" name="text" maxlength="200" placeholder="회의록, 자료 링크, 공지를 남겨요" aria-label="팀 게시판 글"><button class="btn btn-primary" type="submit">올리기</button></form>
+        <div class="tposts">${posts.map((x) => `<div class="tpost ${x.pin ? 'pin' : ''}">${avatar(x.who, 'sm')}<div><b class="small">${esc(x.who)}</b> <span class="small muted">${x.when}</span><p>${esc(x.text)}</p></div></div>`).join('')}</div></section>
+    </div>`;
+  }
+  function openTeamChat(t) {
+    const mem = teamMembers(t).filter((m) => !m.me), key = 'troom-' + t.id;
+    if (!S.chats[key]) S.chats[key] = [{ t: 'sys', text: `팀원 ${teamMembers(t).length}명만 있는 비공개 채팅방이에요.`, at: nowTime() }];
+    const sp = (i, x) => `${(mem[i % Math.max(mem.length, 1)] || { nick: '팀원' }).nick}: ${x}`;
+    openChat(key, { name: `팀 · ${t.title}`, trust: t.leader.trust || 90, greeting: sp(0, '다들 반가워요! 이번 주 회의 전에 할 일 목록 한 번씩 확인해 주세요.'),
+      ctx: ctxBar(icon('users', 22), t.title, `팀원 ${teamMembers(t).length}명 · 할 일 ${taskStat(t).done}/${taskStat(t).all}`),
+      quick: ['회의 시간 괜찮아요', '자료 게시판에 올렸어요', '이번 주는 조금 늦어요', '역할 다시 정해 봐요'],
+      replies: [sp(0, '좋아요! 회의록은 게시판에 남길게요.'), sp(1, '확인했어요 👍'), sp(0, '마감 일주일 전에는 최종본 맞춰 봐요.')] });
+  }
+  function openTeamFinish(t) {
+    const mem = teamMembers(t).filter((m) => !m.me);
+    openModal(modalBox('프로젝트 마무리 · 팀원 평가', `<form data-form="team-finish" data-id="${t.id}" class="grid" style="gap:12px">
+      <p class="small muted">끝까지 함께한 팀원을 평가해요. 평가는 익명으로 모여 각자의 <b>완주율과 신뢰도</b>에 반영돼요.</p>
+      ${mem.map((m, i) => `<div class="rate-row"><span><b>${esc(m.nick)}</b><small class="muted"> · ${esc(m.role)}</small></span><select class="select" name="r-${i}" aria-label="${esc(m.nick)} 평가">${[['5', '최고였어요'], ['4', '좋았어요'], ['3', '보통이에요'], ['2', '아쉬웠어요'], ['1', '참여가 거의 없었어요']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>`).join('')}
+      <div class="modal-actions"><button type="button" class="btn btn-outline" data-act="close">취소</button><button class="btn btn-primary" type="submit">평가 보내고 완주하기</button></div></form>`));
+  }
+
+  /* ── 공모전 제보: 운영자 확인 전에는 목록에 올라가지 않아요 ── */
+  function pageContestNew() {
+    if (!S.verified) return `<a class="back-link" href="#contests">${icon('left', 18)}공모전</a>` + gatePanel('공모전 제보');
+    return `<div class="survey-wrap"><a class="back-link" href="#contests">${icon('left', 18)}공모전</a>
+      <div class="page-head"><div><h1>공모전 제보하기</h1><p>공식 공지 주소와 함께 보내 주세요. <b>운영자가 확인한 뒤</b> 목록에 올라가요.</p></div></div>
+      <form data-form="contest-report" class="card form-section grid" style="gap:14px" novalidate>
+        <div class="field"><label for="cr-title">공모전 이름</label><input class="input" id="cr-title" name="title" maxlength="60" placeholder="예) 2027 대학생 공공데이터 활용 아이디어 공모전"></div>
+        <div class="form-grid two"><div class="field"><label for="cr-host">주최 기관</label><input class="input" id="cr-host" name="host" maxlength="40" placeholder="예) ○○시청"></div>
+          <div class="field"><label for="cr-cat">분야</label><select class="select" id="cr-cat" name="cat">${D.contestCats.map((c) => `<option>${c}</option>`).join('')}</select></div></div>
+        <div class="form-grid two"><div class="field"><label for="cr-dl">접수 마감일</label><input class="input" type="date" id="cr-dl" name="deadline" min="${TODAY}"></div>
+          <div class="field"><label for="cr-url">공식 공지 주소</label><input class="input" id="cr-url" name="url" inputmode="url" placeholder="https://"></div></div>
+        <div class="field"><label for="cr-memo">한 줄 소개 (선택)</label><input class="input" id="cr-memo" name="memo" maxlength="80" placeholder="예) 팀 3~5명, 기획서만 내도 돼요"></div>
+        <label class="check"><input type="checkbox" name="src"><span>공식 공지(주최 측 홈페이지·공고문)에서 직접 확인한 내용이에요. 다른 사이트의 글이나 이미지를 그대로 옮기지 않았어요.</span></label>
+        <p class="error-text" id="cr-err" role="alert"></p>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">${icon('send', 18)}제보 보내기</button>
+      </form></div>`;
+  }
+
   function gatePanel(what) {
     return `<div class="card pad" style="text-align:center;max-width:520px;margin:20px auto;padding:32px 22px">
       <div class="verify-hero"><div class="vi">${icon('lock', 30)}</div><h1>학교 인증이 필요해요</h1><p>${what}은(는) ${D.school.name} 이메일 인증을 마친 학생만 할 수 있어요. 둘러보기는 인증 없이도 가능해요.</p></div>
@@ -1522,7 +1597,10 @@
   const allTeams = () => [...S.myTeams, ...D.teams].filter((t) => !S.blocked.includes(t.leader.nick));
   const findTeam = (id) => allTeams().find((t) => t.id === id);
   const teamsFor = (kid) => allTeams().filter((t) => t.contest === kid && !t.closed);
-  const openSlots = (t) => t.positions.reduce((s, p) => s + Math.max(0, p.need - p.got), 0);
+  const joinedRole = (t) => { const a = S.teamApplied[t.id]; return a && a.status === '합류' ? a.role : null; };
+  const posView = (t) => t.positions.map((p) => ({ ...p, got: p.got + (joinedRole(t) === p.role ? 1 : 0) }));
+  const openSlots = (t) => posView(t).reduce((s, p) => s + Math.max(0, p.need - p.got), 0);
+  const inTeam = (t) => !!t && (t.mine || !!joinedRole(t));
   const KF = { cat: '전체', sort: 'deadline', campus: false }, TF = { role: '전체', kind: '전체' }, PF = { role: '전체' };
   let newTeamContest = '';
   const ddayPill = (date, closed) => { const n = dday(date); if (closed || n < 0) return '<span class="dpill closed">마감</span>'; return `<span class="dpill ${n <= 7 ? 'hot' : ''}">${n === 0 ? 'D-Day' : `D-${n}`}</span>`; };
@@ -1545,9 +1623,9 @@
     return `<article class="team-card clickable ${t.closed ? 'is-closed' : ''}" data-href="#teams-${t.id}">
       <div class="tc-top"><span class="kind">${t.kind}</span>${k ? `<span class="tc-contest">${esc(k.title)}</span>` : '<span class="tc-contest"></span>'}${ddayPill(t.deadline, t.closed)}</div>
       <h3><a href="#teams-${t.id}">${esc(t.title)}</a></h3>
-      <div class="pos-row">${t.positions.map(posPill).join('')}</div>
+      <div class="pos-row">${posView(t).map(posPill).join('')}</div>
       <div class="meta">${esc(t.mode)} · ${esc(t.period)}</div>
-      <div class="tc-foot">${avatar(t.leader.nick, 'sm')}<span class="small" style="flex:1;min-width:0"><b>${esc(t.leader.nick)}</b> · 완주율 ${t.leader.rate}%</span>${ap ? `<span class="badge b-review">${esc(ap.role)} 지원함</span>` : `<span class="small muted">지원 ${t.applicants}명</span>`}</div>
+      <div class="tc-foot">${avatar(t.leader.nick, 'sm')}<span class="small" style="flex:1;min-width:0"><b>${esc(t.leader.nick)}</b> · 완주율 ${t.leader.rate}%</span>${t.mine ? '<span class="badge b-school">내 팀</span>' : ap ? `<span class="badge ${ap.status === '합류' ? 'b-school' : 'b-review'}">${esc(ap.role)} · ${ap.status}</span>` : `<span class="small muted">지원 ${t.applicants}명</span>`}</div>
     </article>`;
   }
 
@@ -1560,7 +1638,8 @@
       <div style="display:flex;gap:6px;align-items:center"><button class="tab ${KF.campus ? 'active' : ''}" data-act="k-campus" aria-pressed="${KF.campus}">교내만</button>
       <select class="sort-select" id="k-sort" aria-label="정렬">${[['deadline', '마감 임박순'], ['popular', '스크랩 많은 순'], ['teams', '팀원 모집 많은 순']].map(([v, l]) => `<option value="${v}" ${KF.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
     ${list.length ? `<div class="contest-grid">${list.map(contestCard).join('')}</div>` : `<div class="empty">${icon('trophy', 36)}<b>조건에 맞는 공모전이 없어요</b>분야를 바꿔 보세요.</div>`}
-    <div class="info-box" style="margin-top:20px">${icon('alert', 18)}<span>공모전 정보는 주최 측 공지를 정리한 거예요. 지원 전에 공식 요강을 꼭 확인하세요.</span></div>
+    <div class="report-cta"><span>${charImg('think', 'rc-char')}<span><b>찾는 공모전이 없나요?</b><br><span class="small muted">공식 공지 링크와 함께 제보하면 운영자가 확인한 뒤 올려요.</span></span></span><a class="btn btn-outline btn-sm" href="#contests-new">${icon('send', 16)}공모전 제보하기</a></div>
+    <div class="info-box" style="margin-top:12px">${icon('alert', 18)}<span>지금 보이는 공모전은 <b>예시 데이터</b>예요. 실제 서비스에서는 운영자 등록 · 사용자 제보 · 주최기관 제휴로만 모으고, 무단으로 긁어 오지 않아요. 지원 전에 공식 요강을 꼭 확인하세요.</span></div>
     ${footer()}`;
   }
 
@@ -1609,8 +1688,9 @@
     const t = findTeam(id);
     if (!t) return notFound();
     const k = t.contest && findContest(t.contest), ap = S.teamApplied[t.id], open = openSlots(t);
-    const applyBtn = (cls) => (t.closed || open === 0 ? `<button class="btn ${cls}" disabled>모집 마감</button>`
-      : t.mine ? `<button class="btn btn-outline ${cls}" disabled>내가 올린 모집글</button>`
+    const applyBtn = (cls) => ((t.closed || open === 0) && !inTeam(t) ? `<button class="btn ${cls}" disabled>모집 마감</button>`
+      : t.mine || (ap && ap.status === '합류') ? `<a class="btn btn-mint ${cls}" href="#teamroom-${t.id}">${icon('users', 18)}팀 공간 들어가기</a>`
+        : ap && ap.status === '거절' ? `<button class="btn ${cls}" disabled>이번엔 함께하지 못해요</button>`
         : ap ? `<button class="btn btn-done ${cls}" disabled>${icon('check', 18)}${esc(ap.role)} 지원 · 검토 중</button>`
           : `<button class="btn btn-primary ${cls}" data-act="team-apply" data-id="${t.id}">${icon('send', 18)}지원하기</button>`);
     return `<a class="back-link" href="#teams">${icon('left', 18)}팀원 모집</a>
@@ -1621,10 +1701,14 @@
           ${k ? `<a class="contest-link" href="#contests-${k.id}"><span class="cl-emoji" style="background:${k.color}" aria-hidden="true">${k.emoji}</span><span class="cl-txt"><small>참가 공모전 · ${ddayPill(k.deadline).replace(/<[^>]+>/g, '')}</small><b>${esc(k.title)}</b></span>${icon('right', 18)}</a>` : ''}
           ${t.tags.length ? `<div class="chip-row" style="margin-top:12px">${t.tags.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}</section>
         <section class="card pad"><h2 class="block-title">모집 포지션</h2>
-          <div class="pos-table">${t.positions.map((p) => { const o = p.need - p.got; return `<div class="pos-line"><b>${esc(p.role)}</b><span class="bar"><i style="width:${Math.round((p.got / p.need) * 100)}%"></i></span><span class="small">${p.got}/${p.need}명</span>${o > 0 ? `<span class="rpill open">${o}명 모집</span>` : '<span class="rpill closed">완료</span>'}</div>`; }).join('')}</div></section>
+          <div class="pos-table">${posView(t).map((p) => { const o = p.need - p.got; return `<div class="pos-line"><b>${esc(p.role)}</b><span class="bar"><i style="width:${Math.round((p.got / p.need) * 100)}%"></i></span><span class="small">${p.got}/${p.need}명</span>${o > 0 ? `<span class="rpill open">${o}명 모집</span>` : '<span class="rpill closed">완료</span>'}</div>`; }).join('')}</div></section>
         <div class="kv"><div><small>진행 방식</small><b>${esc(t.mode)}</b></div><div><small>기간</small><b>${esc(t.period)}</b></div><div><small>정기 회의</small><b>${esc(t.meet)}</b></div><div><small>모집 마감</small><b>${fmtDate(t.deadline)}</b></div></div>
         <section class="card pad"><h2 class="block-title">프로젝트 소개</h2><p class="prose">${esc(t.desc)}</p>
           ${t.tools.length ? `<h3 class="block-title" style="font-size:15px;margin-top:16px">사용 도구</h3><div class="chip-row">${t.tools.map((x) => `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}</section>
+        ${t.mine ? `<section class="card pad"><h2 class="block-title">${icon('users', 18)}지원자 ${(t.pending || []).length}명 <span class="small muted">(데모 지원자)</span></h2>
+          ${(t.pending || []).length ? t.pending.map((a) => { const full = !posView(t).some((p) => p.role === a.role && p.need > p.got); return `<div class="applicant">${avatar(a.nick)}<div class="ap-body"><b>${esc(a.nick)}</b> <span class="badge b-proof">${esc(a.role)}</span><p class="small muted">${esc(a.dept)} · 완주율 ${a.rate}% · ${esc(a.time)}</p><p class="small">“${esc(a.intro)}”</p></div>
+            <div class="pd-btns"><button class="btn btn-sm btn-ghost" data-act="t-reject" data-id="${t.id}" data-nick="${esc(a.nick)}">거절</button><button class="btn btn-sm btn-primary" data-act="t-approve" data-id="${t.id}" data-nick="${esc(a.nick)}" ${full ? 'disabled title="이 포지션은 다 찼어요"' : ''}>${full ? '자리 없음' : '승인'}</button></div></div>`; }).join('') : '<p class="small muted">새 지원자가 없어요.</p>'}
+          ${(t.members || []).length ? `<p class="small" style="margin-top:10px">합류한 팀원: ${t.members.map((m) => `<b>${esc(m.nick)}</b>(${esc(m.role)})`).join(', ')}</p>` : ''}</section>` : ''}
         <section class="card pad"><h2 class="block-title">${icon('shield', 18)}팀 운영 약속</h2>
           <ul class="rules"><li>${icon('check')}첫 회의에서 역할과 마감일을 문서로 정리해요</li><li>${icon('check')}2회 연속 무단 불참하면 팀원 교체를 논의해요</li><li>${icon('check')}끝나면 서로 평가를 남기고, 완주율에 반영돼요</li></ul></section>
       </div>
@@ -1732,7 +1816,9 @@
     const tRow = (t, right) => `<a class="list-row" href="#teams-${t.id}"><span class="lr-art" style="background:var(--peach)">${icon('users', 22)}</span><span class="lr-body"><b>${esc(t.title)}</b><span class="small muted">${t.kind} · 마감 ${fmtDate(t.deadline)}</span></span>${right}</a>`;
     const parts = [
       ap.length ? h('지원 현황') + ap.map(([t, a]) => tRow(t, `<span class="badge b-review">${esc(a.role)} · ${a.status}</span>`)).join('') : '',
+      allTeams().filter(inTeam).length ? h('내 팀 공간') + allTeams().filter(inTeam).map((t) => `<a class="list-row" href="#teamroom-${t.id}"><span class="lr-art" style="background:var(--mint-100)">${icon('users', 22)}</span><span class="lr-body"><b>${esc(t.title)}</b><span class="small muted">${t.mine ? '팀장' : joinedRole(t)} · 할 일 ${taskStat(t).done}/${taskStat(t).all}</span></span><span class="badge ${S.teamDone[t.id] ? 'b-gray' : 'b-school'}">${S.teamDone[t.id] ? '완주' : '진행 중'}</span></a>`).join('') : '',
       S.myTeams.length ? h('내 모집글') + S.myTeams.map((t) => tRow(t, `<span class="badge b-school">${openSlots(t)}자리 모집 중</span>`)).join('') : '',
+      S.contestReports.length ? h('제보한 공모전') + S.contestReports.map((r) => `<div class="list-row"><span class="lr-art" style="background:var(--amber-100)">${icon('send', 20)}</span><span class="lr-body"><b>${esc(r.title)}</b><span class="small muted">${esc(r.host)} · 마감 ${fmtDate(r.deadline)}</span></span><span class="badge b-review">${r.status}</span></div>`).join('') : '',
       sc.length ? h('스크랩한 공모전') + sc.map((k) => `<a class="list-row" href="#contests-${k.id}"><span class="lr-art" style="background:${k.color}">${k.emoji}</span><span class="lr-body"><b>${esc(k.title)}</b><span class="small muted">${esc(k.host)}</span></span>${ddayPill(k.deadline)}</a>`).join('') : '',
       S.proposals.length ? h('보낸 팀 제안') + S.proposals.map((id) => { const p = D.people.find((x) => x.id === id); return p ? `<div class="list-row">${avatar(p.nick)}<span class="lr-body"><b>${esc(p.nick)}</b><span class="small muted">${p.roles.join(', ')}</span></span><span class="badge b-gray">응답 대기</span></div>` : ''; }).join('') : '',
     ].filter(Boolean);
@@ -1847,7 +1933,8 @@
       case 'write': html = pageWrite(a); nav = 'community'; break;
       case 'clubs': html = a ? (cta = true, pageClub(a)) : pageClubs(); break;
       case 'events': html = pageEvents(); nav = 'clubs'; break;
-      case 'contests': html = a ? (cta = true, pageContest(a)) : pageContests(); nav = 'teams'; break;
+      case 'contests': html = a === 'new' ? pageContestNew() : a ? (cta = true, pageContest(a)) : pageContests(); nav = 'teams'; break;
+      case 'teamroom': html = pageTeamRoom(a); nav = 'teams'; break;
       case 'teams': html = a === 'new' ? pageTeamNew() : a ? (cta = true, pageTeam(a)) : pageTeams(); break;
       case 'people': html = pagePeople(); nav = 'teams'; break;
       case 'my': html = pageMy(a); break;
@@ -2024,6 +2111,17 @@
       case 'onboard': openOnboard(); break;
       case 'season': seasonPick = el.dataset.v; route(); break;
       case 'checkin': openCheckin(el.dataset.key); break;
+      case 't-approve': case 't-reject': {
+        const t = findTeam(id), i = (t.pending || []).findIndex((x) => x.nick === el.dataset.nick); if (i < 0) return;
+        const a = t.pending[i], pos = t.positions.find((p) => p.role === a.role);
+        if (act === 't-approve' && !(pos && pos.need > pos.got)) return toast('이 포지션은 이미 다 찼어요', 'x');
+        t.pending.splice(i, 1);
+        if (act === 't-approve') { pos.got += 1; t.members = t.members || []; t.members.push({ nick: a.nick, role: a.role, dept: a.dept }); }
+        save(); route(); toast(act === 't-approve' ? `${a.nick}님이 ${a.role}(으)로 합류했어요 · 팀 공간에 초대됐어요` : `${a.nick}님의 지원을 거절했어요`, act === 't-approve' ? 'users' : 'x'); break;
+      }
+      case 'task-toggle': { const tk = (S.teamTasks[id] || []).find((x) => x.id === el.dataset.task); if (!tk) return; tk.done = !tk.done; save(); route(); break; }
+      case 'troom-chat': openTeamChat(findTeam(id)); break;
+      case 'team-finish': openTeamFinish(findTeam(id)); break;
       case 'taxi-f': taxiF = el.dataset.v; route(); break;
       case 'dlv-f': dlvF = el.dataset.v; route(); break;
       case 'g-apply': {
@@ -2247,6 +2345,30 @@
         S.reports.unshift({ target: f.dataset.label, reason: fd.get('reason'), date: new Date().toISOString().slice(0, 10).replace(/-/g, '.') }); save();
         closeModal(); toast('신고가 접수됐어요. 24시간 안에 검토할게요', 'flag'); break;
       }
+      case 'task': {
+        const text = String(fd.get('text') || '').trim(); if (!text) return;
+        (S.teamTasks[f.dataset.id] = teamTasks(findTeam(f.dataset.id))).push({ id: 'k' + Date.now(), text, who: fd.get('who'), due: fd.get('due') || '', done: false });
+        save(); route(); toast('할 일을 추가했어요', 'check'); break;
+      }
+      case 'tpost': {
+        const text = String(fd.get('text') || '').trim(); if (!text) return;
+        if (FRAUD.test(text)) { toast('계좌·외부 연락처 관련 문구는 올릴 수 없어요', 'alert'); return; }
+        (S.teamPosts[f.dataset.id] = teamPosts(findTeam(f.dataset.id))).unshift({ who: D.me.nick, text, when: '방금' });
+        save(); route(); toast('팀 게시판에 올렸어요', 'edit'); break;
+      }
+      case 'team-finish': {
+        S.teamDone[f.dataset.id] = { at: Date.now(), stars: Object.fromEntries([...fd.entries()].filter(([k]) => k.startsWith('r-'))) };
+        S.trustBonus += 2; save(); closeModal(); route(); toast('팀원 평가를 보냈어요. 완주가 기록되고 신뢰도가 +2 올랐어요', 'trophy'); break;
+      }
+      case 'contest-report': {
+        const err = $('#cr-err'), title = String(fd.get('title') || '').trim(), host = String(fd.get('host') || '').trim(), url = String(fd.get('url') || '').trim();
+        if (!title || !host) { err.textContent = '공모전 이름과 주최 기관을 적어 주세요.'; return; }
+        if (!fd.get('deadline') || dday(fd.get('deadline')) < 0) { err.textContent = '접수 마감일을 오늘 이후로 골라 주세요.'; return; }
+        if (!/^https:\/\/[^\s]+\.[^\s]+$/.test(url)) { err.textContent = '공식 공지 주소를 https://로 시작하게 적어 주세요.'; return; }
+        if (!fd.get('src')) { err.textContent = '공식 공지에서 확인했는지 체크해 주세요.'; return; }
+        S.contestReports.unshift({ id: 'cr' + Date.now(), title, host, cat: fd.get('cat'), deadline: fd.get('deadline'), url, memo: String(fd.get('memo') || ''), status: '운영자 검토 중' });
+        save(); location.hash = '#my-teams'; toast('제보를 보냈어요. 운영자가 공식 공지를 확인한 뒤 올려요', 'send'); break;
+      }
       case 'taxi': {
         const err = $('#tx-err');
         const from = fd.get('from') === '__custom' ? String(fd.get('fromC') || '').trim() : fd.get('from');
@@ -2380,13 +2502,20 @@
           leader: { nick: D.me.nick, dept: `${S.survey.dept} ${D.questions.find((q) => q.k === 'grade').opts[S.survey.grade]}`, trust: myTrust(), done: 2, rate: 100 },
           positions, mode: fd.get('mode'), period: String(fd.get('period') || '').trim() || '협의', meet: String(fd.get('meet') || '').trim() || '협의',
           tools: String(fd.get('tools') || '').split(',').map((x) => x.trim()).filter(Boolean), deadline: fd.get('deadline') || '2026-11-24',
-          tags: fd.getAll('tags'), created: '방금', views: 1, applicants: 0, desc: String(fd.get('desc') || '').trim() || '소개가 없어요.', mine: true };
-        S.myTeams.unshift(t); save(); newTeamContest = ''; location.hash = '#teams-' + t.id; toast('모집글을 올렸어요', 'users'); break;
+          tags: fd.getAll('tags'), created: '방금', views: 1, applicants: 0, desc: String(fd.get('desc') || '').trim() || '소개가 없어요.', mine: true, members: [],
+          pending: D.people.slice(0, 3).map((pp, i) => ({ nick: pp.nick, dept: pp.dept, rate: pp.rate || 90, role: positions[i % positions.length].role, time: ['주 6시간', '주 10시간 이상', '주 3시간'][i], intro: pp.intro || '열심히 참여할게요!' })) };
+        S.myTeams.unshift(t); save(); newTeamContest = ''; location.hash = '#teams-' + t.id; toast('모집글을 올렸어요. 데모 지원자 3명이 왔어요', 'users'); break;
       }
       case 'team-apply': {
         if (!String(fd.get('intro') || '').trim()) { $('#ta-err').textContent = '한 줄 소개를 적어 주세요. 팀장이 가장 먼저 보는 내용이에요.'; return; }
-        S.teamApplied[f.dataset.id] = { role: fd.get('role'), status: '검토 중' }; save(); closeModal(); route();
-        toast('지원서를 보냈어요. 결과는 알림으로 알려드릴게요', 'send'); break;
+        const tid = f.dataset.id, role = fd.get('role');
+        S.teamApplied[tid] = { role, status: '검토 중', intro: String(fd.get('intro')), time: fd.get('time') }; save(); closeModal(); route();
+        toast('지원서를 보냈어요. 팀장이 검토하면 알려 드릴게요 (데모: 잠시 뒤 결과)', 'send');
+        setTimeout(() => { const a = S.teamApplied[tid], t = findTeam(tid); if (!a || a.status !== '검토 중' || !t) return;
+          const left = t.positions.find((p) => p.role === role); a.status = left && left.need > left.got ? '합류' : '거절'; save();
+          toast(a.status === '합류' ? `${t.leader.nick}님이 승인했어요! 팀 공간이 열렸어요` : '아쉽게도 자리가 먼저 찼어요', a.status === '합류' ? 'users' : 'x');
+          if (!slot.innerHTML) route(); }, 2200);
+        break;
       }
       case 'my-card': {
         const roles = fd.getAll('roles');

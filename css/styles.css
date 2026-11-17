@@ -1015,3 +1015,31 @@ nav.hub-switch, .hub-switch .housing-tabs { max-width: 460px; }
 .my-items li { display: flex; justify-content: space-between; }
 .menu-head, .menu-row { display: grid; grid-template-columns: 1fr 96px 60px; gap: 6px; }
 .share-row { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-items: center; margin-top: 6px; font-size: 14px; }
+
+/* ───────── 공모전 팀: 지원 승인 · 팀 전용 공간 · 제보 ───────── */
+.report-cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 20px; padding: 14px 16px; background: #fff; border-radius: 20px; }
+.report-cta > span { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.rc-char { width: 54px; height: 46px; border-radius: 12px; mix-blend-mode: multiply; }
+.applicant { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.applicant:first-of-type { border-top: 0; }
+.ap-body { flex: 1; min-width: 180px; font-size: 14px; display: grid; gap: 2px; }
+.troom-head { display: grid; gap: 10px; }
+.troom-meta { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); }
+.troom-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.troom-grid { display: grid; gap: 16px; margin-top: 16px; }
+@media (min-width: 900px) { .troom-grid { grid-template-columns: 1.4fr 1fr; } .troom-board { grid-column: 1 / -1; } }
+.troom-sh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.task-list { list-style: none; display: grid; gap: 2px; }
+.task-list li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.task-list li.done .tk-body b { text-decoration: line-through; color: var(--subtle); }
+.task-check { width: 24px; height: 24px; flex-shrink: 0; border-radius: 8px; border: 2px solid var(--line-strong); display: grid; place-items: center; color: #fff; }
+.task-list li.done .task-check { background: var(--mint-500); border-color: var(--mint-500); }
+.tk-body { display: grid; font-size: 14px; min-width: 0; }
+.tk-body small { font-size: 12px; }
+.task-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 6px; margin-top: 12px; }
+.task-form .input[name=text] { grid-column: 1 / -1; }
+.tposts { display: grid; gap: 10px; margin-top: 12px; }
+.tpost { display: flex; gap: 10px; align-items: flex-start; }
+.tpost p { font-size: 14px; margin-top: 2px; }
+.tpost.pin { background: var(--amber-100); padding: 10px 12px; border-radius: 14px; }
+.rate-row { display: grid; grid-template-columns: 1fr 160px; gap: 8px; align-items: center; font-size: 14px; }
