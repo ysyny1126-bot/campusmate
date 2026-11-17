@@ -1085,3 +1085,4 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .adm-item > div:first-child { flex: 1; min-width: 200px; display: grid; gap: 3px; font-size: 14px; }
 .pd-btns.wrap { flex-wrap: wrap; }
 .url { word-break: break-all; color: var(--blue-600); }
+.ob-root .modal.onboard { border-radius: 28px; margin: 0 16px; padding-bottom: 20px; }
