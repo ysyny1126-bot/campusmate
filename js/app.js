@@ -2267,7 +2267,7 @@
       return;
     }
     openModal(modalBox('카카오 로그인', `<div class="kakao-demo">${KAKAO_SYMBOL.replace('width="18" height="18"', 'width="40" height="40"')}
-      <p style="font-size:14.5px"><b>지금은 데모예요.</b> 카카오 개발자 사이트에 앱을 등록하고 키를 넣으면 실제 카카오 로그인 화면으로 넘어가요.</p>
+      <p style="font-size:14.5px">${KAKAO_KEY ? '<b>아이폰 앱에서는 아직 데모예요.</b> 앱용 카카오 SDK를 연결하기 전이라 예시 계정으로 로그인해요. 웹사이트에서는 실제 카카오 로그인이 돼요.' : '<b>지금은 데모예요.</b> 카카오 개발자 사이트에 앱을 등록하고 키를 넣으면 실제 카카오 로그인 화면으로 넘어가요.'}</p>
       <ul class="rules small" style="text-align:left"><li>${icon('check')}받는 정보: 카카오 닉네임 (선택: 프로필 사진)</li><li>${icon('check')}카카오 계정은 <b>로그인</b>에만 쓰여요. 교통대 학생인지는 다음 단계 <b>학생 인증</b>에서 확인해요</li></ul></div>
       <div class="modal-actions"><button class="btn btn-outline" data-act="close">취소</button>${kakaoBtn('예시 계정으로 계속 (데모)', 'grow').replace('data-act="kakao-login"', 'data-act="kakao-demo"')}</div>`));
   }
@@ -2283,7 +2283,21 @@
     history.replaceState(null, '', location.pathname + (location.hash || '#home'));
     if (q.get('error')) { setTimeout(() => toast('카카오 로그인을 취소했어요', 'x'), 300); return; }
     S.login = { provider: 'kakao', nick: '카카오 사용자', at: Date.now(), codeOnly: true }; save();
-    setTimeout(() => toast('카카오 인증을 마쳤어요. 닉네임을 받아오려면 서버 연결이 필요해요', 'check'), 400);
+    /* 서버 없이 시도: JavaScript 키로 토큰을 받고 닉네임을 조회해요. 카카오가 막으면 '인증만 된 상태'로 남아요 */
+    const redirectUri = location.origin + location.pathname;
+    fetch('https://kauth.kakao.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
+      body: new URLSearchParams({ grant_type: 'authorization_code', client_id: KAKAO_KEY, redirect_uri: redirectUri, code }) })
+      .then((r) => r.json())
+      .then((t) => { if (!t.access_token) throw new Error(t.error_description || t.error || 'no token');
+        return fetch('https://kapi.kakao.com/v2/user/me', { headers: { Authorization: 'Bearer ' + t.access_token } }).then((r) => r.json()); })
+      .then((me) => {
+        const nick = (me.kakao_account && me.kakao_account.profile && me.kakao_account.profile.nickname) || (me.properties && me.properties.nickname);
+        if (!nick) throw new Error('no nickname');
+        S.login = { provider: 'kakao', nick, kakaoId: me.id, at: Date.now() }; save(); renderChrome(lastNav);
+        if (!S.verified) { if (location.hash === '#verify') route(); else location.hash = '#verify'; } else route();
+        toast(`${nick}님, 카카오로 로그인했어요`, 'check');
+      })
+      .catch((e) => { console.warn('카카오 토큰·사용자 정보 받기 실패:', e.message); toast('카카오 인증은 마쳤어요. 닉네임을 받아오려면 서버 연결이 필요해요', 'check'); });
   })();
 
   function openLoginNeeded(what) {
