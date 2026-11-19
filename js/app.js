@@ -437,11 +437,30 @@
       <div class="small muted">매우 중요: ${D.questions.filter((x) => S.weights[x.k] === 2).map((x) => x.label).join(', ') || '없음'}</div>
     </div>
     <div class="info-box" style="margin-top:12px">${icon('lock', 18)}<span>처음엔 닉네임·학과·생활 습관만 보여요. 상대가 <b>연락 요청을 수락</b>하면 실명·사진이 공개되고 채팅이 열려요.${mutualCount ? ` 현재 <b>${mutualCount}명</b>과 연결됐어요.` : ''}</span></div>
-    <div class="info-box mint" style="margin-top:8px">${charImg('match', 'ib-char')}<span><b>생활관 룸메이트는 서로 지정해서 함께 신청할 수 있어요.</b> 연결되면 채팅에서 신청 기간과 호실 유형을 맞춰 보세요.</span></div>
+    <div class="info-box mint" style="margin-top:8px">${charImg('match', 'ib-char')}<span><b>연결되면 채팅에서 희망 생활관과 신청 시기를 맞춰 보세요.</b> ${esc(D.dormInfo.roommate)}</span></div>
+    ${dormPanel(s.gender)}
     <div class="section-head" style="margin-top:24px"><h2>자동 계산한 후보 ${list.length}명</h2><span class="small muted">호환도 높은 순 · 예시 프로필</span></div>
     ${list.length ? `<div class="mate-grid">${list.map((x) => mateCard(x)).join('')}</div>`
       : `<div class="card empty">${icon('users', 40)}<b>아직 맞는 후보가 없어요</b>차단을 해제하거나 설문을 수정해 보세요.</div>`}
     ${footer()}`;
+  }
+
+  /* 충주캠퍼스 생활관 한눈에: 내 성별로 들어갈 수 있는 곳을 먼저, 공식 홈페이지 기준 정보 */
+  function dormPanel(g) {
+    const I = D.dormInfo, list = [...D.dorms].sort((a, b) => b.gender.includes(g) - a.gender.includes(g));
+    return `<section class="card pad dorm-panel" aria-labelledby="h-dorm" style="margin-top:12px">
+      <h2 class="block-title" id="h-dorm">${icon('door', 18)}충주캠퍼스 생활관 한눈에</h2>
+      <div class="dorm-grid">${list.map((d) => { const ok = d.gender.includes(g); return `<div class="dorm-card ${ok ? '' : 'off'}">
+        <div class="dc-top"><b>${d.name}</b><span class="badge ${ok ? 'b-school' : 'b-gray'}">${d.gender.join('·')}</span></div>
+        <div class="small muted">${d.room} · ${d.style} · ${d.since}</div>
+        <div class="dc-fee"><b>${won(d.fee)}</b><span class="small muted"> / 한 학기</span></div>
+        <div class="small muted">${d.feeNote} · 정원 ${Object.entries(d.cap).map(([k, v]) => `${k} ${v}명`).join(', ')}</div>
+        ${d.notice ? `<div class="small dc-note">${icon('alert', 13, 'style="display:inline;vertical-align:-2px"')} ${d.notice}</div>` : ''}
+        ${ok ? '' : `<div class="small muted">${g}학생은 신청할 수 없어요</div>`}</div>`; }).join('')}</div>
+      <ul class="rules small" style="margin-top:12px"><li>${icon('check')}${I.meal}</li><li>${icon('check')}${I.select}</li></ul>
+      <div class="dorm-sched small">${I.schedule.map((x) => `<div><b>${x.when}</b><span>${x.what}</span></div>`).join('')}</div>
+      <p class="small muted" style="margin-top:10px">출처: 국립한국교통대학교 충주생활관 홈페이지 · 사용료는 학교 표기 2026학년도 2학기 기준이에요. 신청 기간은 매 학기 바뀌니 <a class="link" href="${I.url}" target="_blank" rel="noopener">생활관 공지</a>에서 꼭 확인하세요.</p>
+    </section>`;
   }
 
   function pageSurvey() {
@@ -467,7 +486,7 @@
         <fieldset class="card q-card"><legend><span class="q-num">Q1</span>성별 (기숙사 배정 기준)</legend><p class="help">기숙사는 같은 성별끼리만 배정되므로 같은 성별 학생만 추천돼요.</p>
           <div class="opts">${['여', '남'].map((g) => `<label class="opt"><input type="radio" name="gender" value="${g}" ${s.gender === g ? 'checked' : ''}><span>${g}학생</span></label>`).join('')}</div></fieldset>
         <fieldset class="card q-card"><legend><span class="q-num">Q2</span>희망 생활관 (여러 개 선택 가능)</legend><p class="help">대원생활관은 남·여, 중원생활관은 여학생, 예성·국원생활관은 남학생이 들어가요. 고르지 않으면 상관없음으로 보고, 고르면 같은 생활관을 원하는 후보만 추천해요.</p>
-          <div class="opts">${D.dorms.map((d) => { const ok = d.gender.includes(s.gender); return `<label class="opt"><input type="checkbox" name="dorms" value="${d.name}" data-g="${d.gender.join(',')}" ${ok && (s.dorms || []).includes(d.name) ? 'checked' : ''} ${ok ? '' : 'disabled'}><span>${dormLabel(d)}</span></label>`; }).join('')}</div></fieldset>
+          <div class="opts">${D.dorms.map((d) => { const ok = d.gender.includes(s.gender); return `<label class="opt"><input type="checkbox" name="dorms" value="${d.name}" data-g="${d.gender.join(',')}" ${ok && (s.dorms || []).includes(d.name) ? 'checked' : ''} ${ok ? '' : 'disabled'}><span>${dormLabel(d)}<br><span class="small muted" style="font-weight:500">${d.room} · ${d.style} · 학기 ${Math.round(d.fee / 10000)}만 원${d.meal ? '' : ' · 식당 없음'}</span></span></label>`; }).join('')}</div></fieldset>
         ${qs.map(field).join('')}
         <div class="sticky-cta"><div class="txt"><b>총 ${qs.length + 2}개 문항</b>저장하면 호환도가 바로 다시 계산돼요</div><button class="btn btn-primary btn-lg" type="submit">저장하고 결과 보기</button></div>
       </form></div>`;

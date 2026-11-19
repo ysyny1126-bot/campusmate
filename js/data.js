@@ -37,13 +37,25 @@ window.CM_DATA = (() => {
 
   const w = (o) => Object.assign({ sleep: 1, wake: 1, smoke: 1, drink: 1, clean: 1, study: 1, noise: 1, temp: 1, guest: 1, hobby: 0, dept: 0, grade: 0 }, o);
 
-  /* 충주캠퍼스 생활관(기숙사) · 성별에 따라 들어갈 수 있는 곳이 달라요 */
+  /* 충주캠퍼스 생활관(기숙사)
+   * 출처: 국립한국교통대학교 충주생활관 홈페이지 ‘충주생활관’ 안내(ut.ac.kr/dorm/sub01_03_01.do), 2026-11-19 확인.
+   * 사용료는 학교 표기 ‘2026학년도 2학기 기준’ 한 학기 금액. 정원은 실수×2(2인1실) 기준 */
   const dorms = [
-    { id: 'daewon', name: '대원생활관', gender: ['남', '여'] },
-    { id: 'jungwon', name: '중원생활관', gender: ['여'] },
-    { id: 'yeseong', name: '예성생활관', gender: ['남'] },
-    { id: 'gukwon', name: '국원생활관', gender: ['남'] },
+    { id: 'daewon', name: '대원생활관', gender: ['남', '여'], room: '2인1실', style: '오피스텔형', since: '2015년 개관 · 민간투자(BTL)', cap: { 남: 239, 여: 212 }, fee: 1339700, feeNote: '식비 포함 · 공과금 16만 원 별도', meal: true },
+    { id: 'jungwon', name: '중원생활관', gender: ['여'], room: '2인1실', style: '오피스텔형', since: '2011년 개관', cap: { 여: 290 }, fee: 1416800, feeNote: '식비·공과금 포함', meal: true },
+    { id: 'yeseong', name: '예성생활관', gender: ['남'], room: '2인1실', style: '아파트형', since: '2017년 내부 리모델링', cap: { 남: 264 }, fee: 1154100, feeNote: '식비·공과금 포함', meal: true, notice: '공용화장실 공사로 2026학년도 1학기 정원을 168명으로 줄여 운영했어요' },
+    { id: 'gukwon', name: '국원생활관', gender: ['남'], room: '2인1실', style: '복도형', since: '2015년 리모델링', cap: { 남: 325 }, fee: 520800, feeNote: '공과금 포함 · 식당 미운영', meal: false },
   ];
+  const dormInfo = {
+    url: 'https://www.ut.ac.kr/dorm.do',
+    meal: '식비가 포함된 생활관은 월~목 점심·저녁(주 8식)이 의무식이에요.',
+    select: '직전 학기 성적 C0 이상 중 성적순 선발(신입생은 입학 성적순). 국가유공자·기초생활수급자 등은 우선 선발. 입사 기간은 1년 단위예요.',
+    schedule: [
+      { when: '2026.7.27 ~ 8.7', what: '2026학년도 2학기 재학생 모집(지난 일정)' },
+      { when: '2026.11.16', what: '2027 충주생활관 선발·운영 FAQ 안내 공지' },
+    ],
+    roommate: '룸메이트를 서로 지정해 함께 신청할 수 있는지는 충주생활관 공지에서 확인되지 않았어요. 매 학기 모집 공고문을 확인하거나 생활관 행정실(043-841-5902~4)에 문의하세요.',
+  };
 
   const mates = [
     { id: 'm1', nick: '도서관지박령', gender: '여', dept: '컴퓨터공학과', grade: 1, dorm: '중원생활관', term: '2027-1학기', trust: 91, likedMe: true,
@@ -477,5 +489,5 @@ window.CM_DATA = (() => {
     { key: 'av1', who: '새내기기숙사', method: 'pre', file: '합격증_캡처.jpg' },
     { key: 'av2', who: '복학한기획러', method: 'card', file: '모바일학생증.png' },
   ];
-  return { dorms, staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  return { dorms, dormInfo, staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();

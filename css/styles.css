@@ -1148,3 +1148,13 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .dorm-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .dorm-pick .chip { cursor: pointer; border: 1px solid var(--line); }
 .dorm-pick .chip.on { background: var(--navy-800, #1F2440); color: #fff; border-color: transparent; }
+.dorm-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.dorm-card { display: grid; gap: 4px; padding: 14px; border-radius: 14px; background: var(--surface-2); min-width: 0; }
+.dorm-card.off { opacity: .55; }
+.dc-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.dc-fee b { font-size: 17px; }
+.dc-note { color: #A15C00; }
+.dorm-sched { display: grid; gap: 6px; margin-top: 10px; }
+.dorm-sched div { display: flex; gap: 10px; flex-wrap: wrap; }
+.dorm-sched b { min-width: 120px; }
+.dorm-panel a.link { color: var(--blue-600); text-decoration: underline; text-underline-offset: 3px; }
