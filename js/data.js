@@ -32,49 +32,57 @@ window.CM_DATA = (() => {
     { k: 'grade', label: '학년', help: '', type: 'ord', opts: ['1학년', '2학년', '3학년', '4학년', '대학원'] },
   ];
 
-  const mySurvey = { gender: '여', sleep: 2, wake: 2, smoke: 0, drink: 1, clean: 3, study: 2, noise: 3, temp: 1, guest: 1, hobby: ['운동', '카페 탐방', '영화·드라마'], dept: '경영학과', grade: 1 };
+  const mySurvey = { gender: '여', dorms: [], sleep: 2, wake: 2, smoke: 0, drink: 1, clean: 3, study: 2, noise: 3, temp: 1, guest: 1, hobby: ['운동', '카페 탐방', '영화·드라마'], dept: '경영학과', grade: 1 };
   const myWeights = { sleep: 2, wake: 1, smoke: 2, drink: 1, clean: 2, study: 1, noise: 1, temp: 1, guest: 1, hobby: 0, dept: 0, grade: 0 };
 
   const w = (o) => Object.assign({ sleep: 1, wake: 1, smoke: 1, drink: 1, clean: 1, study: 1, noise: 1, temp: 1, guest: 1, hobby: 0, dept: 0, grade: 0 }, o);
 
+  /* 충주캠퍼스 생활관(기숙사) · 성별에 따라 들어갈 수 있는 곳이 달라요 */
+  const dorms = [
+    { id: 'daewon', name: '대원생활관', gender: ['남', '여'] },
+    { id: 'jungwon', name: '중원생활관', gender: ['여'] },
+    { id: 'yeseong', name: '예성생활관', gender: ['남'] },
+    { id: 'gukwon', name: '국원생활관', gender: ['남'] },
+  ];
+
   const mates = [
-    { id: 'm1', nick: '도서관지박령', gender: '여', dept: '컴퓨터공학과', grade: 1, dorm: '생활관 2인실', term: '2027-1학기', trust: 91, likedMe: true,
+    { id: 'm1', nick: '도서관지박령', gender: '여', dept: '컴퓨터공학과', grade: 1, dorm: '중원생활관', term: '2027-1학기', trust: 91, likedMe: true,
       intro: '평일엔 도서관, 주말엔 카페 탐방해요. 방은 잠만 자는 곳이라 조용하게 지내고 싶어요.',
       answers: { sleep: 2, wake: 2, smoke: 0, drink: 1, clean: 3, study: 3, noise: 3, temp: 1, guest: 1, hobby: ['카페 탐방', '영화·드라마', '독서'], dept: '컴퓨터공학과', grade: 1 },
       weights: w({ sleep: 2, noise: 2, clean: 2 }), real: { name: '김서연', insta: '@seoyeon.lib', photoHue: 210 } },
-    { id: 'm2', nick: '주말엔본가', gender: '여', dept: '경영학과', grade: 1, dorm: '생활관 2인실', term: '2027-1학기', trust: 84, likedMe: true,
+    { id: 'm2', nick: '주말엔본가', gender: '여', dept: '경영학과', grade: 1, dorm: '대원생활관', term: '2027-1학기', trust: 84, likedMe: true,
       intro: '금요일 저녁에 본가 가서 주말엔 방을 거의 비워요. 같은 과면 더 좋아요!',
       answers: { sleep: 2, wake: 3, smoke: 0, drink: 2, clean: 3, study: 1, noise: 2, temp: 0, guest: 1, hobby: ['운동', '여행', '카페 탐방'], dept: '경영학과', grade: 1 },
       weights: w({ smoke: 2, clean: 2 }), real: { name: '이하은', insta: '@haeun_weekend', photoHue: 340 } },
-    { id: 'm3', nick: '러닝하는경영인', gender: '여', dept: '경영학과', grade: 3, dorm: '생활관 2인실', term: '2027-1학기', trust: 95, likedMe: false,
+    { id: 'm3', nick: '러닝하는경영인', gender: '여', dept: '경영학과', grade: 3, dorm: '중원생활관', term: '2027-1학기', trust: 95, likedMe: false,
       intro: '아침 러닝 크루 활동 중이에요. 기상이 조금 빠르지만 조용히 나갈게요.',
       answers: { sleep: 1, wake: 1, smoke: 0, drink: 1, clean: 3, study: 2, noise: 2, temp: 0, guest: 1, hobby: ['운동', '여행'], dept: '경영학과', grade: 3 },
       weights: w({ sleep: 2, smoke: 2 }), real: { name: '박지민', insta: '@jimin.run', photoHue: 150 } },
-    { id: 'm4', nick: '깔끔한두부', gender: '여', dept: '나노화학소재공학과', grade: 0, dorm: '생활관 2인실', term: '2027-1학기', trust: 78, likedMe: false,
+    { id: 'm4', nick: '깔끔한두부', gender: '여', dept: '나노화학소재공학과', grade: 0, dorm: '대원생활관', term: '2027-1학기', trust: 78, likedMe: false,
       intro: '새내기예요! 정리정돈 좋아하고 요리하는 것도 좋아해요.',
       answers: { sleep: 1, wake: 1, smoke: 0, drink: 0, clean: 4, study: 2, noise: 3, temp: 1, guest: 0, hobby: ['독서', '요리'], dept: '나노화학소재공학과', grade: 0 },
       weights: w({ clean: 2, guest: 2 }), real: { name: '최유나', insta: '@tofu_yuna', photoHue: 45 } },
-    { id: 'm5', nick: '아침형고양이', gender: '여', dept: '사회복지학과', grade: 2, dorm: '생활관 2인실', term: '2027-1학기', trust: 88, likedMe: false,
+    { id: 'm5', nick: '아침형고양이', gender: '여', dept: '사회복지학과', grade: 2, dorm: '중원생활관', term: '2027-1학기', trust: 88, likedMe: false,
       intro: '실습 때문에 일찍 자고 일찍 일어나요. 밤에 조용한 분이면 좋겠어요.',
       answers: { sleep: 0, wake: 0, smoke: 0, drink: 0, clean: 4, study: 2, noise: 4, temp: 2, guest: 0, hobby: ['운동', '요리'], dept: '사회복지학과', grade: 2 },
       weights: w({ sleep: 2, noise: 2 }), real: { name: '정다은', insta: '@morning_cat', photoHue: 20 } },
-    { id: 'm6', nick: '새벽감성러', gender: '여', dept: '커뮤니케이션디자인학과', grade: 2, dorm: '생활관 2인실', term: '2027-1학기', trust: 63, likedMe: true,
+    { id: 'm6', nick: '새벽감성러', gender: '여', dept: '커뮤니케이션디자인학과', grade: 2, dorm: '대원생활관', term: '2027-1학기', trust: 63, likedMe: true,
       intro: '과제 때문에 늦게 자는 편이에요. 대신 조명은 스탠드만 쓸게요.',
       answers: { sleep: 4, wake: 4, smoke: 1, drink: 2, clean: 1, study: 1, noise: 1, temp: 1, guest: 2, hobby: ['음악', '사진', '영화·드라마'], dept: '커뮤니케이션디자인학과', grade: 2 },
       weights: w({ guest: 2 }), real: { name: '한소희', insta: '@dawn.design', photoHue: 270 } },
-    { id: 'm7', nick: '축구하는공대생', gender: '남', dept: '기계공학과', grade: 1, dorm: '생활관 2인실', term: '2027-1학기', trust: 86, likedMe: true,
+    { id: 'm7', nick: '축구하는공대생', gender: '남', dept: '기계공학과', grade: 1, dorm: '예성생활관', term: '2027-1학기', trust: 86, likedMe: true,
       intro: '주 3회 축구 동아리 해요. 운동 좋아하는 분이면 같이 헬스장도 다녀요.',
       answers: { sleep: 2, wake: 2, smoke: 0, drink: 2, clean: 2, study: 1, noise: 1, temp: 0, guest: 1, hobby: ['운동', '게임'], dept: '기계공학과', grade: 1 },
       weights: w({ smoke: 2 }), real: { name: '오준혁', insta: '@junhyuk_fc', photoHue: 200 } },
-    { id: 'm8', nick: '조용한밤샘러', gender: '남', dept: '산업경영공학과', grade: 2, dorm: '생활관 2인실', term: '2027-1학기', trust: 80, likedMe: false,
+    { id: 'm8', nick: '조용한밤샘러', gender: '남', dept: '산업경영공학과', grade: 2, dorm: '국원생활관', term: '2027-1학기', trust: 80, likedMe: false,
       intro: '밤에 공부가 잘 돼서 늦게 자요. 이어폰 필수, 키보드는 무소음 씁니다.',
       answers: { sleep: 3, wake: 3, smoke: 0, drink: 0, clean: 3, study: 3, noise: 3, temp: 1, guest: 0, hobby: ['독서', '게임', '음악'], dept: '산업경영공학과', grade: 2 },
       weights: w({ noise: 2, clean: 2 }), real: { name: '윤태민', insta: '@quiet.math', photoHue: 230 } },
-    { id: 'm9', nick: '요리하는자취생', gender: '남', dept: '항공서비스학과', grade: 0, dorm: '생활관 2인실', term: '2027-1학기', trust: 75, likedMe: false,
+    { id: 'm9', nick: '요리하는자취생', gender: '남', dept: '항공서비스학과', grade: 0, dorm: '대원생활관', term: '2027-1학기', trust: 75, likedMe: false,
       intro: '공용 주방에서 요리 자주 해요. 나눠 먹는 거 좋아해요 🍳',
       answers: { sleep: 2, wake: 1, smoke: 0, drink: 1, clean: 3, study: 1, noise: 2, temp: 1, guest: 1, hobby: ['요리', '여행', '카페 탐방'], dept: '항공서비스학과', grade: 0 },
       weights: w({ clean: 2 }), real: { name: '신동우', insta: '@cook_dongwoo', photoHue: 30 } },
-    { id: 'm10', nick: '새내기기숙사', gender: '남', dept: '전자공학과', grade: 0, dorm: '생활관 2인실', term: '2027-1학기', trust: 70, likedMe: true,
+    { id: 'm10', nick: '새내기기숙사', gender: '남', dept: '전자공학과', grade: 0, dorm: '예성생활관', term: '2027-1학기', trust: 70, likedMe: true,
       intro: '처음 기숙사 살아봐요. 규칙 정해서 서로 편하게 지내고 싶습니다.',
       answers: { sleep: 3, wake: 2, smoke: 2, drink: 2, clean: 2, study: 2, noise: 2, temp: 0, guest: 2, hobby: ['게임', '영화·드라마'], dept: '전자공학과', grade: 0 },
       weights: w({}), real: { name: '강민재', insta: '@minjae_new', photoHue: 120 } },
@@ -197,7 +205,7 @@ window.CM_DATA = (() => {
       comments: [{ id: 'c22', anon: true, author: 'anon-c22', text: '모집 글에 역할 적는 거 진짜 중요하더라고요', time: '2일 전', likes: 4 }] },
     { id: 'p23', board: 'club', rating: 5, anon: true, author: 'anon-p23', title: '복학생인데 동아리 들어가도 될까 고민했던 사람', time: '3일 전', likes: 73, views: 1102, tags: ['복학생 많음', '분위기 좋음'],
       body: '박람회 때 ‘함께 갈 사람 모집’으로 만난 분이랑 같이 부스를 돌았는데, 생각보다 복학생이 많아요. 걱정 말고 지원해 보세요.', comments: [] },
-    { id: 'p29', board: 'club', rating: 4, anon: false, author: '백록관3년차', title: '가을 축제 부스 운영 후기 · 신입생도 금방 친해져요', time: '1주 전', likes: 31, views: 455, tags: ['신입생 추천', '행사 많음'],
+    { id: 'p29', board: 'club', rating: 4, anon: false, author: '국원생활관3년차', title: '가을 축제 부스 운영 후기 · 신입생도 금방 친해져요', time: '1주 전', likes: 31, views: 455, tags: ['신입생 추천', '행사 많음'],
       body: '동아리 들어간 지 한 달 만에 축제 부스를 같이 했는데 그때 확 친해졌어요. 준비 기간에 저녁 늦게까지 남아야 하는 날이 있어서 별 하나 뺐어요.', comments: [] },
     { id: 'p20', board: 'house', rating: 5, anon: true, author: 'anon-p20', title: '대소원면 원룸 양도받은 후기 · 계약 전에 이것만은 꼭', time: '3시간 전', likes: 41, views: 612, tags: ['집주인 동의 확인', '시세보다 저렴'],
       body: '이음에서 양도 글 보고 직접 방 보러 갔어요. 집주인 동의 배지가 있어서 안심했는데, 그래도 등기부등본은 따로 떼어 봤어요.\n보증금은 계약서 쓴 뒤에 집주인에게 직접 보냈고요. 실거래 시세보다 2만 원 싸게 들어갔어요!',
@@ -469,5 +477,5 @@ window.CM_DATA = (() => {
     { key: 'av1', who: '새내기기숙사', method: 'pre', file: '합격증_캡처.jpg' },
     { key: 'av2', who: '복학한기획러', method: 'card', file: '모바일학생증.png' },
   ];
-  return { staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  return { dorms, staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();

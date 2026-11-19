@@ -132,7 +132,11 @@
       .map((r) => `${r.q.label} 차이가 있어요 — 나: ${optText(r.q, r.mine)} / 상대: ${optText(r.q, r.theirs)}`);
     return { score, s1: Math.round(s1 * 100), s2: Math.round(s2 * 100), rows, reasons, cautions };
   }
-  const ranked = () => D.mates.filter((c) => c.gender === S.survey.gender && !S.blocked.includes(c.nick)).map((c) => ({ c, m: match(c) })).sort((a, b) => b.m.score - a.m.score);
+  /* 생활관: 내 성별로 들어갈 수 있는 곳만, 희망 생활관을 고르면 그곳을 원하는 후보만 보여요 */
+  const dormsFor = (g) => D.dorms.filter((d) => d.gender.includes(g));
+  const myDorms = () => (S.survey.dorms || []).filter((n) => dormsFor(S.survey.gender).some((d) => d.name === n));
+  const dormLabel = (d) => `${d.name} (${d.gender.join('·')})`;
+  const ranked = () => D.mates.filter((c) => c.gender === S.survey.gender && !S.blocked.includes(c.nick) && (!myDorms().length || myDorms().includes(c.dorm))).map((c) => ({ c, m: match(c) })).sort((a, b) => b.m.score - a.m.score);
   const isMutual = (c) => S.interests.includes(c.id) && c.likedMe;
 
   /* ───────── 매칭 흐름: 요청 → 수락 → 채팅 → 만남 체크인 → 상호 후기 → 신뢰도 ───────── */
@@ -249,7 +253,7 @@
     return `<article class="mate-card clickable" data-href="#roommate-${c.id}">
       <div class="mate-top">${avatar(c.nick)}
         <div class="who"><div class="mate-nick"><a href="#roommate-${c.id}">${esc(c.nick)}</a></div>
-        <div class="meta">${esc(c.dept)} · ${gradeLabel(c.grade)}${mutual ? ' · <b style="color:var(--mint-800)">연결됨</b>' : ''}</div></div>
+        <div class="meta">${esc(c.dept)} · ${gradeLabel(c.grade)} · ${esc(c.dorm)}${mutual ? ' · <b style="color:var(--mint-800)">연결됨</b>' : ''}</div></div>
         ${ring(m.score, 56)}</div>
       <ul class="reasons">${m.reasons.slice(0, compact ? 2 : 3).map((r) => `<li>${icon('check', 16)}${esc(r)}</li>`).join('')}</ul>
       <div class="card-actions">${mutual
@@ -423,7 +427,8 @@
     ${housingHead('roommate', '생활 습관 설문으로 <b>호환도를 자동 계산</b>하고, 후보 중 마음에 드는 사람에게 연락을 요청해요.')}
     <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><a class="btn btn-outline btn-sm" href="#roommate-survey">${icon('edit', 16)}설문 수정</a></div>
     <div class="card pad" style="display:grid;gap:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>내 생활 습관 요약</b><span class="small muted">${s.gender === '여' ? '여학생' : '남학생'} 기숙사 · 같은 성별끼리만 매칭돼요</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><b>내 생활 습관 요약</b><span class="small muted">${s.gender === '여' ? '여학생' : '남학생'} · 같은 성별, 같은 희망 생활관끼리 매칭돼요</span></div>
+      <div class="dorm-pick" role="group" aria-label="희망 생활관 빠르게 고르기"><span class="small muted">희망 생활관</span>${[['', '상관없음'], ...dormsFor(s.gender).map((d) => [d.name, d.name])].map(([v, t]) => { const on = v ? myDorms().length === 1 && myDorms()[0] === v : !myDorms().length; return `<button class="chip ${on ? 'on' : ''}" data-act="dorm-pick" data-v="${v}" aria-pressed="${on}">${t}</button>`; }).join('')}${myDorms().length > 1 ? `<span class="small muted">${myDorms().join(', ')}</span>` : ''}</div>
       <div class="chip-row">
         <span class="chip">${icon('moon', 14)}${q('sleep').opts[s.sleep]} 취침</span><span class="chip">${q('wake').opts[s.wake]} 기상</span>
         <span class="chip">${q('smoke').opts[s.smoke]}</span><span class="chip">청결 ${q('clean').opts[s.clean]}</span><span class="chip">소음 ${q('noise').opts[s.noise]}</span>
@@ -448,7 +453,7 @@
       else if (q.type === 'select') opts = `<select class="select" name="${q.k}" aria-label="${q.label}">${q.opts.map((o) => `<option ${s[q.k] === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
       else opts = `<div class="opts" role="radiogroup" aria-label="${q.label}">${q.opts.map((o, j) => `<label class="opt"><input type="radio" name="${q.k}" value="${j}" ${s[q.k] === j ? 'checked' : ''}><span>${esc(o)}</span></label>`).join('')}</div>`;
       return `<fieldset class="card q-card">
-        <legend><span class="q-num">Q${i + 2}</span>${q.label}</legend>
+        <legend><span class="q-num">Q${i + 3}</span>${q.label}</legend>
         ${q.help ? `<p class="help">${q.help}</p>` : ''}${opts}
         <div class="imp-row"><span>${icon('star', 15)}이 항목의 중요도</span>
           <div class="seg imp" role="radiogroup" aria-label="${q.label} 중요도">${IMP.map((t, j) => `<label><input type="radio" name="w_${q.k}" value="${j}" ${wt[q.k] === j ? 'checked' : ''}><span class="lv${j}">${t}</span></label>`).join('')}</div></div>
@@ -461,8 +466,10 @@
       <form data-form="survey" class="grid" style="gap:12px">
         <fieldset class="card q-card"><legend><span class="q-num">Q1</span>성별 (기숙사 배정 기준)</legend><p class="help">기숙사는 같은 성별끼리만 배정되므로 같은 성별 학생만 추천돼요.</p>
           <div class="opts">${['여', '남'].map((g) => `<label class="opt"><input type="radio" name="gender" value="${g}" ${s.gender === g ? 'checked' : ''}><span>${g}학생</span></label>`).join('')}</div></fieldset>
+        <fieldset class="card q-card"><legend><span class="q-num">Q2</span>희망 생활관 (여러 개 선택 가능)</legend><p class="help">대원생활관은 남·여, 중원생활관은 여학생, 예성·국원생활관은 남학생이 들어가요. 고르지 않으면 상관없음으로 보고, 고르면 같은 생활관을 원하는 후보만 추천해요.</p>
+          <div class="opts">${D.dorms.map((d) => { const ok = d.gender.includes(s.gender); return `<label class="opt"><input type="checkbox" name="dorms" value="${d.name}" data-g="${d.gender.join(',')}" ${ok && (s.dorms || []).includes(d.name) ? 'checked' : ''} ${ok ? '' : 'disabled'}><span>${dormLabel(d)}</span></label>`; }).join('')}</div></fieldset>
         ${qs.map(field).join('')}
-        <div class="sticky-cta"><div class="txt"><b>총 ${qs.length + 1}개 문항</b>저장하면 호환도가 바로 다시 계산돼요</div><button class="btn btn-primary btn-lg" type="submit">저장하고 결과 보기</button></div>
+        <div class="sticky-cta"><div class="txt"><b>총 ${qs.length + 2}개 문항</b>저장하면 호환도가 바로 다시 계산돼요</div><button class="btn btn-primary btn-lg" type="submit">저장하고 결과 보기</button></div>
       </form></div>`;
   }
 
@@ -2505,6 +2512,7 @@
     if (el.tagName === 'BUTTON' || act === 'close') e.preventDefault();
     switch (act) {
       case 'close': closeModal(); break;
+      case 'dorm-pick': S.survey.dorms = el.dataset.v ? [el.dataset.v] : []; save(); route(); break;
       case 'rv-write': {
         rvDraft = { board: el.dataset.board, title: el.dataset.title || '', rating: +el.dataset.rating || 5, tags: (el.dataset.tags || '').split('|').filter(Boolean) };
         closeModal(); const h = '#write-' + rvDraft.board; if (location.hash === h) route(); else location.hash = h; break;
@@ -2767,6 +2775,7 @@
     if (e.target.dataset.su === 'pre') { const sid = $('#su-sid'); sid.disabled = e.target.checked; if (e.target.checked) sid.value = ''; }
     if (e.target.dataset.su === 'all') e.target.closest('.agree-box').querySelectorAll('input[name^=a]').forEach((c) => { c.checked = e.target.checked; });
     if (e.target.id === 'k-sort') { KF.sort = e.target.value; route(); }
+    if (e.target.name === 'gender' && e.target.closest('form[data-form=survey]')) e.target.form.querySelectorAll('input[name=dorms]').forEach((c) => { const ok = c.dataset.g.split(',').includes(e.target.value); c.disabled = !ok; if (!ok) c.checked = false; });
     const inp = e.target;
     if (inp.type === 'file' && inp.dataset.preview) {
       const box = document.getElementById(inp.dataset.preview);
@@ -2782,6 +2791,7 @@
     switch (kind) {
       case 'survey': {
         const sv = { gender: fd.get('gender') };
+        sv.dorms = fd.getAll('dorms').filter((n) => dormsFor(sv.gender).some((d) => d.name === n));
         D.questions.forEach((q) => {
           if (q.type === 'multi') sv[q.k] = fd.getAll(q.k);
           else if (q.type === 'select') sv[q.k] = fd.get(q.k);

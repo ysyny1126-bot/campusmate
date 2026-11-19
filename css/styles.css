@@ -1145,3 +1145,6 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .rv-board-list a:hover { background: var(--surface-2); }
 .rv-board-list b { color: #C98400; text-align: right; }
 .rv-preview { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 14.5px; }
+.dorm-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dorm-pick .chip { cursor: pointer; border: 1px solid var(--line); }
+.dorm-pick .chip.on { background: var(--navy-800, #1F2440); color: #fff; border-color: transparent; }
