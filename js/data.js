@@ -1,5 +1,10 @@
 /* 이음 데모 더미 데이터 — 학교명·인물은 모두 가상입니다. */
 window.CM_DATA = (() => {
+  /* 예시 행사·동아리 모집·팀 모집 날짜는 ‘오늘로부터 며칠’로 계산해요. 발표 날에 열어도 지난 일정으로 바뀌지 않아요.
+   * (실제 공모전 마감일과 생활관 일정은 실제 날짜 그대로) */
+  const T0 = new Date();
+  const dPlus = (n) => { const d = new Date(T0.getFullYear(), T0.getMonth(), T0.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const today = dPlus(0);
   /* 학과 목록: 2026학년도 정시 모집단위(충주캠퍼스, 진학어플라이 경쟁률 페이지)에서 가져옴 · 2026-11-17 확인 */
   const school = { name: '국립한국교통대학교', short: '한국교통대', domain: 'ut.ac.kr', // 학생 메일 도메인은 학교 확인 후 수정
     unofficial: '국립한국교통대학교의 공식 서비스가 아닌 학생 팀 프로젝트(데모)예요.',
@@ -255,13 +260,13 @@ window.CM_DATA = (() => {
       intro: '주 2회 캠퍼스 야간 러닝, 처음 뛰는 사람도 5km 완주까지 함께해요.', day: '화·목 21:00', fee: '학기 2만원', room: '학생회관 B103',
       desc: '페이스별로 3개 조(입문·중급·마라톤)로 나눠 뛰어요. 입문 조는 걷뛰부터 시작하니 운동을 안 해봤어도 괜찮아요.\n학기마다 한 번 하프 마라톤에 단체로 나가고, 러닝 후엔 학생회관 앞에서 스트레칭하고 해산해요. 뒤풀이는 자율이에요.',
       activities: ['정기 러닝', '하프 마라톤 단체 참가', '러닝화 공동구매', '신입 입문 4주 코스'],
-      recruit: rc('open', '2026-11-30', 15, '겨울 · 2027-1학기 신입 부원 사전 모집', '러닝 경험이 있다면 알려 주세요 (없어도 괜찮아요)', ['지원서 제출', '체험 러닝 1회 참여', '최종 안내 채팅']),
+      recruit: rc('open', dPlus(20), 15, '겨울 · 2027-1학기 신입 부원 사전 모집', '러닝 경험이 있다면 알려 주세요 (없어도 괜찮아요)', ['지원서 제출', '체험 러닝 1회 참여', '최종 안내 채팅']),
       qna: [{ q: '운동을 전혀 안 해봤는데 따라갈 수 있을까요?', a: '입문 조는 1km 걷뛰부터 시작해요. 4주 뒤면 대부분 5km를 뛰어요!' }, { q: '복학생인데 나이 많아도 괜찮나요?', a: '현재 부원 중 복학생이 12명이에요. 전혀 문제없어요 :)' }] },
     { id: 'c2', name: '코드온', cat: '학술·IT', emoji: '💻', color: '#C9DAFF', members: 48, official: true, tags: ['게임'], welcome: ['신입생', '복학생'],
       intro: '비전공자도 환영하는 개발 동아리. 한 학기에 서비스 하나를 같이 만들어요.', day: '수 19:00', fee: '없음', room: '공학관 402호',
       desc: '웹·앱 개발 스터디와 팀 프로젝트를 해요. 1학기엔 기초 스터디, 2학기엔 4~5명이 팀을 꾸려 실제 서비스를 출시해요.\n복학생분들을 위한 최신 개발 트렌드 따라잡기 세션도 따로 열어요.',
       activities: ['파이썬·웹 기초 스터디', '팀 프로젝트', '교내 해커톤', '현직자 멘토링'],
-      recruit: rc('open', '2026-11-20', 20, '2027-1학기 신입 부원 모집', '만들어 보고 싶은 서비스가 있다면 적어 주세요', ['지원서 제출', '간단한 온라인 인터뷰 (10분)', '합격 안내']),
+      recruit: rc('open', dPlus(10), 20, '2027-1학기 신입 부원 모집', '만들어 보고 싶은 서비스가 있다면 적어 주세요', ['지원서 제출', '간단한 온라인 인터뷰 (10분)', '합격 안내']),
       qna: [{ q: '코딩을 한 번도 안 해봤어요.', a: '부원 절반이 비전공자예요. 기초 스터디부터 시작하니 걱정 마세요.' }] },
     { id: 'c3', name: '빛담', cat: '문화예술', emoji: '📷', color: '#F7C6E9', members: 37, official: true, tags: ['사진', '여행'], welcome: ['신입생'],
       intro: '필름·디지털 상관없이 사진 찍으러 다니는 동아리. 학기 말엔 전시회를 열어요.', day: '격주 토 13:00', fee: '학기 3만원 (암실 이용 포함)', room: '예술관 지하 암실',
@@ -273,7 +278,7 @@ window.CM_DATA = (() => {
       intro: '20년 된 중앙 밴드 동아리. 보컬·기타·베이스·드럼·키보드 세션을 모집해요.', day: '월·금 18:30', fee: '학기 5만원 (합주실 대관 포함)', room: '학생회관 B201 합주실',
       desc: '학기마다 정기 공연 한 번, 축제 무대 한 번에 서요. 세션별 선배가 1:1로 연습을 봐줘요.\n악기를 처음 잡아도 괜찮지만 주 2회 연습에는 꼭 나와 주세요.',
       activities: ['정기 공연', '축제 무대', '세션별 1:1 레슨', '버스킹'],
-      recruit: rc('open', '2026-11-25', 8, '세션별 신입 단원 모집 (오디션 없음)', '희망 세션과 다뤄 본 악기를 알려 주세요', ['지원서 제출', '합주실 견학', '세션 배정']),
+      recruit: rc('open', dPlus(15), 8, '세션별 신입 단원 모집 (오디션 없음)', '희망 세션과 다뤄 본 악기를 알려 주세요', ['지원서 제출', '합주실 견학', '세션 배정']),
       qna: [{ q: '오디션이 정말 없나요?', a: '네, 이번 모집은 오디션 없이 견학 후 세션만 정해요.' }] },
     { id: 'c5', name: '책방지기', cat: '취미·친목', emoji: '📚', color: '#C4EFD9', members: 22, official: false, tags: ['독서', '카페 탐방'], welcome: ['신입생', '복학생'],
       intro: '한 달에 한 권, 학교 앞 카페에서 느슨하게 이야기 나누는 독서 모임.', day: '매월 둘째 주 목 19:30', fee: '없음 (음료 각자)', room: '정문 앞 카페',
@@ -291,13 +296,13 @@ window.CM_DATA = (() => {
       intro: '지역 어르신 도시락 나눔과 연탄 봉사를 하는 봉사 동아리. 봉사 시간이 인정돼요.', day: '토 10:00 (월 2회)', fee: '없음', room: '학생회관 B110',
       desc: '대소원면 행정복지센터와 함께 한 달에 두 번 도시락을 만들어 배달하고, 겨울엔 연탄 나눔을 해요. 1365 봉사 시간이 인정돼요.',
       activities: ['도시락 나눔', '연탄 봉사', '교내 헌혈 캠페인'],
-      recruit: rc('open', '2026-12-05', 25, '겨울 연탄 봉사 단원 모집', '봉사 경험이 있다면 알려 주세요 (없어도 괜찮아요)', ['지원서 제출', '오리엔테이션 참석']),
+      recruit: rc('open', dPlus(25), 25, '겨울 연탄 봉사 단원 모집', '봉사 경험이 있다면 알려 주세요 (없어도 괜찮아요)', ['지원서 제출', '오리엔테이션 참석']),
       qna: [{ q: '한 번만 참여해도 되나요?', a: '단기 봉사자도 환영해요! 연탄 나눔 날만 오셔도 돼요.' }] },
     { id: 'c8', name: '슬램', cat: '운동', emoji: '🏀', color: '#FFC9A3', members: 34, official: true, tags: ['운동'], welcome: ['신입생'],
       intro: '중앙 농구 동아리. 실력 상관없이 주 2회 체육관에서 픽업 게임을 해요.', day: '월·수 20:00', fee: '학기 3만원', room: '체육관 2층',
       desc: '교내 리그와 타 대학 교류전에 나가요. 초보자는 기본기 훈련부터 같이 해요.',
       activities: ['픽업 게임', '교내 리그', '타 대학 교류전'],
-      recruit: rc('open', '2026-11-28', 10, '신입 부원 모집', '농구 경험과 희망 포지션을 알려 주세요', ['지원서 제출', '체육관 체험']),
+      recruit: rc('open', dPlus(18), 10, '신입 부원 모집', '농구 경험과 희망 포지션을 알려 주세요', ['지원서 제출', '체육관 체험']),
       qna: [] },
     { id: 'c9', name: '한입', cat: '취미·친목', emoji: '🍜', color: '#FFE2B8', members: 58, official: false, tags: ['카페 탐방', '요리', '여행'], welcome: ['신입생', '복학생'],
       intro: '학교 근처 맛집·카페를 같이 탐방하고 지도로 남기는 친목 동아리.', day: '자율 (번개 모임)', fee: '없음 (각자 계산)', room: '온라인',
@@ -314,17 +319,17 @@ window.CM_DATA = (() => {
   ];
 
   const events = [
-    { id: 'e0', date: '2026-11-05', time: '12:00–17:00', title: '가을 플리마켓 · 자취템 나눔 장터', type: '장터', place: '학생회관 앞 광장', host: '총학생회', club: null, for: ['신입생', '복학생'], going: 340 },
-    { id: 'e1', date: '2026-11-10', time: '17:00–20:00', title: '겨울 동아리 박람회', type: '박람회', place: '학생회관 앞 광장', host: '총동아리연합회', club: null, for: ['신입생', '복학생'], going: 212 },
-    { id: 'e2', date: '2026-11-11', time: '18:30–20:00', title: '복학생 학교 적응 세미나 · 바뀐 졸업요건 한눈에', type: '설명회', place: '중앙도서관 세미나실', host: '리턴즈 × 학생지원팀', club: 'c10', for: ['복학생'], going: 87 },
-    { id: 'e3', date: '2026-11-12', time: '19:00–21:00', title: '소리울 겨울 정기 공연', type: '공연', place: '대강당', host: '소리울', club: 'c4', for: ['신입생', '복학생'], going: 156 },
-    { id: 'e4', date: '2026-11-12', time: '21:00–22:00', title: '런앤런 입문 러닝 체험 (3km)', type: '체험', place: '정문 집결', host: '런앤런', club: 'c1', for: ['신입생', '복학생'], going: 34 },
-    { id: 'e5', date: '2026-11-14', time: '15:00–17:00', title: '슬램 vs 공대 농구 정기전', type: '경기', place: '체육관 1층', host: '슬램', club: 'c8', for: ['신입생'], going: 98 },
-    { id: 'e6', date: '2026-11-14', time: '13:00–17:00', title: '빛담 가을 출사 · 필름카메라 체험', type: '체험', place: '정문 버스정류장 집결', host: '빛담', club: 'c3', for: ['신입생'], going: 22 },
-    { id: 'e7', date: '2026-11-17', time: '14:00–16:00', title: '2027 예비 신입생 캠퍼스 투어', type: '투어', place: '본관 앞', host: '총학생회', club: null, for: ['신입생'], going: 143 },
-    { id: 'e8', date: '2026-11-18', time: '19:00–20:30', title: '코드온 겨울 해커톤 설명회', type: '설명회', place: '공학관 402호', host: '코드온', club: 'c2', for: ['신입생', '복학생'], going: 61 },
-    { id: 'e9', date: '2026-11-21', time: '10:00–13:00', title: '온기 연탄 나눔 봉사', type: '봉사', place: '대소원면 행정복지센터', host: '온기', club: 'c7', for: ['신입생', '복학생'], going: 47 },
-    { id: 'e10', date: '2026-11-24', time: '19:00–21:00', title: '기말 대비 모각공의 밤', type: '체험', place: '중앙도서관 그룹스터디룸', host: '리턴즈', club: 'c10', for: ['복학생'], going: 39 },
+    { id: 'e0', date: dPlus(-5), time: '12:00–17:00', title: '가을 플리마켓 · 자취템 나눔 장터', type: '장터', place: '학생회관 앞 광장', host: '총학생회', club: null, for: ['신입생', '복학생'], going: 340 },
+    { id: 'e1', date: dPlus(0), time: '17:00–20:00', title: '겨울 동아리 박람회', type: '박람회', place: '학생회관 앞 광장', host: '총동아리연합회', club: null, for: ['신입생', '복학생'], going: 212 },
+    { id: 'e2', date: dPlus(1), time: '18:30–20:00', title: '복학생 학교 적응 세미나 · 바뀐 졸업요건 한눈에', type: '설명회', place: '중앙도서관 세미나실', host: '리턴즈 × 학생지원팀', club: 'c10', for: ['복학생'], going: 87 },
+    { id: 'e3', date: dPlus(2), time: '19:00–21:00', title: '소리울 겨울 정기 공연', type: '공연', place: '대강당', host: '소리울', club: 'c4', for: ['신입생', '복학생'], going: 156 },
+    { id: 'e4', date: dPlus(2), time: '21:00–22:00', title: '런앤런 입문 러닝 체험 (3km)', type: '체험', place: '정문 집결', host: '런앤런', club: 'c1', for: ['신입생', '복학생'], going: 34 },
+    { id: 'e5', date: dPlus(4), time: '15:00–17:00', title: '슬램 vs 공대 농구 정기전', type: '경기', place: '체육관 1층', host: '슬램', club: 'c8', for: ['신입생'], going: 98 },
+    { id: 'e6', date: dPlus(4), time: '13:00–17:00', title: '빛담 가을 출사 · 필름카메라 체험', type: '체험', place: '정문 버스정류장 집결', host: '빛담', club: 'c3', for: ['신입생'], going: 22 },
+    { id: 'e7', date: dPlus(7), time: '14:00–16:00', title: '2027 예비 신입생 캠퍼스 투어', type: '투어', place: '본관 앞', host: '총학생회', club: null, for: ['신입생'], going: 143 },
+    { id: 'e8', date: dPlus(8), time: '19:00–20:30', title: '코드온 겨울 해커톤 설명회', type: '설명회', place: '공학관 402호', host: '코드온', club: 'c2', for: ['신입생', '복학생'], going: 61 },
+    { id: 'e9', date: dPlus(11), time: '10:00–13:00', title: '온기 연탄 나눔 봉사', type: '봉사', place: '대소원면 행정복지센터', host: '온기', club: 'c7', for: ['신입생', '복학생'], going: 47 },
+    { id: 'e10', date: dPlus(14), time: '19:00–21:00', title: '기말 대비 모각공의 밤', type: '체험', place: '중앙도서관 그룹스터디룸', host: '리턴즈', club: 'c10', for: ['복학생'], going: 39 },
   ];
 
   /* ── 프로젝트 · 공모전: 실제로 열린 대학생 참가 가능 공모전 (2026-11-17 공식 공고·공모전 사이트에서 확인) ──
@@ -384,35 +389,35 @@ window.CM_DATA = (() => {
   const leader = (nick, dept, trust, done, rate) => ({ nick, dept, trust, done, rate });
   const teams = [
     { id: 't1', kind: '공모전', contest: 'kr2', title: '사회보장 데이터 AI 경진대회 · 디자이너·프론트 개발자 구해요', leader: leader('데이터분석하자', '컴퓨터공학과 3학년', 90, 5, 100),
-      positions: [P('기획', 1, 1), P('디자인', 1, 0), P('프론트엔드', 2, 1), P('백엔드', 1, 1)], mode: '혼합 · 주 1회 오프라인', period: '11월 ~ 1월 (10주)', meet: '매주 수 19:00 · 중앙도서관', tools: ['Figma', 'React', 'Spring'], deadline: '2026-11-20',
+      positions: [P('기획', 1, 1), P('디자인', 1, 0), P('프론트엔드', 2, 1), P('백엔드', 1, 1)], mode: '혼합 · 주 1회 오프라인', period: '11월 ~ 1월 (10주)', meet: '매주 수 19:00 · 중앙도서관', tools: ['Figma', 'React', 'Spring'], deadline: dPlus(1),
       tags: ['비전공자 가능', '포트폴리오용'], created: '2시간 전', views: 214, applicants: 6,
       desc: '복지 서비스 신청 과정을 AI가 쉽게 안내하는 아이디어를 준비해요. 화면 시안까지 만들어 서류를 내려고 해요. 기획·백엔드는 정해졌고 디자인 1명, 프론트 1명이 더 필요해요.\n역할은 첫 회의에서 문서로 정리하고, 매주 진행 상황을 공유해요.' },
     { id: 't2', kind: '공모전', contest: 'kr4', title: '대학생 정책 아이디어 공모전 · 리서처·기획자 1명', leader: leader('픽셀장인', '커뮤니케이션디자인학과 4학년', 93, 7, 100),
-      positions: [P('기획', 1, 0), P('디자인', 2, 2)], mode: '오프라인 · 디자인관', period: '11월 ~ 12월 초 (4주)', meet: '주 2회 화·금 18:00', tools: ['Figma', 'Notion'], deadline: '2026-11-22',
+      positions: [P('기획', 1, 0), P('디자인', 2, 2)], mode: '오프라인 · 디자인관', period: '11월 ~ 12월 초 (4주)', meet: '주 2회 화·금 18:00', tools: ['Figma', 'Notion'], deadline: dPlus(3),
       tags: ['수상 경험 있는 팀'], created: '어제', views: 166, applicants: 3,
       desc: '영상은 디자인과 둘이 맡을게요. 정책 문제를 찾고 해결책을 정리해 줄 리서처·기획자를 찾아요. 전공은 상관없어요.' },
     { id: 't3', kind: '캡스톤', contest: null, title: '캡스톤 · 학교 공지 알림 앱 프론트엔드(React) 1명', leader: leader('캡스톤팀장', '컴퓨터공학과 4학년', 88, 4, 92),
-      positions: [P('기획', 1, 1), P('디자인', 1, 1), P('프론트엔드', 1, 0), P('백엔드', 1, 1)], mode: '오프라인 · 공학관', period: '12월 시연까지 (5주)', meet: '매주 월 16:00', tools: ['React', 'TypeScript', 'Firebase'], deadline: '2026-11-28',
+      positions: [P('기획', 1, 1), P('디자인', 1, 1), P('프론트엔드', 1, 0), P('백엔드', 1, 1)], mode: '오프라인 · 공학관', period: '12월 시연까지 (5주)', meet: '매주 월 16:00', tools: ['React', 'TypeScript', 'Firebase'], deadline: dPlus(9),
       tags: ['학점 연계'], created: '2일 전', views: 295, applicants: 4,
       desc: '학과·학교 공지를 모아 키워드 알림을 보내주는 앱이에요. 디자인 시안은 완성돼 있고, 화면 구현을 맡아 주실 분을 찾아요.' },
     { id: 't4', kind: '공모전', contest: 'kr1', title: '공학의 가치 숏폼 · 촬영·편집 같이 하실 분 (2명)', leader: leader('브이로그하는새내기', '한국어문학과 1학년', 79, 1, 100),
-      positions: [P('기획', 1, 1), P('영상', 2, 0)], mode: '오프라인 · 주말 촬영', period: '11월 3주 (짧게!)', meet: '토요일 오후', tools: ['Premiere Pro', 'CapCut'], deadline: '2026-11-18',
+      positions: [P('기획', 1, 1), P('영상', 2, 0)], mode: '오프라인 · 주말 촬영', period: '11월 3주 (짧게!)', meet: '토요일 오후', tools: ['Premiere Pro', 'CapCut'], deadline: dPlus(-1),
       tags: ['신입생 환영', '초보 환영'], created: '3시간 전', views: 98, applicants: 1,
       desc: '신호등·엘리베이터처럼 매일 쓰는 공학을 60초 세로 영상으로 담으려고 해요. 콘티는 제가 짜 놨어요. 같이 촬영하고 편집해 주실 분!' },
     { id: 't5', kind: '사이드 프로젝트', contest: null, title: '중고 전공책 구독 서비스 · 창업 준비 팀원 모집', leader: leader('스타트업꿈나무', '경영학과 3학년', 85, 3, 100),
-      positions: [P('기획', 1, 1), P('마케팅', 1, 0), P('프론트엔드', 1, 0), P('디자인', 1, 0)], mode: '혼합', period: '12월 대회까지 (5주)', meet: '주 1회 목 저녁', tools: ['Notion', 'Figma'], deadline: '2026-11-30',
+      positions: [P('기획', 1, 1), P('마케팅', 1, 0), P('프론트엔드', 1, 0), P('디자인', 1, 0)], mode: '혼합', period: '12월 대회까지 (5주)', meet: '주 1회 목 저녁', tools: ['Notion', 'Figma'], deadline: dPlus(11),
       tags: ['창업 관심', '비전공자 가능'], created: '5시간 전', views: 187, applicants: 2,
       desc: '학기마다 버려지는 전공책을 구독형으로 돌려 쓰는 서비스예요. 시장조사는 끝났고, 피칭 자료와 랜딩 페이지를 같이 만들 분을 찾아요.' },
     { id: 't6', kind: '사이드 프로젝트', contest: null, title: '학식 메뉴 알림 봇 같이 만들 사람 (가볍게)', leader: leader('학식평론가', '컴퓨터공학과 2학년', 82, 2, 100),
-      positions: [P('백엔드', 1, 0), P('디자인', 1, 0)], mode: '온라인', period: '겨울방학 (4주)', meet: '온라인 주 1회', tools: ['Python', 'Discord'], deadline: '2026-12-15',
+      positions: [P('백엔드', 1, 0), P('디자인', 1, 0)], mode: '온라인', period: '겨울방학 (4주)', meet: '온라인 주 1회', tools: ['Python', 'Discord'], deadline: dPlus(26),
       tags: ['부담 없이', '신입생 환영'], created: '1일 전', views: 132, applicants: 5,
       desc: '매일 아침 학생회관 학식 메뉴를 알려주는 봇이에요. 부담 없이 방학 동안 완성해 보실 분 환영해요.' },
     { id: 't7', kind: '공모전', contest: 'kr4', title: '대학생 정책 아이디어 공모전 · 주거 분야 1명만 더!', leader: leader('정책덕후', '행정학과 3학년', 91, 6, 100),
-      positions: [P('기획', 3, 2)], mode: '오프라인 · 학생회관', period: '11월 말까지 (3주)', meet: '주 2회 저녁', tools: ['Google Docs', 'PowerPoint'], deadline: '2026-11-24',
+      positions: [P('기획', 3, 2)], mode: '오프라인 · 학생회관', period: '11월 말까지 (3주)', meet: '주 2회 저녁', tools: ['Google Docs', 'PowerPoint'], deadline: dPlus(5),
       tags: ['자취생 환영'], created: '6시간 전', views: 77, applicants: 2,
       desc: '청년 1인 가구 주거 정책을 1분 영상으로 준비하고 있어요. 자취 경험이 있는 분이면 더 좋아요.' },
     { id: 't8', kind: '공모전', contest: 'kr3', title: '국세청 장려금 숏폼 공모전 팀원 모집', leader: leader('지구지킴이', '화학과 3학년', 87, 3, 100),
-      positions: [P('리서치', 2, 2)], mode: '온라인', period: '~11월 15일', meet: '온라인', tools: ['Google Docs'], deadline: '2026-11-08',
+      positions: [P('리서치', 2, 2)], mode: '온라인', period: '~11월 15일', meet: '온라인', tools: ['Google Docs'], deadline: dPlus(-11),
       tags: [], created: '1주 전', views: 140, applicants: 4, closed: true,
       desc: '모집이 마감됐어요. 관심 가져 주셔서 감사합니다!' },
   ];
@@ -489,5 +494,5 @@ window.CM_DATA = (() => {
     { key: 'av1', who: '새내기기숙사', method: 'pre', file: '합격증_캡처.jpg' },
     { key: 'av2', who: '복학한기획러', method: 'card', file: '모바일학생증.png' },
   ];
-  return { dorms, dormInfo, staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
+  return { today, dorms, dormInfo, staff, adminReports, adminUsers, adminVerify, eventMates, eventReviews, lifeSpots, taxis, deliveryCats, deliveries, externalApps, contests, contestCats, teams, roles, people, clubs, clubCats, events, school, safePlaces, questions, mySurvey, myWeights, mates, rooms, items, sellerReviews, boards, posts, me, myListings, deals, myReviews, pastReports };
 })();

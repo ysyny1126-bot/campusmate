@@ -600,7 +600,7 @@
       </div>
       <div class="fg" data-g="term">
         <div class="field"><span class="field-label">계약 기간</span>${radioChips('term', [['all', '전체'], ['short', '6개월 이하'], ['mid', '7~12개월'], ['long', '12개월 이상']], RF.term)}</div>
-        <div class="field"><label class="field-label" for="rf-from">입주 희망일</label><input class="input" id="rf-from" type="date" name="from" value="${RF.from}" min="2026-11-10"><span class="hint">이 날짜까지 입주 가능한 방만 보여요</span></div>
+        <div class="field"><label class="field-label" for="rf-from">입주 희망일</label><input class="input" id="rf-from" type="date" name="from" value="${RF.from}" min="${TODAY}"><span class="hint">이 날짜까지 입주 가능한 방만 보여요</span></div>
       </div>
       <div class="fg" data-g="more">
         <div class="field"><span class="field-label">정문까지 거리</span>${radioChips('dist', [['all', '전체'], [500, '500m'], [1000, '1km'], [2000, '2km']], RF.dist)}</div>
@@ -1423,7 +1423,7 @@
             <div class="field"><label for="rn-maint">관리비</label><div class="input-group"><input class="input" id="rn-maint" name="maint" type="number" min="0" inputmode="numeric" placeholder="7"><span class="suffix">만원</span></div></div>
           </div>
           <div class="form-grid two">
-            <div class="field"><label for="rn-avail">입주 가능일</label><input class="input" id="rn-avail" name="avail" type="date" min="2026-11-10" value="2027-01-01"></div>
+            <div class="field"><label for="rn-avail">입주 가능일</label><input class="input" id="rn-avail" name="avail" type="date" min="${TODAY}" value="2027-01-01"></div>
             <div class="field"><label for="rn-months">남은 계약 기간</label><div class="input-group"><input class="input" id="rn-months" name="months" type="number" min="1" max="24" value="12"><span class="suffix">개월</span></div></div>
           </div>
           <div class="form-grid two">
@@ -1770,11 +1770,12 @@
   }
 
   /* ── 동아리 · 행사 ── */
-  const TODAY = '2026-11-10';
+  const TODAY = D.today; /* 실제 오늘 날짜 (예시 일정도 오늘 기준으로 계산돼요) */
   const WD = ['일', '월', '화', '수', '목', '금', '토'];
   const dday = (s) => Math.round((new Date(s + 'T00:00:00') - new Date(TODAY + 'T00:00:00')) / 86400000);
-  /* 실제 공모전은 오늘 실제 날짜로 D-day를 세요 (행사·캘린더는 데모 날짜 TODAY 기준) */
+  /* 공모전 D-day도 같은 오늘 날짜 기준 */
   const cday = (s) => { const n = new Date(); return Math.round((new Date(s + 'T00:00:00') - new Date(n.getFullYear(), n.getMonth(), n.getDate())) / 86400000); };
+  const plusDays = (n) => { const d = new Date(TODAY + 'T00:00:00'); d.setDate(d.getDate() + n); return ymd(d); };
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const dayInfo = (s) => { const d = new Date(s + 'T00:00:00'); return { m: d.getMonth() + 1, d: d.getDate(), w: WD[d.getDay()] }; };
   const findClub = (id) => D.clubs.find((c) => c.id === id);
@@ -1789,7 +1790,8 @@
   }
   function recruitPill(c) {
     const r = c.recruit;
-    if (r.status === 'open') return `<span class="rpill open">모집 중 · D-${dday(r.until)}</span>`;
+    if (r.status === 'open' && dday(r.until) < 0) return '<span class="rpill closed">모집 마감</span>';
+    if (r.status === 'open') return `<span class="rpill open">모집 중 · ${dday(r.until) ? `D-${dday(r.until)}` : '오늘 마감'}</span>`;
     if (r.status === 'always') return '<span class="rpill always">상시 모집</span>';
     return '<span class="rpill closed">모집 마감</span>';
   }
@@ -1819,7 +1821,7 @@
   }
 
   function weekDays() {
-    const start = new Date('2026-11-08T00:00:00'); start.setDate(start.getDate() + evWeek * 7);
+    const start = new Date(TODAY + 'T00:00:00'); start.setDate(start.getDate() - start.getDay() + evWeek * 7);
     return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); const s = ymd(d); return { s, d: d.getDate(), m: d.getMonth() + 1, w: WD[i], has: D.events.some((e) => e.date === s) }; });
   }
   function weekStrip() {
@@ -2115,7 +2117,7 @@
         <section class="form-section"><h2><span class="num">3</span>진행 방식</h2>
           <div class="field"><span class="field-label">진행</span>${radioChips('mode', [['오프라인', '오프라인'], ['온라인', '온라인'], ['혼합', '혼합']], '혼합')}</div>
           <div class="form-grid two"><div class="field"><label for="tn-period">예상 기간</label><input class="input" id="tn-period" name="period" placeholder="예) 11월 ~ 1월 (8주)"></div>
-            <div class="field"><label for="tn-dl">모집 마감일</label><input class="input" id="tn-dl" type="date" name="deadline" min="2026-11-10" value="2026-11-24"></div></div>
+            <div class="field"><label for="tn-dl">모집 마감일</label><input class="input" id="tn-dl" type="date" name="deadline" min="${TODAY}" value="${plusDays(14)}"></div></div>
           <div class="field"><label for="tn-meet">정기 회의</label><input class="input" id="tn-meet" name="meet" placeholder="예) 매주 수 19:00 · 중앙도서관"></div>
           <div class="field"><label for="tn-tools">사용 도구 (쉼표로 구분)</label><input class="input" id="tn-tools" name="tools" placeholder="예) Figma, React, Notion"></div></section>
         <section class="form-section"><h2><span class="num">4</span>소개</h2>
@@ -3049,7 +3051,7 @@
         const t = { id: 'ut' + Date.now(), kind: fd.get('kind'), contest: fd.get('contest') || null, title,
           leader: { nick: D.me.nick, dept: `${S.survey.dept} ${D.questions.find((q) => q.k === 'grade').opts[S.survey.grade]}`, trust: myTrust(), done: 2, rate: 100 },
           positions, mode: fd.get('mode'), period: String(fd.get('period') || '').trim() || '협의', meet: String(fd.get('meet') || '').trim() || '협의',
-          tools: String(fd.get('tools') || '').split(',').map((x) => x.trim()).filter(Boolean), deadline: fd.get('deadline') || '2026-11-24',
+          tools: String(fd.get('tools') || '').split(',').map((x) => x.trim()).filter(Boolean), deadline: fd.get('deadline') || plusDays(14),
           tags: fd.getAll('tags'), created: '방금', views: 1, applicants: 0, desc: String(fd.get('desc') || '').trim() || '소개가 없어요.', mine: true, members: [],
           pending: D.people.slice(0, 3).map((pp, i) => ({ nick: pp.nick, dept: pp.dept, rate: pp.rate || 90, role: positions[i % positions.length].role, time: ['주 6시간', '주 10시간 이상', '주 3시간'][i], intro: pp.intro || '열심히 참여할게요!' })) };
         S.myTeams.unshift(t); save(); newTeamContest = ''; location.hash = '#teams-' + t.id; toast('모집글을 올렸어요. 데모 지원자 3명이 왔어요', 'users'); break;
