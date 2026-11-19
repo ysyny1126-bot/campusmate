@@ -161,6 +161,8 @@
   const allPosts = () => [...S.myPosts, ...D.posts].filter((p) => !S.blocked.includes(p.author));
   const findRoom = (id) => [...S.myRooms, ...D.rooms].find((r) => r.id === id);
   const findItem = (id) => [...S.myItems, ...D.items].find((i) => i.id === id);
+  const boardName = (k) => D.boards[k] || '기타';
+  const stars = (n) => { n = Math.max(0, Math.min(5, +n || 0)); return `<span class="stars" role="img" aria-label="별점 ${n}점">${'★'.repeat(n)}<span class="stars-off">${'★'.repeat(5 - n)}</span></span>`; };
   const findPost = (id) => [...S.myPosts, ...D.posts].find((p) => p.id === id);
   const place = (id) => D.safePlaces.find((p) => p.id === id) || D.safePlaces[0];
   const myTrust = () => Math.min(99, D.me.baseTrust + (S.verified ? 6 : 0) + (S.idVerified ? 4 : 0) + (S.myRooms.length ? 3 : 0) + S.trustBonus);
@@ -287,8 +289,9 @@
     const cc = p.comments.length + (S.comments[p.id] || []).length;
     const liked = S.likedPosts.includes(p.id);
     return `<a class="post-row" href="#post-${p.id}">
-      ${showBoard ? `<span class="board-tag">${D.boards[p.board]}</span>` : ''}
+      <div class="rv-head">${showBoard ? `<span class="board-tag">${boardName(p.board)}</span>` : ''}${p.rating ? stars(p.rating) : ''}</div>
       <h3>${esc(p.title)}</h3>
+      ${p.tags && p.tags.length ? `<div class="rv-tags">${p.tags.map((t) => `<span>#${esc(t)}</span>`).join('')}</div>` : ''}
       <div class="post-meta"><span>${p.anon ? '익명' : esc(p.author)} · ${p.time}</span>
         <span class="${p.likes > 50 ? 'hot' : ''}">${icon('heart')}${p.likes + (liked ? 1 : 0)}</span><span>${icon('chat')}${cc}</span></div></a>`;
   }
@@ -362,7 +365,7 @@
             ${best ? `<span class="tile-foot">${avatar(best.c.nick, 'sm')}<span><small>나와 가장 잘 맞는 후보</small><br>${best.m.score}% · ${esc(best.c.nick)}</span></span>` : ''}</a>
           <a class="tile t-pink" href="#taxi"><span class="tile-tag">택시 · 배달 · 중고</span><b>생활 매칭</b><span class="tile-sub">지금 모집 ${allG().filter((g) => gStatus(g) === 'recruit').length}건</span><span class="tile-ic">${icon('car', 22)}</span></a>
           <a class="tile t-lav" href="#clubs"><span class="tile-tag">신입생 · 복학생</span><b>동아리·행사</b><span class="tile-sub">모집 중 ${D.clubs.filter((c) => c.recruit.status !== 'closed').length}곳</span><span class="tile-ic">${icon('calendar', 22)}</span></a>
-          <a class="tile t-mint wide" href="#community"><span class="tile-ic">${icon('chats', 20)}</span><span style="flex:1;min-width:0"><b>커뮤니티</b><span class="tile-sub ellip">HOT · ${esc(posts[0] ? posts[0].title : '')}</span></span>${icon('right', 20)}</a>
+          <a class="tile t-mint wide" href="#reviews"><span class="tile-ic">${icon('star', 20)}</span><span style="flex:1;min-width:0"><b>후기</b><span class="tile-sub ellip">택시팟 · 스터디 · 동아리 후기 ${allPosts().length}개</span></span>${icon('right', 20)}</a>
           <a class="tile t-yellow wide" href="#contests"><span class="tile-ic">${icon('trophy', 20)}</span><span style="flex:1;min-width:0"><b>팀플 · 공모전</b><span class="tile-sub ellip">접수 중 공모전 ${D.contests.filter((k) => cday(k.deadline) >= 0).length}개 · 팀원 모집 ${allTeams().filter((t) => !t.closed).length}건</span></span>${icon('right', 20)}</a>
         </div>
       </section>
@@ -387,7 +390,7 @@
     </section>
 
     <section class="section" aria-labelledby="h-post">
-      <div class="section-head"><h2 id="h-post">지금 인기 있는 글</h2><a class="more" href="#community">전체 보기${icon('right', 16)}</a></div>
+      <div class="section-head"><h2 id="h-post">많이 본 후기</h2><a class="more" href="#reviews">전체 보기${icon('right', 16)}</a></div>
       <div class="card post-list">${posts.map((p) => postRow(p)).join('')}</div>
     </section>
 
@@ -1237,7 +1240,7 @@
       quick: ['도착했어요!', '조금 늦을 것 같아요', '끝나고 밥 먹어요'], replies: [sp(0, '좋아요!'), sp(1, '저도 가는 중이에요.'), sp(0, '입구 앞에서 기다릴게요.')] });
   }
 
-  /* ── 통합 검색: 방·택시·배달·공모전·팀·동아리·행사·커뮤니티·중고를 한 번에 ── */
+  /* ── 통합 검색: 방·택시·배달·공모전·팀·동아리·행사·후기·중고를 한 번에 ── */
   let searchQ = '';
   const hl = (t, q) => { const s0 = esc(t); if (!q) return s0; const i = s0.toLowerCase().indexOf(esc(q).toLowerCase()); return i < 0 ? s0 : `${s0.slice(0, i)}<mark>${s0.slice(i, i + esc(q).length)}</mark>${s0.slice(i + esc(q).length)}`; };
   function searchResults(q) {
@@ -1252,7 +1255,7 @@
       ['팀원 모집', 'users', allTeams().filter((t) => has(t.title, t.kind, ...t.positions.map((p) => p.role))).map((t) => [t.title, `${t.kind} · ${openSlots(t)}자리 남음`, `#teams-${t.id}`])],
       ['동아리', 'users', D.clubs.filter((c) => has(c.name, c.cat, c.intro)).map((c) => [c.name, `${c.cat} · ${c.intro}`, `#clubs-${c.id}`])],
       ['행사', 'calendar', D.events.filter((e) => has(e.title, e.place, e.type, e.host)).map((e) => [e.title, `${dayInfo(e.date).m}/${dayInfo(e.date).d} · ${e.place}`, `#event-${e.id}`])],
-      ['커뮤니티', 'chats', allPosts().filter((x) => has(x.title, x.body)).map((x) => [x.title, D.boards[x.board], `#post-${x.id}`])],
+      ['후기', 'star', allPosts().filter((x) => has(x.title, x.body)).map((x) => [x.title, boardName(x.board), `#post-${x.id}`])],
       ['중고거래', 'bag', allItems().filter((i) => has(i.title, i.cat)).map((i) => [i.title, `${i.cat} · ${won(i.price)}`, `#market-${i.id}`])],
     ].filter((g) => g[2].length);
     const total = groups.reduce((a, g) => a + g[2].length, 0);
@@ -1261,7 +1264,7 @@
       ${rows.slice(0, 5).map(([t, sub, h]) => `<a class="list-row" href="${h}"><span class="lr-body"><b>${hl(t, q)}</b><span class="small muted">${hl(sub, q)}</span></span>${icon('right', 16)}</a>`).join('')}${rows.length > 5 ? `<p class="small muted">외 ${rows.length - 5}건</p>` : ''}</section>`).join('');
   }
   function pageSearch() {
-    return `<div class="page-head"><div><h1>통합 검색</h1><p>방, 택시, 배달, 공모전, 동아리, 행사, 커뮤니티 글을 한 번에 찾아요</p></div></div>
+    return `<div class="page-head"><div><h1>통합 검색</h1><p>방, 택시, 배달, 공모전, 동아리, 행사, 후기를 한 번에 찾아요</p></div></div>
       <label class="search-box big">${icon('search', 20)}<input id="g-search" type="search" value="${esc(searchQ)}" placeholder="예) 터미널, 치킨, 디자인, 러닝, 원룸" aria-label="통합 검색" autocomplete="off"></label>
       <div class="chip-row" style="margin-top:10px">${['터미널', '치킨', '디자인', '러닝', '본리', '복학생'].map((x) => `<button class="chip" data-act="sq" data-v="${x}">${x}</button>`).join('')}</div>
       <div id="search-results">${searchResults(searchQ)}</div>${footer()}`;
@@ -1499,24 +1502,29 @@
       </form></div>`;
   }
 
-  /* ── 커뮤니티 ── */
-  function pageCommunity(board) {
+  /* ── 후기: 택시팟·배달팟·스터디·공모전·동아리·주거·중고 활동을 해 본 학생의 별점 후기 ── */
+  const avgOf = (list) => { const r = list.filter((p) => p.rating); return r.length ? (r.reduce((t, p) => t + p.rating, 0) / r.length).toFixed(1) : null; };
+  function pageReviews(board) {
     const b = D.boards[board] ? board : 'all';
     const list = allPosts().filter((p) => b === 'all' || p.board === b);
-    const hot = [...allPosts()].sort((x, y) => y.likes - x.likes).slice(0, 4);
-    return `<div class="page-head"><div><h1>커뮤니티</h1><p>${D.school.name} 인증 학생만 글을 쓸 수 있는 공간</p></div>
-      <a class="btn btn-primary" href="#write-${b === 'all' ? 'free' : b}">${icon('edit', 18)}글쓰기</a></div>
-    <div class="tabs" role="tablist" aria-label="게시판">${[['all', '전체'], ...Object.entries(D.boards)].map(([k, t]) => `<a class="tab ${b === k ? 'active' : ''}" role="tab" aria-selected="${b === k}" href="#community-${k}">${t}</a>`).join('')}</div>
+    const avg = avgOf(list);
+    const go = b === 'all' ? 'taxi' : b;
+    return `<div class="page-head"><div><h1>후기</h1><p>택시팟, 스터디, 동아리처럼 직접 해 본 학생들의 솔직한 후기</p></div>
+      <a class="btn btn-primary" href="#write-${go}">${icon('edit', 18)}후기 쓰기</a></div>
+    <div class="tabs" role="tablist" aria-label="후기 종류">${[['all', '전체'], ...Object.entries(D.boards)].map(([k, t]) => `<a class="tab ${b === k ? 'active' : ''}" role="tab" aria-selected="${b === k}" href="#reviews-${k}">${t}</a>`).join('')}</div>
     <div class="community-layout">
-      <div class="card post-list">${list.length ? list.map((p) => postRow(p, b === 'all')).join('') : `<div class="empty">${icon('chats', 40)}<b>아직 글이 없어요</b>첫 글을 남겨 보세요.</div>`}</div>
+      <div class="grid" style="gap:12px">
+        ${list.length ? `<p class="small muted rv-sum">${b === 'all' ? '전체' : boardName(b)} 후기 ${list.length}개${avg ? ` · 평균 ${stars(Math.round(avg))} <b>${avg}</b>` : ''}</p>` : ''}
+        <div class="card post-list">${list.length ? list.map((p) => postRow(p, b === 'all')).join('') : `<div class="empty">${icon('star', 40)}<b>아직 후기가 없어요</b>첫 후기를 남겨 보세요.</div>`}</div>
+      </div>
       <aside class="grid" style="gap:16px">
-        <section class="card pad"><h2 class="block-title">${icon('sparkle', 18)}HOT 게시글</h2>
-          <ol style="display:grid;gap:10px;list-style:none">${hot.map((p, i) => `<li><a href="#post-${p.id}" style="display:flex;gap:10px;font-size:14px;font-weight:600"><b style="color:var(--blue-600);width:14px">${i + 1}</b><span style="flex:1">${esc(p.title)}</span></a></li>`).join('')}</ol></section>
-        <section class="card pad"><h2 class="block-title">${icon('shield', 18)}커뮤니티 이용 규칙</h2>
-          <ul class="rules small"><li>${icon('check')}익명이어도 욕설·비하·혐오 표현 금지</li><li>${icon('check')}개인정보(실명·연락처·학번) 노출 금지</li><li>${icon('check')}신고 3회 누적 시 글이 자동으로 가려져요</li><li>${icon('check')}허위 정보·광고는 즉시 이용 제한</li></ul></section>
+        <section class="card pad"><h2 class="block-title">${icon('star', 18)}종류별 평균 별점</h2>
+          <ul class="rv-board-list">${Object.entries(D.boards).map(([k, t]) => { const l = allPosts().filter((p) => p.board === k); const a = avgOf(l); return `<li><a href="#reviews-${k}"><span>${t}</span><span class="small muted">${l.length}개</span><b>${a ? `★ ${a}` : '-'}</b></a></li>`; }).join('')}</ul></section>
+        <section class="card pad"><h2 class="block-title">${icon('shield', 18)}후기 작성 규칙</h2>
+          <ul class="rules small"><li>${icon('check')}직접 참여한 활동만 후기로 남겨요</li><li>${icon('check')}상대의 실명·연락처·학번은 적지 않아요</li><li>${icon('check')}욕설·비하 없이 사실만 솔직하게</li><li>${icon('check')}신고 3회 누적 시 후기가 자동으로 가려져요</li></ul></section>
       </aside>
     </div>
-    <a class="btn btn-primary fab" href="#write-${b === 'all' ? 'free' : b}">${icon('edit', 20)}글쓰기</a>
+    <a class="btn btn-primary fab" href="#write-${go}">${icon('edit', 20)}후기 쓰기</a>
     ${footer()}`;
   }
 
@@ -1527,10 +1535,11 @@
     const comments = [...p.comments, ...(S.comments[p.id] || [])].filter((c) => !S.blocked.includes(c.author));
     const anonIdx = {}; let n = 0;
     const cname = (c) => { if (!c.anon) return c.author; if (c.author === p.author) return '익명(글쓴이)'; if (!anonIdx[c.author]) anonIdx[c.author] = ++n; return `익명${anonIdx[c.author]}`; };
-    return `<div style="max-width:760px;margin:0 auto"><a class="back-link" href="#community-${p.board}">${icon('left', 18)}${D.boards[p.board]}</a>
+    return `<div style="max-width:760px;margin:0 auto"><a class="back-link" href="#reviews-${D.boards[p.board] ? p.board : 'all'}">${icon('left', 18)}${boardName(p.board)} 후기</a>
       <article class="card post-detail">
-        <span class="board-tag">${D.boards[p.board]}</span>
+        <div class="rv-head"><span class="board-tag">${boardName(p.board)}</span>${p.rating ? stars(p.rating) : ''}</div>
         <h1>${esc(p.title)}</h1>
+        ${p.tags && p.tags.length ? `<div class="rv-tags">${p.tags.map((t) => `<span>#${esc(t)}</span>`).join('')}</div>` : ''}
         <div class="author-card">${p.anon ? '<span class="avatar sm" style="background:#8A93A6" aria-hidden="true">익</span>' : avatar(p.author, 'sm')}<div class="who"><b style="font-size:14px">${p.anon ? '익명' : esc(p.author)}</b><div class="meta">${p.time} · 조회 ${p.views}</div></div><span class="badge b-school">${icon('shield', 13)}인증 학생</span></div>
         <div class="divider"></div>
         <p class="prose">${esc(p.body)}</p>
@@ -1555,16 +1564,18 @@
   }
 
   function pageWrite(board) {
-    if (!S.verified) return `<a class="back-link" href="#community">${icon('left', 18)}커뮤니티</a>` + gatePanel('글쓰기');
-    const b = D.boards[board] ? board : 'free';
-    return `<div class="survey-wrap"><a class="back-link" href="#community-${b}">${icon('left', 18)}커뮤니티</a>
-      <div class="page-head"><h1>글쓰기</h1></div>
+    if (!S.verified) return `<a class="back-link" href="#reviews">${icon('left', 18)}후기</a>` + gatePanel('후기 쓰기');
+    const b = D.boards[board] ? board : 'taxi';
+    return `<div class="survey-wrap"><a class="back-link" href="#reviews-${b}">${icon('left', 18)}후기</a>
+      <div class="page-head"><h1>후기 쓰기</h1></div>
       <form data-form="post" class="card form-section" novalidate>
-        <div class="field"><label for="w-board">게시판</label><select class="select" id="w-board" name="board">${Object.entries(D.boards).map(([k, t]) => `<option value="${k}" ${k === b ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-        <div class="field"><label for="w-title">제목</label><input class="input" id="w-title" name="title" maxlength="60" placeholder="제목을 입력하세요" required></div>
-        <div class="field"><label for="w-body">내용</label><textarea class="textarea" id="w-body" name="body" style="min-height:200px" placeholder="학교 생활에 도움이 되는 이야기를 나눠 주세요." required></textarea></div>
+        <div class="field"><label for="w-board">어떤 활동의 후기인가요?</label><select class="select" id="w-board" name="board">${Object.entries(D.boards).map(([k, t]) => `<option value="${k}" ${k === b ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+        <div class="field"><label for="w-title">제목</label><input class="input" id="w-title" name="title" maxlength="60" placeholder="예) 금요일 터미널 택시팟 후기" required></div>
+        <fieldset class="field" style="border:0"><legend class="field-label">별점</legend><div class="star-input" style="justify-content:flex-end">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="ws${n}" name="rating" value="${n}" ${n === 5 ? 'checked' : ''}><label for="ws${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
+        <div class="field"><label for="w-tags">한 줄 키워드 <span class="small muted">(선택 · 쉼표로 구분, 3개까지)</span></label><input class="input" id="w-tags" name="tags" maxlength="40" placeholder="예) 시간 약속 잘 지켜요, 정산 깔끔"></div>
+        <div class="field"><label for="w-body">내용</label><textarea class="textarea" id="w-body" name="body" style="min-height:200px" placeholder="좋았던 점, 아쉬웠던 점, 다음에 참여할 사람에게 줄 팁을 적어 주세요." required></textarea></div>
         <label class="switch"><span><b style="font-size:14.5px">익명으로 쓰기</b><br><span class="small muted">닉네임 대신 ‘익명’으로 표시돼요. 신고 처리 시에만 운영팀이 확인할 수 있어요.</span></span><input type="checkbox" name="anon" checked aria-label="익명으로 쓰기"></label>
-        <div class="info-box amber">${icon('alert', 18)}<span>욕설·비하, 개인정보 노출, 광고성 글은 신고 없이도 삭제될 수 있어요.</span></div>
+        <div class="info-box amber">${icon('alert', 18)}<span>욕설·비하, 상대의 개인정보 노출, 광고성 후기는 신고 없이도 삭제될 수 있어요.</span></div>
         <p class="error-text" id="post-err" role="alert"></p>
         <button class="btn btn-primary btn-lg btn-block" type="submit">등록하기</button>
       </form></div>`;
@@ -2110,7 +2121,7 @@
       <button class="btn btn-primary btn-lg btn-block" type="submit">제안 보내기</button></form>`));
   }
   function openMenu() {
-    const items = [['#clubs', 't-lav', 'calendar', '동아리·행사', '모집 · 행사 캘린더'], ['#contests', 't-yellow', 'trophy', '프로젝트·공모전', '공모전 · 팀원 모집'], ['#taxi', 't-pink', 'car', '생활 매칭', '택시 · 배달 · 중고'], ['#rooms', 't-peach', 'door', '주거', '방 · 룸메'], ['#community', 't-mint', 'chats', '커뮤니티', '팁 · 질문 · 후기'], ['#search', 't-sky', 'search', '통합 검색', '한 번에 찾기'], ['#my', 't-sky', 'user', '마이페이지', '인증 · 활동 내역'], ['#admin', 't-lav', 'shield', '운영자 화면', '데모']];
+    const items = [['#clubs', 't-lav', 'calendar', '동아리·행사', '모집 · 행사 캘린더'], ['#contests', 't-yellow', 'trophy', '프로젝트·공모전', '공모전 · 팀원 모집'], ['#taxi', 't-pink', 'car', '생활 매칭', '택시 · 배달 · 중고'], ['#rooms', 't-peach', 'door', '주거', '방 · 룸메'], ['#reviews', 't-mint', 'star', '후기', '택시팟 · 스터디 · 동아리 후기'], ['#search', 't-sky', 'search', '통합 검색', '한 번에 찾기'], ['#my', 't-sky', 'user', '마이페이지', '인증 · 활동 내역'], ['#admin', 't-lav', 'shield', '운영자 화면', '데모']];
     openModal(modalBox('전체 메뉴', `<nav class="menu-grid" aria-label="전체 메뉴">${items.map(([h, c, ic, t, s]) => `<a class="${c}" href="${h}" data-act="close-go"><span class="tile-ic" style="position:static">${icon(ic, 20)}</span><b>${t}</b><span>${s}</span></a>`).join('')}</nav>`));
   }
   function teamsMyBody() {
@@ -2232,9 +2243,9 @@
       case 'market': html = a === 'new' ? pageItemNew() : a ? (cta = true, pageItem(a)) : pageMarket(); nav = 'life'; break;
       case 'taxi': html = a === 'new' ? pageTaxiNew() : a ? pageTaxiOne(a) : pageTaxi(); nav = 'life'; break;
       case 'delivery': html = a === 'new' ? pageDeliveryNew() : a ? pageDeliveryOne(a) : pageDelivery(); nav = 'life'; break;
-      case 'community': html = pageCommunity(a); break;
-      case 'post': html = pagePost(a); nav = 'community'; break;
-      case 'write': html = pageWrite(a); nav = 'community'; break;
+      case 'community': case 'reviews': html = pageReviews(a); nav = 'reviews'; break;
+      case 'post': html = pagePost(a); nav = 'reviews'; break;
+      case 'write': html = pageWrite(a); nav = 'reviews'; break;
       case 'clubs': html = a ? (cta = true, pageClub(a)) : pageClubs(); break;
       case 'events': html = pageEvents(); nav = 'clubs'; break;
       case 'search': html = pageSearch(); nav = 'home'; break;
@@ -2264,7 +2275,7 @@
   function onHash() {
     if (location.hash === "#main") { main.focus(); return; }
     const base = location.hash.split('-')[0];
-    const sameBase = base === lastHash.split('-')[0] && /^#(my|community)$/.test(base);
+    const sameBase = base === lastHash.split('-')[0] && /^#(my|reviews|community)$/.test(base);
     lastHash = location.hash;
     route();
     if (!sameBase) {
@@ -2279,7 +2290,7 @@
     lastNav = nav;
     $$('.desk-nav a').forEach((a) => { const on = a.dataset.nav === nav; a.classList.toggle('active', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
     const tabs = [['home', 'home', '홈', 'home'], ['rooms', 'door', '주거', 'rooms'], ['contests', 'trophy', '활동', 'act'], ['taxi', 'car', '생활', 'life'], ['my', 'user', 'MY', 'my']];
-    const tabNav = nav === 'community' ? 'home' : ['teams', 'clubs'].includes(nav) ? 'act' : nav;
+    const tabNav = nav === 'reviews' ? 'home' : ['teams', 'clubs'].includes(nav) ? 'act' : nav;
     $('#tabbar').innerHTML = `<div class="tabbar-pill">${tabs.map(([k, ic, l, n]) => `<a href="#${k}" class="${tabNav === n ? 'active' : ''}" aria-label="${l}" ${tabNav === n ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span class="tl" aria-hidden="true">${l}</span></a>`).join('')}</div>`;
     $('#top-actions').innerHTML = `
       <button class="icon-btn mobile-only" data-act="menu" aria-label="전체 메뉴">${icon('grid', 22)}</button>
@@ -2949,8 +2960,10 @@
       case 'post': {
         const title = String(fd.get('title') || '').trim(), body = String(fd.get('body') || '').trim();
         if (!title || !body) { $('#post-err').textContent = '제목과 내용을 모두 입력해 주세요.'; return; }
-        const p = { id: 'up' + Date.now(), board: fd.get('board'), anon: !!fd.get('anon'), author: fd.get('anon') ? 'anon-me' : D.me.nick, title, body, time: '방금', likes: 0, views: 1, comments: [], mine: true };
-        S.myPosts.unshift(p); save(); location.hash = '#post-' + p.id; toast('글을 등록했어요'); break;
+        if (FRAUD.test(title + body)) { $('#post-err').textContent = '외부 연락처·계좌·오픈채팅 관련 문구는 후기에 쓸 수 없어요.'; return; }
+        const tags = String(fd.get('tags') || '').split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean).slice(0, 3);
+        const p = { id: 'up' + Date.now(), board: fd.get('board'), rating: Math.max(1, Math.min(5, +fd.get('rating') || 5)), tags, anon: !!fd.get('anon'), author: fd.get('anon') ? 'anon-me' : D.me.nick, title, body, time: '방금', likes: 0, views: 1, comments: [], mine: true };
+        S.myPosts.unshift(p); save(); location.hash = '#post-' + p.id; toast('후기를 등록했어요', 'star'); break;
       }
       case 'item': {
         const title = String(fd.get('title') || '').trim();

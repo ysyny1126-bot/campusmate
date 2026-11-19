@@ -174,44 +174,39 @@ window.CM_DATA = (() => {
     { from: '컴공19', stars: 4, text: '응답이 빨라서 좋았어요.', tags: ['응답이 빨라요'], when: '2개월 전' },
   ];
 
-  /* ── 커뮤니티 ── */
-  const boards = { free: '자유게시판', school: '교통대 게시판', tips: '자취·기숙사 팁', qna: '질문답변', study: '스터디 모집', lost: '분실물', rvHouse: '주거 후기', rvContest: '공모전 후기', rvClub: '동아리·행사 후기', rvLife: '택시·배달 후기' };
+  /* ── 후기 (예전 커뮤니티 자리) · 활동을 해 본 학생이 남기는 별점 후기 ── */
+  const boards = { taxi: '택시팟', delivery: '배달팟', study: '스터디', team: '공모전·팀플', club: '동아리·행사', house: '주거·룸메', market: '중고거래' };
   const posts = [
-    { id: 'p20', board: 'rvHouse', anon: true, author: 'anon-p20', title: '본리 원룸 양도받은 후기 · 계약 전에 이것만은 꼭', time: '3시간 전', likes: 41, views: 612, comments: [],
-      body: '이음에서 양도 글 보고 직접 방 보러 갔어요. 집주인 동의 배지가 있어서 안심했는데, 그래도 등기부등본은 따로 떼어 봤어요.\n보증금은 집주인 계좌로 계약서 쓴 뒤에 보냈고요. 실거래 시세보다 2만 원 싸게 들어갔어요!' },
-    { id: 'p21', board: 'rvLife', anon: true, author: 'anon-p21', title: '금요일 터미널 택시 동행 3번째 후기', time: '어제', likes: 28, views: 330, comments: [],
-      body: '정문에서 터미널까지 셋이 타면 커피 한 잔 값이에요. 미터기 금액 사진 찍어서 채팅방에 올리고 나누니까 깔끔했어요.' },
-    { id: 'p22', board: 'rvContest', anon: false, author: '데이터분석하자', title: '공공데이터 공모전 팀 꾸려서 본선까지 간 이야기', time: '2일 전', likes: 56, views: 801, comments: [],
-      body: '팀원 모집 글에 역할을 자세히 적은 게 컸어요. 첫 회의에서 할 일 목록을 같이 만들고 매주 체크했더니 아무도 빠지지 않았어요.' },
-    { id: 'p23', board: 'rvClub', anon: true, author: 'anon-p23', title: '복학생인데 동아리 들어가도 될까 고민했던 사람', time: '3일 전', likes: 73, views: 1102, comments: [],
-      body: '박람회 때 함께 갈 사람 모집으로 만난 분이랑 같이 부스 돌았는데, 생각보다 복학생 많아요. 걱정 말고 지원해 보세요.' },
-    { id: 'p24', board: 'school', anon: true, author: 'anon-p24', title: '기말 기간 중앙도서관 열람실 몇 시까지 여나요?', time: '5시간 전', likes: 12, views: 240, comments: [],
-      body: '작년엔 시험 기간에 연장 운영했던 것 같은데 올해도 그런지 아시는 분?' },
-    { id: 'p1', board: 'tips', anon: true, author: 'anon-p1', title: '생활관 2인실 소음 줄이는 꿀템 정리 (실사용 후기)', time: '25분 전', likes: 87, views: 1204,
-      body: '1년 동안 써보고 효과 있었던 것만 정리했어요.\n\n1. 문풍지 + 도어 스토퍼 — 복도 소리 확 줄어요\n2. 무소음 키보드/마우스 — 룸메가 고마워함\n3. 진동 알람 손목밴드 — 아침 알람 분쟁 종결\n4. 침대 커튼 — 조명 분리돼서 늦게 자도 덜 미안해요\n\n다들 쓰는 템 있으면 댓글로 공유해 주세요!',
-      comments: [{ id: 'c1', anon: true, author: 'anon-c1', text: '진동 알람 진짜 인정합니다… 룸메랑 싸울 일이 사라졌어요', time: '20분 전', likes: 12 }, { id: 'c2', anon: false, author: '백록관3년차', text: '침대 커튼 어디서 사셨어요?', time: '15분 전', likes: 3 }, { id: 'c3', anon: true, author: 'anon-p1', text: '글쓴이) 온라인에서 기숙사 침대 커튼 검색하면 2만원대에 있어요!', time: '10분 전', likes: 5 }] },
-    { id: 'p2', board: 'qna', anon: true, author: 'anon-p2', title: '자취방 양도받을 때 꼭 확인해야 할 것 있을까요?', time: '1시간 전', likes: 34, views: 562,
-      body: '처음으로 자취방 양도받으려고 하는데 계약 쪽을 잘 몰라서요. 집주인 동의 말고 또 뭘 확인해야 하나요?',
-      comments: [{ id: 'c4', anon: false, author: '부동산학원생', text: '등기부등본 꼭 떼보세요. 근저당 많이 잡혀 있으면 보증금 위험해요. 그리고 전입신고+확정일자는 무조건!', time: '50분 전', likes: 28 }, { id: 'c5', anon: true, author: 'anon-c5', text: '방 직접 보기 전에 가계약금 보내라는 사람은 거르세요…', time: '40분 전', likes: 19 }] },
-    { id: 'p3', board: 'study', anon: false, author: '데이터분석하자', title: '[모집] 겨울방학 SQL·파이썬 데이터분석 스터디 (4명)', time: '2시간 전', likes: 22, views: 318,
-      body: '1월 6일부터 6주간, 매주 화·목 저녁 7시 중앙도서관 그룹스터디룸에서 진행해요.\n비전공자도 환영! 마지막 주엔 공공데이터로 미니 프로젝트 하나 만들어요.\n\n관심 있으시면 댓글이나 채팅 주세요.',
-      comments: [{ id: 'c6', anon: false, author: '경영21_양도해요', text: '비전공자인데 참여 가능할까요?', time: '1시간 전', likes: 2 }] },
-    { id: 'p4', board: 'lost', anon: false, author: '학생회관지킴이', title: '[습득] 학생회관 2층에서 에어팟 프로 케이스 주웠어요', time: '3시간 전', likes: 15, views: 240,
-      body: '오늘 오후 2시쯤 학생회관 2층 휴게실에서 주웠어요. 흰색 케이스에 고양이 스티커 붙어 있습니다. 학생지원팀에 맡겨둘게요.',
-      comments: [] },
-    { id: 'p5', board: 'free', anon: true, author: 'anon-p5', title: '기말 3주 남았는데 아직 아무것도 안 함', time: '4시간 전', likes: 142, views: 2310,
-      body: '다들 진도 어디까지 나가셨나요… 저만 이런 거 아니죠?',
-      comments: [{ id: 'c7', anon: true, author: 'anon-c7', text: '아직 3주나 남았잖아요 (현실 도피)', time: '3시간 전', likes: 40 }, { id: 'c8', anon: true, author: 'anon-c8', text: '같이 도서관 가실 분 ㅠㅠ', time: '2시간 전', likes: 11 }] },
-    { id: 'p6', board: 'tips', anon: false, author: '자취5년차', title: '대소원면 원룸 관리비 평균 정리해 봤어요 (2026년 하반기)', time: '어제', likes: 96, views: 1876,
-      body: '단톡방이랑 매물 글 50개 정도 모아서 정리했어요.\n\n· 원룸: 관리비 5~8만 원 (수도·인터넷 포함이 대부분)\n· 1.5룸: 7~10만 원\n· 오피스텔: 10~15만 원 (난방 별도 많음)\n\n관리비 포함 항목 꼭 확인하세요!',
-      comments: [{ id: 'c9', anon: true, author: 'anon-c9', text: '와 이런 정리 너무 좋아요 저장합니다', time: '어제', likes: 8 }] },
-    { id: 'p7', board: 'qna', anon: true, author: 'anon-p7', title: '기숙사 2학기 재입사 신청 언제부터인가요?', time: '어제', likes: 12, views: 410,
-      body: '공지를 못 찾겠어요. 아시는 분 계신가요?',
-      comments: [{ id: 'c10', anon: false, author: '생활관조교', text: '생활관 홈페이지 공지에 12월 1일부터라고 올라와 있어요!', time: '어제', likes: 9 }] },
-    { id: 'p9', board: 'lost', anon: true, author: 'anon-p9', title: '[분실] 중앙도서관 3층에서 검정 카드지갑 잃어버렸어요', time: '2일 전', likes: 8, views: 188,
-      body: '학생증이랑 체크카드 들어있어요 ㅠ 보신 분 연락 부탁드려요.', comments: [] },
-    { id: 'p10', board: 'free', anon: false, author: '학식평론가', title: '오늘 학생회관 학식 돈까스 실화인가요', time: '3일 전', likes: 64, views: 980,
-      body: '바삭함 미쳤습니다. 내일도 나왔으면…', comments: [{ id: 'c11', anon: true, author: 'anon-c11', text: '늦게 가서 품절이었어요 ㅠㅠ', time: '3일 전', likes: 6 }] },
+    { id: 'p21', board: 'taxi', rating: 5, anon: true, author: 'anon-p21', title: '금요일 정문 → 충주공용버스터미널 택시팟 3번째 후기', time: '어제', likes: 28, views: 330, tags: ['시간 약속 잘 지켜요', '정산 깔끔'],
+      body: '셋이 타니까 한 명당 커피 한 잔 값이었어요. 도착하고 미터기 금액 사진을 채팅방에 올려서 바로 나눴고, 출발 5분 전에 다들 정문에 와 있었어요.',
+      comments: [{ id: 'c21', anon: true, author: 'anon-c21', text: '금요일 오후는 팟이 금방 차더라고요. 마감 전에 들어가세요!', time: '어제', likes: 6 }] },
+    { id: 'p25', board: 'taxi', rating: 4, anon: false, author: '충주역통학러', title: '충주역 첫차 시간 맞춰 택시팟 탔어요', time: '2일 전', likes: 15, views: 204, tags: ['새벽 출발', '안전 장소 만남'],
+      body: '아침 7시 기차라 혼자 타기 아까웠는데 같이 갈 사람을 금방 찾았어요. 한 분이 3분 늦어서 별 하나 뺐어요. 다음엔 출발 시간을 10분 여유 있게 잡을래요.', comments: [] },
+    { id: 'p26', board: 'delivery', rating: 5, anon: true, author: 'anon-p26', title: '생활관 치킨 배달팟 · 배달비 4,000원 → 1,000원', time: '5시간 전', likes: 44, views: 512, tags: ['배달비 절약', '수령 깔끔'],
+      body: '최소주문금액 맞추려고 반 마리 더 시킬 뻔했는데 넷이 모여서 해결! 생활관 1층 로비에서 받아서 바로 나눴어요. 정산은 각자 메뉴값 + 배달비 1/4.',
+      comments: [{ id: 'c26', anon: true, author: 'anon-c26', text: '야식 배달팟 자주 열렸으면 좋겠어요', time: '3시간 전', likes: 9 }] },
+    { id: 'p27', board: 'delivery', rating: 3, anon: true, author: 'anon-p27', title: '마감 직전에 한 명이 빠져서 최소금액이 모자랐어요', time: '3일 전', likes: 11, views: 190, tags: ['취소 아쉬움'],
+      body: '결국 남은 사람끼리 사이드 메뉴 하나 더 시켰어요. 그래도 취소 횟수가 쌓이면 이용이 제한된다니 앞으로는 이런 일이 줄 것 같아요.', comments: [] },
+    { id: 'p3', board: 'study', rating: 5, anon: false, author: '데이터분석하자', title: '여름방학 SQL·파이썬 스터디 6주 완주 후기', time: '1주 전', likes: 39, views: 640, tags: ['비전공자 환영', '출석률 좋음'],
+      body: '매주 화·목 저녁 중앙도서관 그룹스터디룸에서 했어요. 첫날 각자 목표를 적고 매주 한 명씩 발표했더니 6주 동안 한 명도 안 빠졌어요.\n마지막 주엔 공공데이터로 미니 프로젝트까지 만들었어요. 겨울방학에도 또 열 생각이에요!',
+      comments: [{ id: 'c6', anon: false, author: '경영21_양도해요', text: '겨울 스터디 열리면 꼭 알려 주세요!', time: '6일 전', likes: 2 }] },
+    { id: 'p28', board: 'study', rating: 4, anon: true, author: 'anon-p28', title: '전공 기말 대비 스터디 · 족보 없이도 할 만했어요', time: '4일 전', likes: 22, views: 301, tags: ['시험 대비', '역할 분담'],
+      body: '단원을 나눠서 각자 요약본을 만들고 서로 문제를 내 줬어요. 시간이 조금 부족해서 마지막 단원은 대충 넘어간 게 아쉬워요.', comments: [] },
+    { id: 'p22', board: 'team', rating: 5, anon: false, author: '데이터분석하자', title: '공공데이터 공모전 팀 꾸려서 본선까지 간 이야기', time: '2일 전', likes: 56, views: 801, tags: ['역할 분담 확실', '팀룸 활용'],
+      body: '팀원 모집 글에 역할을 자세히 적은 게 컸어요. 첫 회의에서 팀룸에 할 일 목록을 같이 만들고 매주 체크했더니 아무도 빠지지 않았어요.',
+      comments: [{ id: 'c22', anon: true, author: 'anon-c22', text: '모집 글에 역할 적는 거 진짜 중요하더라고요', time: '2일 전', likes: 4 }] },
+    { id: 'p23', board: 'club', rating: 5, anon: true, author: 'anon-p23', title: '복학생인데 동아리 들어가도 될까 고민했던 사람', time: '3일 전', likes: 73, views: 1102, tags: ['복학생 많음', '분위기 좋음'],
+      body: '박람회 때 ‘함께 갈 사람 모집’으로 만난 분이랑 같이 부스를 돌았는데, 생각보다 복학생이 많아요. 걱정 말고 지원해 보세요.', comments: [] },
+    { id: 'p29', board: 'club', rating: 4, anon: false, author: '백록관3년차', title: '가을 축제 부스 운영 후기 · 신입생도 금방 친해져요', time: '1주 전', likes: 31, views: 455, tags: ['신입생 추천', '행사 많음'],
+      body: '동아리 들어간 지 한 달 만에 축제 부스를 같이 했는데 그때 확 친해졌어요. 준비 기간에 저녁 늦게까지 남아야 하는 날이 있어서 별 하나 뺐어요.', comments: [] },
+    { id: 'p20', board: 'house', rating: 5, anon: true, author: 'anon-p20', title: '대소원면 원룸 양도받은 후기 · 계약 전에 이것만은 꼭', time: '3시간 전', likes: 41, views: 612, tags: ['집주인 동의 확인', '시세보다 저렴'],
+      body: '이음에서 양도 글 보고 직접 방 보러 갔어요. 집주인 동의 배지가 있어서 안심했는데, 그래도 등기부등본은 따로 떼어 봤어요.\n보증금은 계약서 쓴 뒤에 집주인에게 직접 보냈고요. 실거래 시세보다 2만 원 싸게 들어갔어요!',
+      comments: [{ id: 'c4', anon: false, author: '부동산학원생', text: '등기부등본 확인하신 거 잘하셨어요. 전입신고+확정일자도 꼭!', time: '2시간 전', likes: 12 }] },
+    { id: 'p1', board: 'house', rating: 4, anon: true, author: 'anon-p1', title: '생활관 룸메 매칭으로 만난 룸메 한 학기 후기', time: '1일 전', likes: 87, views: 1204, tags: ['생활 패턴 비슷', '소음 조심'],
+      body: '설문에서 취침 시간이랑 청소 주기를 ‘매우 중요’로 했더니 정말 비슷한 사람이 됐어요.\n다만 알람 소리는 서로 달라서 진동 알람으로 바꿨어요. 매칭 점수 87%였는데 체감도 그 정도!',
+      comments: [{ id: 'c1', anon: true, author: 'anon-c1', text: '진동 알람 진짜 인정합니다… 룸메랑 싸울 일이 사라졌어요', time: '20시간 전', likes: 12 }] },
+    { id: 'p30', board: 'market', rating: 5, anon: false, author: '학생회관지킴이', title: '전공책 중고거래 · 학생회관 앞에서 5분 만에 끝', time: '4시간 전', likes: 18, views: 260, tags: ['안전 장소 거래', '설명과 같음'],
+      body: '사진이랑 설명이 정확해서 따로 확인할 게 없었어요. 학생회관 앞 안전 거래 장소에서 만나서 책 상태 보고 바로 거래했어요. 선입금 요구 없어서 좋았어요.', comments: [] },
   ];
 
   /* ── 마이페이지 ── */
@@ -458,11 +453,11 @@ window.CM_DATA = (() => {
   };
 
   /* ── 운영자 데모 화면용 예시 ── */
-  const staff = [{ name: '주거 담당', area: '방·룸메' }, { name: '생활 담당', area: '택시·배달·중고' }, { name: '활동 담당', area: '공모전·동아리·행사' }, { name: '커뮤니티 담당', area: '게시판·채팅' }];
+  const staff = [{ name: '주거 담당', area: '방·룸메' }, { name: '생활 담당', area: '택시·배달·중고' }, { name: '활동 담당', area: '공모전·동아리·행사' }, { name: '후기 담당', area: '후기·댓글·채팅' }];
   const adminReports = [
     { id: 'ar1', target: '택시 동행 · 정문 → 충주역', reason: '모집자가 출발 전 선입금을 요구했어요', date: '2026.11.10', who: '익명 학생' },
     { id: 'ar2', target: '공동 주문 · 정문 치킨', reason: '음식을 받고 정산 금액을 보내지 않았어요 (미입금)', date: '2026.11.09', who: '익명 학생' },
-    { id: 'ar3', target: '커뮤니티 · “족보 팝니다 오픈채팅 문의”', reason: '스팸·광고 · 외부 메신저 유도', date: '2026.11.09', who: '익명 학생' },
+    { id: 'ar3', target: '후기 · “족보 팝니다 오픈채팅 문의”', reason: '스팸·광고 · 외부 메신저 유도', date: '2026.11.09', who: '익명 학생' },
   ];
   const adminUsers = [
     { nick: '번개취소러', cancels: 4, reports: 1, trust: 58, note: '확정 후 취소 4회 (택시 3 · 배달 1)' },
