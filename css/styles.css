@@ -1144,3 +1144,4 @@ mark { background: #FFE08A; color: inherit; border-radius: 3px; padding: 0 1px; 
 .rv-board-list a { display: grid; grid-template-columns: 1fr auto 52px; gap: 10px; align-items: center; padding: 8px 6px; border-radius: 10px; font-size: 14px; font-weight: 600; }
 .rv-board-list a:hover { background: var(--surface-2); }
 .rv-board-list b { color: #C98400; text-align: right; }
+.rv-preview { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 14.5px; }

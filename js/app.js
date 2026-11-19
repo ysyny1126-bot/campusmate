@@ -720,7 +720,7 @@
       case 'acc': return `${chatBtn}<button class="btn btn-sm btn-primary" data-act="checkin" data-key="${m.key}">${icon('pin', 15)}만남 체크인</button>`;
       case 'plan': return `${chatBtn}<button class="btn btn-sm btn-ghost" data-act="checkin" data-key="${m.key}">일정 바꾸기</button><button class="btn btn-sm btn-mint" data-act="m-met" data-key="${m.key}">${icon('check', 15)}잘 만났어요</button>`;
       case 'met': return `<button class="btn btn-sm btn-primary" data-act="m-review" data-key="${m.key}">${icon('star', 15)}후기 남기기</button>`;
-      default: return `<span class="badge b-school">${icon('check', 13)}후기 완료 · 신뢰도 +2</span>`;
+      default: return `<span class="badge b-school">${icon('check', 13)}후기 완료 · 신뢰도 +2</span>${m.review ? rvBtn(MATCH_BOARD[m.kind] || 'house', `${m.title} ${m.kind} 후기`, m.review.stars, m.review.tags) : ''}`;
     }
   }
   function matchesMyBody() {
@@ -899,7 +899,7 @@
           ? `${chatBtn}<button class="btn btn-primary" data-act="g-menu" data-id="${g.id}">${icon('utensils', 18)}${m.items && m.items.length ? '내 메뉴 수정' : '내 메뉴 담기'}</button><button class="btn btn-ghost btn-sm" data-act="g-leave" data-id="${g.id}">참여 취소</button>`
           : `${chatBtn}<button class="btn btn-mint" data-act="g-recv" data-id="${g.id}">${icon('check', 18)}음식 받았어요</button>`;
       case 'final': return `${chatBtn}<button class="btn btn-mint" data-act="g-settle" data-id="${g.id}">${icon('check', 18)}이용 완료 · 정산</button>`;
-      case 'done': return `<span class="badge b-school">${icon('check', 13)}완료 · 후기를 남겼어요</span>`;
+      case 'done': return `<span class="badge b-school">${icon('check', 13)}완료 · 후기를 남겼어요</span>${rvBtn(g.type, `${gTitle(g)} ${g.type === 'taxi' ? '택시팟' : '배달팟'} 후기`, (S.settle[g.id] || {}).stars)}`;
       case 'rejected': return '<span class="muted">정원이 차서 참여하지 못했어요.</span>';
       default: return '<span class="muted">참여를 취소했어요.</span>';
     }
@@ -1081,7 +1081,7 @@
       <h1 class="detail-title">${esc(t.title)}</h1>
       ${k ? `<a class="contest-link" href="#contests-${k.id}"><span class="cl-emoji" style="background:${k.color}" aria-hidden="true">${k.emoji}</span><span class="cl-txt"><small>참가 공모전 · 마감 ${fmtDate(k.deadline)}</small><b>${esc(k.title)}</b></span>${icon('right', 18)}</a>` : ''}
       <div class="troom-meta">${icon('calendar', 16)}<span>정기 회의 ${esc(t.meet)} · ${esc(t.mode)}</span></div>
-      <div class="troom-actions"><button class="btn btn-primary" data-act="troom-chat" data-id="${t.id}">${icon('chats', 18)}팀 채팅방</button>${done ? '' : `<button class="btn btn-outline" data-act="team-finish" data-id="${t.id}">${icon('trophy', 18)}프로젝트 마무리 · 팀원 평가</button>`}</div></section>
+      <div class="troom-actions"><button class="btn btn-primary" data-act="troom-chat" data-id="${t.id}">${icon('chats', 18)}팀 채팅방</button>${done ? rvBtn('team', `${t.title} 완주 후기`, 5, ['끝까지 완주'], 'btn-outline') : `<button class="btn btn-outline" data-act="team-finish" data-id="${t.id}">${icon('trophy', 18)}프로젝트 마무리 · 팀원 평가</button>`}</div></section>
     <div class="troom-grid">
       <section class="card pad"><div class="troom-sh"><h2 class="block-title" style="margin:0">${icon('check', 18)}할 일 ${st.done}/${st.all}</h2><span class="small muted">${st.all ? Math.round((st.done / st.all) * 100) : 0}% 완료</span></div>
         <div class="min-bar" style="margin:10px 0"><i class="ok" style="width:${st.all ? (st.done / st.all) * 100 : 0}%"></i></div>
@@ -1216,7 +1216,7 @@
           <div class="opts">${['신입생에게 추천', '복학생에게 추천', '알찼어요', '사람 많아요', '다시 갈래요'].map((t) => `<label class="opt sm"><input type="checkbox" name="tags" value="${t}"><span>${t}</span></label>`).join('')}</div>
           <textarea class="textarea" name="text" style="min-height:70px" placeholder="다음에 갈 학생에게 도움이 되는 이야기를 남겨 주세요" aria-label="후기 내용"></textarea>
           <button class="btn btn-primary" type="submit">후기 남기기</button></form>`
-        : `<p class="small muted" style="margin-top:10px">${revs.some((r) => r.mine) ? '후기를 남겼어요. 고마워요!' : '참여 예정에 넣은 행사가 시작되면 후기를 쓸 수 있어요.'}</p>`}</section>
+        : `<p class="small muted" style="margin-top:10px">${revs.some((r) => r.mine) ? `후기를 남겼어요. 고마워요! ${rvBtn('club', `${e.title} 다녀온 후기`, (revs.find((r) => r.mine) || {}).stars, (revs.find((r) => r.mine) || {}).tags || [])}` : '참여 예정에 넣은 행사가 시작되면 후기를 쓸 수 있어요.'}</p>`}</section>
     </div>
     <aside class="detail-aside"><section class="card pad g-actions">${past ? `<span class="muted">끝난 행사예요 · 후기 ${revs.length}개</span>` : `<button class="btn btn-lg ${going ? 'btn-done' : 'btn-primary'}" data-act="event-join" data-id="${e.id}" aria-pressed="${going}">${going ? `${icon('check', 18)}참여 예정` : `${icon('calendar', 18)}참여하기`}</button>`}
       ${past ? '' : `<button class="btn btn-outline" data-act="em-new" data-id="${e.id}">${icon('users', 18)}같이 갈 사람 모집</button>`}</section></aside></div>`;
@@ -1503,6 +1503,15 @@
   }
 
   /* ── 후기: 택시팟·배달팟·스터디·공모전·동아리·주거·중고 활동을 해 본 학생의 별점 후기 ── */
+  /* 활동을 마친 곳에서 ‘후기 게시판에 올리기’로 이어 줘요. 종류·제목·별점·키워드를 미리 채워 둬요 */
+  let rvDraft = null;
+  const MATCH_BOARD = { 룸메: 'house', 방: 'house', 중고: 'market' };
+  const rvBtn = (board, title, rating, tags = [], cls = 'btn-sm btn-outline') => `<button class="btn ${cls}" data-act="rv-write" data-board="${board}" data-title="${esc(title)}" data-rating="${+rating || 5}" data-tags="${esc(tags.join('|'))}">${icon('edit', 15)}후기 게시판에 올리기</button>`;
+  function offerReview(board, title, rating, tags, done) {
+    openModal(modalBox('후기 게시판에도 올릴까요?', `<p class="small muted" style="margin-bottom:12px">${done}<br>방금 남긴 별점으로 <b>${boardName(board)} 후기</b>를 쓰면 다음에 참여할 학생에게 큰 도움이 돼요.</p>
+      <div class="rv-preview"><div class="rv-head"><span class="board-tag">${boardName(board)}</span>${stars(rating)}</div><b>${esc(title)}</b>${tags.length ? `<div class="rv-tags">${tags.slice(0, 3).map((t) => `<span>#${esc(t)}</span>`).join('')}</div>` : ''}</div>`,
+      `<div class="modal-actions"><button class="btn btn-outline" data-act="close">나중에</button>${rvBtn(board, title, rating, tags, 'btn-primary')}</div>`));
+  }
   const avgOf = (list) => { const r = list.filter((p) => p.rating); return r.length ? (r.reduce((t, p) => t + p.rating, 0) / r.length).toFixed(1) : null; };
   function pageReviews(board) {
     const b = D.boards[board] ? board : 'all';
@@ -1566,13 +1575,15 @@
   function pageWrite(board) {
     if (!S.verified) return `<a class="back-link" href="#reviews">${icon('left', 18)}후기</a>` + gatePanel('후기 쓰기');
     const b = D.boards[board] ? board : 'taxi';
+    const dr = rvDraft && rvDraft.board === b ? rvDraft : null;
     return `<div class="survey-wrap"><a class="back-link" href="#reviews-${b}">${icon('left', 18)}후기</a>
       <div class="page-head"><h1>후기 쓰기</h1></div>
+      ${dr ? `<div class="info-box mint" style="margin-bottom:12px">${icon('check', 18)}<span>방금 마친 활동의 별점과 키워드를 미리 채워 뒀어요. 내용만 적으면 돼요.</span></div>` : ''}
       <form data-form="post" class="card form-section" novalidate>
         <div class="field"><label for="w-board">어떤 활동의 후기인가요?</label><select class="select" id="w-board" name="board">${Object.entries(D.boards).map(([k, t]) => `<option value="${k}" ${k === b ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
-        <div class="field"><label for="w-title">제목</label><input class="input" id="w-title" name="title" maxlength="60" placeholder="예) 금요일 터미널 택시팟 후기" required></div>
-        <fieldset class="field" style="border:0"><legend class="field-label">별점</legend><div class="star-input" style="justify-content:flex-end">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="ws${n}" name="rating" value="${n}" ${n === 5 ? 'checked' : ''}><label for="ws${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
-        <div class="field"><label for="w-tags">한 줄 키워드 <span class="small muted">(선택 · 쉼표로 구분, 3개까지)</span></label><input class="input" id="w-tags" name="tags" maxlength="40" placeholder="예) 시간 약속 잘 지켜요, 정산 깔끔"></div>
+        <div class="field"><label for="w-title">제목</label><input class="input" id="w-title" name="title" maxlength="60" placeholder="예) 금요일 터미널 택시팟 후기" value="${dr ? esc(dr.title) : ''}" required></div>
+        <fieldset class="field" style="border:0"><legend class="field-label">별점</legend><div class="star-input" style="justify-content:flex-end">${[5, 4, 3, 2, 1].map((n) => `<input type="radio" id="ws${n}" name="rating" value="${n}" ${n === (dr ? dr.rating : 5) ? 'checked' : ''}><label for="ws${n}" aria-label="${n}점">★</label>`).join('')}</div></fieldset>
+        <div class="field"><label for="w-tags">한 줄 키워드 <span class="small muted">(선택 · 쉼표로 구분, 3개까지)</span></label><input class="input" id="w-tags" name="tags" maxlength="40" placeholder="예) 시간 약속 잘 지켜요, 정산 깔끔" value="${dr ? esc(dr.tags.slice(0, 3).join(', ')) : ''}"></div>
         <div class="field"><label for="w-body">내용</label><textarea class="textarea" id="w-body" name="body" style="min-height:200px" placeholder="좋았던 점, 아쉬웠던 점, 다음에 참여할 사람에게 줄 팁을 적어 주세요." required></textarea></div>
         <label class="switch"><span><b style="font-size:14.5px">익명으로 쓰기</b><br><span class="small muted">닉네임 대신 ‘익명’으로 표시돼요. 신고 처리 시에만 운영팀이 확인할 수 있어요.</span></span><input type="checkbox" name="anon" checked aria-label="익명으로 쓰기"></label>
         <div class="info-box amber">${icon('alert', 18)}<span>욕설·비하, 상대의 개인정보 노출, 광고성 후기는 신고 없이도 삭제될 수 있어요.</span></div>
@@ -2494,6 +2505,10 @@
     if (el.tagName === 'BUTTON' || act === 'close') e.preventDefault();
     switch (act) {
       case 'close': closeModal(); break;
+      case 'rv-write': {
+        rvDraft = { board: el.dataset.board, title: el.dataset.title || '', rating: +el.dataset.rating || 5, tags: (el.dataset.tags || '').split('|').filter(Boolean) };
+        closeModal(); const h = '#write-' + rvDraft.board; if (location.hash === h) route(); else location.hash = h; break;
+      }
       case 'ob-next': obStep = Math.min(2, obStep + 1); renderOnboard(); break;
       case 'ob-type': S.stype = el.dataset.v; save(); renderOnboard(); break;
       case 'ob-go': S.onboarded = true; save(); closeModal(); if (location.hash === el.dataset.v) route(); else location.hash = el.dataset.v; break;
@@ -2839,7 +2854,7 @@
         const id2 = f.dataset.id, text = String(fd.get('text') || '').trim();
         if (FRAUD.test(text)) { toast('계좌·외부 연락처 관련 문구는 올릴 수 없어요', 'alert'); return; }
         (S.evReviews[id2] = S.evReviews[id2] || []).push({ from: D.me.nick, stars: +fd.get('stars'), text: text || '좋았어요!', tags: fd.getAll('tags'), mine: true });
-        save(); route(); toast('행사 후기를 남겼어요. 다음 참가자에게 큰 도움이 돼요', 'star'); break;
+        save(); route(); { const ev = D.events.find((x) => x.id === id2); offerReview('club', `${ev ? ev.title : '행사'} 다녀온 후기`, +fd.get('stars'), fd.getAll('tags'), '행사 후기를 남겼어요'); } break;
       }
       case 'profile': {
         const interests = fd.getAll('interests');
@@ -2860,7 +2875,7 @@
       }
       case 'team-finish': {
         S.teamDone[f.dataset.id] = { at: Date.now(), stars: Object.fromEntries([...fd.entries()].filter(([k]) => k.startsWith('r-'))) };
-        S.trustBonus += 2; save(); closeModal(); route(); toast('팀원 평가를 보냈어요. 완주가 기록되고 신뢰도가 +2 올랐어요', 'trophy'); break;
+        S.trustBonus += 2; save(); closeModal(); route(); { const t = findTeam(f.dataset.id); offerReview('team', `${t ? t.title : '팀 프로젝트'} 완주 후기`, 5, ['끝까지 완주'], '팀원 평가를 보냈어요 · 완주 기록, 신뢰도 +2'); } break;
       }
       case 'contest-report': {
         const err = $('#cr-err'), title = String(fd.get('title') || '').trim(), host = String(fd.get('host') || '').trim(), url = String(fd.get('url') || '').trim();
@@ -2917,13 +2932,13 @@
         if (sum !== total) { err.textContent = `나눈 금액 합계(${wonN(sum)})가 실제 요금(${wonN(total)})과 달라요. ‘똑같이 나누기’를 눌러 보세요.`; return; }
         S.settle[g.id] = { kind: 'taxi', total, shares, stars: +fd.get('stars'), at: Date.now() };
         if (g.mine) g.done = true; else S.gm[g.id].status = 'done';
-        S.trustBonus += 1; save(); closeModal(); route(); toast('정산을 기록하고 후기를 남겼어요 · 신뢰도 +1', 'star'); break;
+        S.trustBonus += 1; save(); closeModal(); route(); offerReview('taxi', `${gTitle(g)} 택시팟 후기`, +fd.get('stars'), ['정산 깔끔'], '정산을 기록했어요 · 신뢰도 +1'); break;
       }
       case 'g-recv': {
         const g = findG(f.dataset.id), ppl = gPeople(g), fs = ceil10(g.fee / ppl.length);
         S.settle[g.id] = { kind: 'delivery', total: orderTotal(g) + g.fee, shares: ppl.map((pp) => ({ nick: pp.nick, amount: itemsSum(pp.items) + fs })), stars: +fd.get('stars'), at: Date.now() };
         if (g.mine) g.done = true; else S.gm[g.id].status = 'done';
-        S.trustBonus += 1; save(); closeModal(); route(); toast('공동 주문을 완료했어요 · 신뢰도 +1', 'star'); break;
+        S.trustBonus += 1; save(); closeModal(); route(); offerReview('delivery', `${gTitle(g)} 배달팟 후기`, +fd.get('stars'), ['배달비 절약'], '공동 주문을 완료했어요 · 신뢰도 +1'); break;
       }
       case 'checkin': {
         const m = S.matches[f.dataset.key], err = $('#ci-err');
@@ -2944,11 +2959,11 @@
         const m = S.matches[f.dataset.key];
         m.stage = 'done'; m.review = { stars: +fd.get('stars'), tags: fd.getAll('tags'), text: String(fd.get('text') || '') };
         S.trustBonus += 2; save(); closeModal(); route();
-        toast(`${m.with}님도 후기를 남겨 서로 공개됐어요. 신뢰도 +2`, 'star'); break;
+        offerReview(MATCH_BOARD[m.kind] || 'house', `${m.title} ${m.kind} 후기`, m.review.stars, m.review.tags, `${esc(m.with)}님도 후기를 남겨 서로 공개됐어요 · 신뢰도 +2`); break;
       }
       case 'review': {
         S.reviewed.push(f.dataset.id); S.trustBonus += 2; save(); closeModal(); route();
-        toast('후기를 보냈어요. 상대도 후기를 남겨 신뢰도가 +2 올랐어요', 'star'); break;
+        { const d = D.deals.find((x) => x.id === f.dataset.id); offerReview('market', `${d ? d.title : '중고'} 거래 후기`, +fd.get('stars'), fd.getAll('tags'), '거래 후기를 보냈어요 · 신뢰도 +2'); } break;
       }
       case 'comment': {
         if (needVerify('댓글 쓰기')) return;
@@ -2963,7 +2978,7 @@
         if (FRAUD.test(title + body)) { $('#post-err').textContent = '외부 연락처·계좌·오픈채팅 관련 문구는 후기에 쓸 수 없어요.'; return; }
         const tags = String(fd.get('tags') || '').split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean).slice(0, 3);
         const p = { id: 'up' + Date.now(), board: fd.get('board'), rating: Math.max(1, Math.min(5, +fd.get('rating') || 5)), tags, anon: !!fd.get('anon'), author: fd.get('anon') ? 'anon-me' : D.me.nick, title, body, time: '방금', likes: 0, views: 1, comments: [], mine: true };
-        S.myPosts.unshift(p); save(); location.hash = '#post-' + p.id; toast('후기를 등록했어요', 'star'); break;
+        rvDraft = null; S.myPosts.unshift(p); save(); location.hash = '#post-' + p.id; toast('후기를 등록했어요', 'star'); break;
       }
       case 'item': {
         const title = String(fd.get('title') || '').trim();
